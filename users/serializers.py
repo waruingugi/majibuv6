@@ -2,10 +2,15 @@ from random_username.generate import generate_username
 from rest_framework import serializers
 
 from users.models import User
+from users.utils import PhoneNumberValidator
 
 
 class UserSerializer(serializers.ModelSerializer):
     """User fields required when making a request."""
+
+    phone_number = serializers.CharField(
+        required=True, validators=[PhoneNumberValidator()]
+    )
 
     class Meta:
         model = User
@@ -17,6 +22,7 @@ class UserSerializer(serializers.ModelSerializer):
             "phone_number",
             "password",
             "is_active",
+            "is_verified",
             "is_staff",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
@@ -45,7 +51,9 @@ class UserSerializer(serializers.ModelSerializer):
 
     def validate_phone_number(self, phone_number):
         """Phone number can not be updated once user is created"""
-        pass
+        validator = PhoneNumberValidator()
+        return validator(phone_number)
+
         # if self.instance and phone_number != self.instance.phone_number:
         #     raise serializers.ValidationError("Phone number can not be edited.")
         # return phone_number
