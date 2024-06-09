@@ -23,7 +23,7 @@ class UserManager(BaseUserManager):
         if not phone_number:
             raise ValueError("The Phone number field must be set")
 
-        user = self.model(phone_number=phone_number)
+        user = self.model(phone_number=phone_number, **extra_fields)
         user.set_password(password)  # type: ignore
         user.save(using=self.db)
 
@@ -49,7 +49,7 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin, Base):
     """The default user model"""
 
-    username = models.CharField(unique=True, null=True)
+    username = models.CharField(max_length=255, unique=True, null=True)
     phone_number = PhoneNumberField(blank=False, unique=True)
     is_verified = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)

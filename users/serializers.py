@@ -36,6 +36,8 @@ class UserSerializer(serializers.ModelSerializer):
             return username
 
         else:
+            if len(username) > 15:
+                raise serializers.ValidationError("This username is too long")
             # Check if the provided username is unique
             if User.objects.filter(username=username).exists():
                 raise serializers.ValidationError("This username is already taken.")
