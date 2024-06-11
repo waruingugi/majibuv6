@@ -20,7 +20,7 @@ class UserListAPIView(ListAPIView):
     pass
 
 
-class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
+class UserRetrieveUpdateAPIView(UserBaseView, RetrieveUpdateAPIView):
     """Retrieve a user."""
 
     lookup_field = "id"

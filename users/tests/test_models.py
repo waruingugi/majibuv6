@@ -6,6 +6,7 @@ User = get_user_model()
 
 class UserModelTests(TestCase):
     def setUp(self) -> None:
+        """Set up test data."""
         self.test_phone_number = "+254701301401"
         self.test_password = "password123"
         self.test_username = "testuser"

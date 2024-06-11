@@ -63,5 +63,6 @@ repos:
             whitenoise,
             sentry-sdk,
             django-phonenumber-field,
-            phonenumbers
+            phonenumbers,
+            random-username
         ]

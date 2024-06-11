@@ -2,14 +2,21 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from commons.constants import MAX_USERNAME_LEN, MIN_USERNAME_LEN
+from users.models import User
 
-class UserCreateAPIViewTest(APITestCase):
+
+class UserCreateTests(APITestCase):
     def setUp(self) -> None:
         self.create_url = reverse("users:user-create")
 
     def test_view_creates_user_successfully(self) -> None:
         """Assert endpoint creates user successfully."""
-        data = {"phone_number": "0703245678", "password": "password123"}
+        data = {
+            "phone_number": "0703245678",
+            "username": "stacy",
+            "password": "password123",
+        }
 
         response = self.client.post(self.create_url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -19,11 +26,83 @@ class UserCreateAPIViewTest(APITestCase):
         self.assertFalse(response.data["is_verified"])
         self.assertFalse(response.data["is_active"])
 
-    def test_create_view_fails_on_missing_phone_number(self) -> None:
-        """Assert endpoint fails if"""
+    def test_view_generates_default_username(self) -> None:
+        """Assert a default username is generated if the field is not defined."""
+        data = {"phone_number": "0703245674", "password": "password124"}
+        response = self.client.post(self.create_url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIsNotNone(response.data["username"])
+
+    def test_view_fails_if_username_is_too_long(self) -> None:
+        """Assert username does not exceed maximum string length."""
+        username = "a" * (MAX_USERNAME_LEN + 1)
+        data = {
+            "phone_number": "0703245674",
+            "username": username,
+            "password": "password124",
+        }
+        response = self.client.post(self.create_url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_view_fails_if_username_is_too_short(self) -> None:
+        """Assert username is not below minimum string length."""
+        username = "a" * (MIN_USERNAME_LEN - 1)
+        data = {
+            "phone_number": "0703245674",
+            "username": username,
+            "password": "password124",
+        }
+        response = self.client.post(self.create_url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_view_fails_if_username_has_special_characters(self) -> None:
+        """Assert username is not below minimum string length."""
+        username = "testuser*"
+        data = {
+            "phone_number": "0703245674",
+            "username": username,
+            "password": "password124",
+        }
+        response = self.client.post(self.create_url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_view_fails_if_phone_number_field_is_missing(self) -> None:
+        """Assert validation error is raised if phone number field is missing."""
         data = {
             "password": "password123",
         }
-        response = self.client.post(self.create_url, data, format="json")
+        response = self.client.post(self.create_url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("phone_number", response.data)
+
+    def test_view_fails_if_phone_number_is_not_valid(self) -> None:
+        """Assert validation error is raise if phone number is invalid."""
+        data = {"phone_number": "070324", "password": "password124"}
+        response = self.client.post(self.create_url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class UserUpdateTests(APITestCase):
+    def setUp(self) -> None:
+        self.user = User.objects.create_user(
+            phone_number="+254703456781",
+            password="password456",
+            username="testuser1",
+        )
+        self.update_url = reverse("users:user-detail", kwargs={"id": self.user.id})
+
+    # def test_user_can_not_update_phone_number_field(self) -> None:
+    #     """Assert the phone number field can not be edited."""
+    #     data = {"phone_number": "+254703456782"}
+    #     response = self.client.put(self.update_url, data)
+    #     self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    #     self.assertIn("phone_number", response.data)
+
+    # def test_user_can_update_username_field(self) -> None:
+    #     data = {"phone_number": "+254703456781", "username": "testuser2"}
+    #     response = self.client.put(self.update_url, data)
+    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    #     self.user.refresh_from_db()
+    #     self.assertEqual(self.user.username, "testuser2")
+    #     self.assertEqual(self.user.username, "+254703456781")
