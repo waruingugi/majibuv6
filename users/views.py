@@ -5,13 +5,19 @@ from rest_framework.generics import (
     RetrieveUpdateAPIView,
 )
 
-from users.base_views import UserBaseView
+from users.models import User
+from users.serializers import (
+    AdminUserUpdateSerializer,
+    UserCreateSerializer,
+    UserUpdateSerializer,
+)
 
 
-class UserCreateAPIView(UserBaseView, CreateAPIView):
+class UserCreateAPIView(CreateAPIView):
     """Create a user."""
 
-    pass
+    queryset = User.objects.all()
+    serializer_class = UserCreateSerializer
 
 
 class UserListAPIView(ListAPIView):
@@ -20,10 +26,16 @@ class UserListAPIView(ListAPIView):
     pass
 
 
-class UserRetrieveUpdateAPIView(UserBaseView, RetrieveUpdateAPIView):
+class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
     """Retrieve a user."""
 
     lookup_field = "id"
+    queryset = User.objects.all()
+
+    def get_serializer_class(self):
+        if self.request.user.is_staff:
+            return AdminUserUpdateSerializer
+        return UserUpdateSerializer
 
 
 class UserDeleteAPIView(DestroyAPIView):

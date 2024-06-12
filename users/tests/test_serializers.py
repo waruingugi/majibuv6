@@ -91,18 +91,35 @@ class UserUpdateTests(APITestCase):
         )
         self.update_url = reverse("users:user-detail", kwargs={"id": self.user.id})
 
-    # def test_user_can_not_update_phone_number_field(self) -> None:
-    #     """Assert the phone number field can not be edited."""
-    #     data = {"phone_number": "+254703456782"}
-    #     response = self.client.put(self.update_url, data)
-    #     self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-    #     self.assertIn("phone_number", response.data)
+    def test_user_can_not_update_phone_number_field(self) -> None:
+        """Assert the phone number field can not be edited."""
+        data = {"phone_number": "+254703456782"}
+        response = self.client.put(self.update_url, data)
+        self.assertNotIn("phone_number", response.data)
 
-    # def test_user_can_update_username_field(self) -> None:
-    #     data = {"phone_number": "+254703456781", "username": "testuser2"}
-    #     response = self.client.put(self.update_url, data)
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.phone_number, "+254703456781")
 
-    #     self.user.refresh_from_db()
-    #     self.assertEqual(self.user.username, "testuser2")
-    #     self.assertEqual(self.user.username, "+254703456781")
+    def test_user_can_update_username_field(self) -> None:
+        """Assert user can update their own username"""
+        data = {"username": "testuser2"}
+        response = self.client.put(self.update_url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.username, "testuser2")
+
+    def test_user_can_not_update_to_existing_username(self) -> None:
+        """Assert updating to username that exists fails."""
+        prev_username = self.user.username
+        User.objects.create_user(
+            phone_number="+254703456785",
+            password="password455",
+            username="testuser5",
+        )
+        data = {"username": "testuser5"}
+        response = self.client.put(self.update_url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.username, prev_username)

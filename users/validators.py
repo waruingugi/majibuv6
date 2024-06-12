@@ -59,7 +59,7 @@ class UsernameValidator:
         self.max_len = max_length
         self.min_len = minimum_length
 
-    def __call__(self, username) -> str | None:
+    def __call__(self, username) -> None:
         if len(username) < self.min_len:
             raise serializers.ValidationError("This username is too short.")
 
@@ -73,5 +73,3 @@ class UsernameValidator:
 
         if User.objects.filter(username=username).exists():
             raise serializers.ValidationError("This username is already taken.")
-
-        return username
