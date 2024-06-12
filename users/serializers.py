@@ -1,13 +1,15 @@
+from phonenumbers import PhoneNumberFormat, format_number
+from phonenumbers import parse as parse_phone_number
 from rest_framework import serializers
 
+from commons.constants import DEFAULT_COUNTRY_CODE
 from users.models import User
 from users.validators import PhoneNumberValidator, UsernameValidator
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
     phone_number = serializers.CharField(
-        required=True,
-        validators=[PhoneNumberValidator()],  # type: ignore
+        required=True, validators=[PhoneNumberValidator()]
     )
     username = serializers.CharField(required=False, validators=[UsernameValidator()])
 
@@ -29,6 +31,15 @@ class UserCreateSerializer(serializers.ModelSerializer):
             "username": {"required": False},
             "password": {"write_only": True},
         }
+
+    def validate_phone_number(self, phone):
+        """Change phone number input to international format: +254702005008"""
+        try:
+            parsed_phone = parse_phone_number(phone, DEFAULT_COUNTRY_CODE)
+
+            return format_number(parsed_phone, PhoneNumberFormat.E164)
+        except Exception:
+            raise serializers.ValidationError("This phone number is not valid.")
 
 
 class BaseUserUpdateSerializer(serializers.ModelSerializer):

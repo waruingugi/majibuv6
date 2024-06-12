@@ -76,7 +76,7 @@ class UserCreateTests(APITestCase):
         self.assertIn("phone_number", response.data)
 
     def test_view_fails_if_phone_number_is_not_valid(self) -> None:
-        """Assert validation error is raise if phone number is invalid."""
+        """Assert validation error is raised if phone number is invalid."""
         data = {"phone_number": "070324", "password": "password124"}
         response = self.client.post(self.create_url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -109,7 +109,7 @@ class UserUpdateTests(APITestCase):
         self.user.refresh_from_db()
         self.assertEqual(self.user.username, "testuser2")
 
-    def test_user_can_not_update_to_existing_username(self) -> None:
+    def test_view_fails_to_update_if_username_exists(self) -> None:
         """Assert updating to username that exists fails."""
         prev_username = self.user.username
         User.objects.create_user(
