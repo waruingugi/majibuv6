@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     # Apps
     "users",
     "commons",
+    "notifications",
 ]
 
 MIDDLEWARE = [
