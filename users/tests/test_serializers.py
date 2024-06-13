@@ -89,7 +89,7 @@ class UserUpdateTests(APITestCase):
             password="password456",
             username="testuser1",
         )
-        self.update_url = reverse("users:user-detail", kwargs={"id": self.user.id})
+        self.detail_url = reverse("users:user-detail", kwargs={"id": self.user.id})
 
     def test_user_can_not_update_read_only_fields(self) -> None:
         """Assert the phone number field can not be edited."""
@@ -99,7 +99,7 @@ class UserUpdateTests(APITestCase):
             "is_active": True,
             "is_verified": True,
         }
-        response = self.client.put(self.update_url, data)
+        response = self.client.put(self.detail_url, data)
 
         self.user.refresh_from_db()
         self.assertEqual(self.user.phone_number, "+254703456781")
@@ -110,7 +110,7 @@ class UserUpdateTests(APITestCase):
     def test_user_can_update_username_field(self) -> None:
         """Assert user can update their own username"""
         data = {"username": "testuser2"}
-        response = self.client.put(self.update_url, data)
+        response = self.client.put(self.detail_url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.user.refresh_from_db()
@@ -125,8 +125,19 @@ class UserUpdateTests(APITestCase):
             username="testuser5",
         )
         data = {"username": "testuser5"}
-        response = self.client.put(self.update_url, data)
+        response = self.client.put(self.detail_url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         self.user.refresh_from_db()
         self.assertEqual(self.user.username, prev_username)
+
+    def test_view_retrieves_user_data(self) -> None:
+        """Assert expected fields are returned in detail view."""
+        response = self.client.put(self.detail_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("id", response.data)
+        self.assertIn("phone_number", response.data)
+        self.assertIn("username", response.data)
+        self.assertIn("is_verified", response.data)
+        self.assertIn("is_active", response.data)
+        self.assertIn("is_staff", response.data)
