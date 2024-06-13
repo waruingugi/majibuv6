@@ -7,7 +7,7 @@ from phonenumbers import (
 from phonenumbers import parse as parse_phone_number
 from rest_framework import serializers
 
-from commons.constants import DEFAULT_COUNTRY_CODE, MAX_USERNAME_LEN, MIN_USERNAME_LEN
+from users.constants import DEFAULT_COUNTRY_CODE, MAX_USERNAME_LEN, MIN_USERNAME_LEN
 from users.models import User
 
 

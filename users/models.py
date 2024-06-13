@@ -10,8 +10,8 @@ from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 from random_username.generate import generate_username
 
-from commons.constants import MAX_USERNAME_LEN, MIN_USERNAME_LEN
 from commons.models import Base
+from users.constants import MAX_USERNAME_LEN, MIN_USERNAME_LEN
 
 
 def username_generator(

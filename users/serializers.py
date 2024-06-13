@@ -1,7 +1,7 @@
 from phonenumbers import PhoneNumberFormat, format_number, parse
 from rest_framework import serializers
 
-from commons.constants import DEFAULT_COUNTRY_CODE
+from users.constants import DEFAULT_COUNTRY_CODE
 from users.models import User
 from users.validators import PhoneNumberValidator, UsernameValidator
 

@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from commons.constants import MAX_USERNAME_LEN, MIN_USERNAME_LEN
+from users.constants import MAX_USERNAME_LEN, MIN_USERNAME_LEN
 from users.models import User
 
 
