@@ -141,3 +141,19 @@ class UserUpdateTests(APITestCase):
         self.assertIn("is_verified", response.data)
         self.assertIn("is_active", response.data)
         self.assertIn("is_staff", response.data)
+
+
+class UserListAPIViewTest(APITestCase):
+    def setUp(self):
+        self.user1 = User.objects.create_user(
+            phone_number="+254703456785", password="password123", username="testuser1"
+        )
+        self.user2 = User.objects.create_user(
+            phone_number="+254703456781", password="password456", username="testuser2"
+        )
+        self.list_url = reverse("users:user-list")
+
+    def test_view_returns_list_of_users(self) -> None:
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)

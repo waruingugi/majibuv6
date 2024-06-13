@@ -42,7 +42,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("This phone number is not valid.")
 
 
-class BaseUserUpdateSerializer(serializers.ModelSerializer):
+class BaseUserDetailSerializer(serializers.ModelSerializer):
     username = serializers.CharField(required=False, validators=[UsernameValidator()])
 
     class Meta:
@@ -59,8 +59,8 @@ class BaseUserUpdateSerializer(serializers.ModelSerializer):
         ]
 
 
-class UserUpdateSerializer(BaseUserUpdateSerializer):
-    class Meta(BaseUserUpdateSerializer.Meta):
+class UserRetrieveUpdateSerializer(BaseUserDetailSerializer):
+    class Meta(BaseUserDetailSerializer.Meta):
         read_only_fields = (
             "id",
             "created_at",
@@ -72,8 +72,22 @@ class UserUpdateSerializer(BaseUserUpdateSerializer):
         )
 
 
-class AdminUserUpdateSerializer(BaseUserUpdateSerializer):
-    class Meta(BaseUserUpdateSerializer.Meta):
-        """Admin can edit any of the fields"""
+class StaffUserRetrieveUpdateSerializer(BaseUserDetailSerializer):
+    class Meta(BaseUserDetailSerializer.Meta):
+        """Staff can edit any of the fields except those specified below."""
 
         read_only_fields = ("id", "created_at", "updated_at")
+
+
+class UserListSerializer(BaseUserDetailSerializer):
+    class Meta(BaseUserDetailSerializer.Meta):
+        read_only_fields = [
+            "id",
+            "created_at",
+            "updated_at",
+            "username",
+            "phone_number",
+            "is_active",
+            "is_verified",
+            "is_staff",
+        ]
