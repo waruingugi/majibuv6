@@ -91,14 +91,21 @@ class UserUpdateTests(APITestCase):
         )
         self.update_url = reverse("users:user-detail", kwargs={"id": self.user.id})
 
-    def test_user_can_not_update_phone_number_field(self) -> None:
+    def test_user_can_not_update_read_only_fields(self) -> None:
         """Assert the phone number field can not be edited."""
-        data = {"phone_number": "+254703456782"}
+        data = {
+            "phone_number": "+254703456782",
+            "is_staff": True,
+            "is_active": True,
+            "is_verified": True,
+        }
         response = self.client.put(self.update_url, data)
-        self.assertNotIn("phone_number", response.data)
 
         self.user.refresh_from_db()
         self.assertEqual(self.user.phone_number, "+254703456781")
+        self.assertFalse(response.data["is_verified"])
+        self.assertFalse(response.data["is_staff"])
+        self.assertFalse(response.data["is_active"])
 
     def test_user_can_update_username_field(self) -> None:
         """Assert user can update their own username"""

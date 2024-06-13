@@ -49,7 +49,7 @@ class UsernameValidator:
 
         if not username.isalnum():
             raise serializers.ValidationError(
-                "Username can contain letters[a-z] and numbers[0-9]."
+                "Username can only contain letters[a-z] and numbers[0-9]."
             )
 
         if User.objects.filter(username=username).exists():

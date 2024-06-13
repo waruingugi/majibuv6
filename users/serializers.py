@@ -47,16 +47,33 @@ class BaseUserUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["username", "is_active", "is_verified", "is_staff"]
+        fields = [
+            "id",
+            "created_at",
+            "updated_at",
+            "username",
+            "phone_number",
+            "is_active",
+            "is_verified",
+            "is_staff",
+        ]
 
 
 class UserUpdateSerializer(BaseUserUpdateSerializer):
     class Meta(BaseUserUpdateSerializer.Meta):
-        read_only_fields = ("is_active", "is_verified", "is_staff")
+        read_only_fields = (
+            "id",
+            "created_at",
+            "updated_at",
+            "is_active",
+            "phone_number",
+            "is_verified",
+            "is_staff",
+        )
 
 
 class AdminUserUpdateSerializer(BaseUserUpdateSerializer):
     class Meta(BaseUserUpdateSerializer.Meta):
         """Admin can edit any of the fields"""
 
-        read_only_fields = ()
+        read_only_fields = ("id", "created_at", "updated_at")
