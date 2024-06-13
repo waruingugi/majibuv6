@@ -9,21 +9,21 @@ from users.serializers import (
 )
 
 
-class UserCreateAPIView(CreateAPIView):
+class UserCreateView(CreateAPIView):
     """Create a user."""
 
     queryset = User.objects.all()
     serializer_class = UserCreateSerializer
 
 
-class UserListAPIView(ListAPIView):
+class UserListView(ListAPIView):
     "List users."
 
     queryset = User.objects.all()
     serializer_class = UserListSerializer
 
 
-class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
+class UserRetrieveUpdateView(RetrieveUpdateAPIView):
     """Retrieve a user."""
 
     lookup_field = "id"

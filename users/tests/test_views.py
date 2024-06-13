@@ -6,7 +6,7 @@ from commons.constants import MAX_USERNAME_LEN, MIN_USERNAME_LEN
 from users.models import User
 
 
-class UserCreateTests(APITestCase):
+class UserCreateAPIViewTests(APITestCase):
     def setUp(self) -> None:
         self.create_url = reverse("users:user-create")
 
@@ -82,7 +82,7 @@ class UserCreateTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
-class UserUpdateTests(APITestCase):
+class UserRetrieveUpdateAPIViewTests(APITestCase):
     def setUp(self) -> None:
         self.user = User.objects.create_user(
             phone_number="+254703456781",
@@ -143,7 +143,7 @@ class UserUpdateTests(APITestCase):
         self.assertIn("is_staff", response.data)
 
 
-class UserListAPIViewTest(APITestCase):
+class UserListAPIViewTests(APITestCase):
     def setUp(self):
         self.user1 = User.objects.create_user(
             phone_number="+254703456785", password="password123", username="testuser1"
