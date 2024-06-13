@@ -1,5 +1,4 @@
-from phonenumbers import PhoneNumberFormat, format_number
-from phonenumbers import parse as parse_phone_number
+from phonenumbers import PhoneNumberFormat, format_number, parse
 from rest_framework import serializers
 
 from commons.constants import DEFAULT_COUNTRY_CODE
@@ -35,7 +34,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
     def validate_phone_number(self, phone):
         """Change phone number input to international format: +254702005008"""
         try:
-            parsed_phone = parse_phone_number(phone, DEFAULT_COUNTRY_CODE)
+            parsed_phone = parse(phone, DEFAULT_COUNTRY_CODE)
 
             return format_number(parsed_phone, PhoneNumberFormat.E164)
         except Exception:

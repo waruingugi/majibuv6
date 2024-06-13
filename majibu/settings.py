@@ -129,3 +129,8 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "users.User"
+
+
+HOST_PINNACLE_USER_ID = ""
+HOST_PINNACLE_PASSWORD = ""
+HOST_PINNACLE_SENDER_ID = ""
