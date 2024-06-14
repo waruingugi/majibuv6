@@ -21,11 +21,6 @@ app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
 
 # Period tasks in the system
-scheduled_tasks: dict[str, Any] = {
-    # "update_app_health_status": {
-    #     "task": "commons.tasks.update_app_health_status_task",
-    #     "schedule": 30,
-    # },
-}
+scheduled_tasks: dict[str, Any] = {}
 
 app.conf.update({"beat_schedule": scheduled_tasks})
