@@ -1,11 +1,8 @@
-from django.urls import path
+from django.urls import include, path
 
-from users.views import UserCreateView, UserListView, UserRetrieveUpdateView
-
-app_name = "users"
+from users.routes import auth, user
 
 urlpatterns = [
-    path("users/create/", UserCreateView.as_view(), name="user-create"),
-    path("users/list/", UserListView.as_view(), name="user-list"),
-    path("users/<str:id>/", UserRetrieveUpdateView.as_view(), name="user-detail"),
+    path("", include((auth.urlpatterns, "auth"))),
+    path("", include((user.urlpatterns, "users"))),
 ]

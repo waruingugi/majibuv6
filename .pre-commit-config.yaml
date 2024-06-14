@@ -64,5 +64,6 @@ repos:
             sentry-sdk,
             django-phonenumber-field,
             phonenumbers,
-            random-username
+            random-username,
+            djangorestframework_simplejwt
         ]
