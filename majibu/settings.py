@@ -25,12 +25,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-&wmh%$$h*r8+#ae6n*1r85#i*-y!&h3-vq8dz00wf&w=j8lwz4"
+SECRET_KEY = os.environ["SECRET_KEY"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = bool(int(os.environ["DEBUG"]))
 
-ALLOWED_HOSTS: list = []
+ALLOWED_HOSTS: list[str] = ["*"]
 
 
 # Application definition
@@ -86,8 +86,12 @@ WSGI_APPLICATION = "majibu.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ["POSTGRES_DB"],
+        "USER": os.environ["POSTGRES_USER"],
+        "HOST": os.environ["POSTGRES_HOST"],
+        "PASSWORD": os.environ["POSTGRES_PASSWORD"],
+        "CONN_MAX_AGE": 300,  # 5 minutes
     }
 }
 
@@ -116,7 +120,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Africa/Nairobi"
 
 USE_I18N = True
 
@@ -142,6 +146,9 @@ CACHES = {
         "LOCATION": os.environ["REDIS_URL"],
     }
 }
+
+# Celery settings
+CELERY_BROKER_URL = os.environ["REDIS_URL"]
 
 
 HOST_PINNACLE_USER_ID = ""

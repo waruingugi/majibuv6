@@ -60,7 +60,7 @@ def create_otp(phone_number: str):
 
 def validate_otp(otp: str, phone_number: str):
     """Validate OTP submitted by user"""
-    user_otp_data = cache.get(phone_number)
+    user_otp_data = cache.get(md5_hash(phone_number))
 
     if user_otp_data is not None:
         totp_data = json.loads(user_otp_data)
