@@ -84,6 +84,7 @@ WSGI_APPLICATION = "majibu.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -120,7 +121,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "Africa/Nairobi"
+TIME_ZONE = "UTC"
 
 USE_I18N = True
 
@@ -146,9 +147,6 @@ CACHES = {
         "LOCATION": os.environ["REDIS_URL"],
     }
 }
-
-# Celery settings
-CELERY_BROKER_URL = os.environ["REDIS_URL"]
 
 
 HOST_PINNACLE_USER_ID = ""
