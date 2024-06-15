@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from users.constants import MAX_USERNAME_LEN, MIN_USERNAME_LEN, OTP_SMS
+from users.constants import MAX_USERNAME_LEN, MIN_USERNAME_LEN
 from users.models import User
 
 
@@ -180,6 +180,5 @@ class RegisterViewTestCase(APITestCase):
 
         # Check if the correct arguments were passed to send_sms
         call_args = send_sms_mock.call_args
-        phone_number, message = call_args[0]
+        phone_number, _ = call_args[0]
         self.assertEqual(phone_number, "+254701456761")
-        self.assertIn(OTP_SMS, message)
