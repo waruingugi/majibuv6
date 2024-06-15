@@ -153,7 +153,12 @@ CACHES = {
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=2),
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "AUTH_TOKEN_CLASSES": (
+        "rest_framework_simplejwt.tokens.AccessToken",
+        "users.tokens.UserRefreshToken",
+    ),
 }
 
 REST_FRAMEWORK = {
@@ -162,6 +167,11 @@ REST_FRAMEWORK = {
     ),
 }
 
+CELERY_BROKER_URL = os.environ["REDIS_URL"]
+CELERY_ACCEPT_CONTENT = {"application/json"}
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TASK_SERIALIZER = "json"
+CELERY_TIMEZONE = "Africa/Nairobi"
 
 HOST_PINNACLE_USER_ID = ""
 HOST_PINNACLE_PASSWORD = ""

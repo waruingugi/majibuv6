@@ -1,8 +1,8 @@
 from django.urls import include, path
 
-from users.routes import auth, user
+from users.routes import auth, users
 
 urlpatterns = [
     path("", include((auth.urlpatterns, "auth"))),
-    path("", include((user.urlpatterns, "users"))),
+    path("", include((users.urlpatterns, "users"))),
 ]
