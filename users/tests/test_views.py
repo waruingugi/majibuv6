@@ -146,7 +146,7 @@ class UserRetrieveUpdateAPIViewTests(APITestCase):
 
 
 class UserListAPIViewTests(APITestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.user1 = User.objects.create_user(
             phone_number="+254703456785", password="password123", username="testuser1"
         )
@@ -163,7 +163,7 @@ class UserListAPIViewTests(APITestCase):
 
 class RegisterViewTestCase(APITestCase):
     @patch("commons.tasks.send_sms.delay")
-    def test_register_view(self, send_sms_mock):
+    def test_register_view(self, send_sms_mock) -> None:
         """Assert registration view creates user."""
         data = {"phone_number": "+254701456761", "password": "passwordAl123"}
 
