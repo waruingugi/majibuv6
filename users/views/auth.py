@@ -13,8 +13,9 @@ class RegisterView(CreateAPIView):
 
     def perform_create(self, serializer):
         user = serializer.save()
-        otp = create_otp(user.phone_number)
+        phone_number = str(user.phone_number)
+        otp = create_otp(phone_number)
 
-        send_sms.delay(user.phone_number, OTP_SMS.format(otp))
+        send_sms.delay(phone_number, OTP_SMS.format(otp))
 
         return user
