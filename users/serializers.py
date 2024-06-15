@@ -1,3 +1,4 @@
+from django.contrib.auth.password_validation import validate_password
 from phonenumbers import PhoneNumberFormat, format_number, parse
 from rest_framework import serializers
 
@@ -11,6 +12,11 @@ class UserCreateSerializer(serializers.ModelSerializer):
         required=True, validators=[PhoneNumberValidator()]
     )
     username = serializers.CharField(required=False, validators=[UsernameValidator()])
+    password = serializers.CharField(
+        write_only=True,
+        required=True,
+        validators=[validate_password],  # Use Django's built-in validators
+    )
 
     class Meta:
         model = User
@@ -26,10 +32,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
             "is_staff",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
-        extra_kwargs = {
-            "username": {"required": False},
-            "password": {"write_only": True},
-        }
 
     def validate_phone_number(self, phone):
         """Change phone number input to international format: +254702005008"""

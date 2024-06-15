@@ -17,7 +17,7 @@ class UserCreateAPIViewTests(APITestCase):
         data = {
             "phone_number": "0703245678",
             "username": "stacy",
-            "password": "password123",
+            "password": "passwordAl123",
         }
 
         response = self.client.post(self.create_url, data)
@@ -165,7 +165,7 @@ class RegisterViewTestCase(APITestCase):
     @patch("commons.tasks.send_sms.delay")
     def test_register_view(self, send_sms_mock):
         """Assert registration view creates user."""
-        data = {"phone_number": "+254701456761", "password": "password123"}
+        data = {"phone_number": "+254701456761", "password": "passwordAl123"}
 
         response = self.client.post(reverse("auth:register"), data)
 
