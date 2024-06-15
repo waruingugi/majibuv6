@@ -6,6 +6,7 @@ from rest_framework.test import APITestCase
 
 from commons.throttles import RegisterThrottle
 from users.models import User
+from users.otp import create_otp
 
 
 class RegisterViewTestCase(APITestCase):
@@ -47,7 +48,7 @@ class RegisterViewTestCase(APITestCase):
         RegisterThrottle.cache.clear()
 
 
-class AuthTokenAPITestCase(APITestCase):
+class AuthTokenTestCase(APITestCase):
     def setUp(self) -> None:
         self.user = User.objects.create_user(
             phone_number="+254701456761", password="StrongPassword123", is_active=True
@@ -72,7 +73,49 @@ class AuthTokenAPITestCase(APITestCase):
         url = reverse("auth:refresh-token")
         data = {"refresh": self.refresh_token}
         response = self.client.post(url, data)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("access", response.data)
         new_access_token = response.data["access"]
         self.assertNotEqual(self.access_token, new_access_token)
+
+    def test_access_denied_if_user_is_inactive(self):
+        """Assert inactive user is denied login access."""
+        User.objects.create_user(
+            phone_number="+254701436763", password="StrongPassword123", is_active=False
+        )
+        data = {"phone_number": "+254701436763", "password": "StrongPassword123"}
+
+        response = self.client.post(reverse("auth:obtain-token"), data)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class OTPVerificationTestCase(APITestCase):
+    def setUp(self) -> None:
+        self.phone_number = "+254701476761"
+        self.user = User.objects.create_user(
+            phone_number=self.phone_number,
+            password="strong_password",
+        )
+        self.otp = create_otp(self.phone_number)
+        self.url = reverse("auth:verify-otp")
+
+    def test_otp_verifies_user(self) -> None:
+        """Assert OTP verifies user."""
+        data = {"phone_number": self.phone_number, "otp": self.otp}
+        response = self.client.post(self.url, data)
+        self.user.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["detail"], "User activated successfully.")
+        self.assertTrue(self.user.is_verified)
+
+    def test_invalid_otp_verification_fails(self):
+        """"""
+        data = {"phone_number": self.phone_number, "otp": "invalid_otp"}
+        response = self.client.post(self.url, data)
+        self.user.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("otp", response.data)
+        self.assertFalse(self.user.is_verified)

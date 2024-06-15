@@ -71,7 +71,7 @@ class User(AbstractBaseUser, PermissionsMixin, Base):
     )
     phone_number = PhoneNumberField(blank=False, unique=True)
     is_verified = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
     objects = UserManager()

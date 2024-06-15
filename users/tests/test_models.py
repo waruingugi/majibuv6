@@ -23,7 +23,7 @@ class UserModelTests(TestCase):
         self.assertTrue(self.user.check_password(self.test_password))
         self.assertEqual(self.user.username, self.test_username)
         self.assertFalse(self.user.is_verified)
-        self.assertFalse(self.user.is_active)
+        self.assertTrue(self.user.is_active)
         self.assertFalse(self.user.is_staff)
 
     def test_phone_number_is_unique(self) -> None:

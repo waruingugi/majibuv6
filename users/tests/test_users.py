@@ -96,7 +96,7 @@ class UserRetrieveUpdateAPIViewTests(APITestCase):
         data = {
             "phone_number": "+254703456782",
             "is_staff": True,
-            "is_active": True,
+            "is_active": False,
             "is_verified": True,
         }
         response = self.client.put(self.detail_url, data)
@@ -105,7 +105,7 @@ class UserRetrieveUpdateAPIViewTests(APITestCase):
         self.assertEqual(self.user.phone_number, "+254703456781")
         self.assertFalse(response.data["is_verified"])
         self.assertFalse(response.data["is_staff"])
-        self.assertFalse(response.data["is_active"])
+        self.assertTrue(response.data["is_active"])
 
     def test_user_can_update_username_field(self) -> None:
         """Assert user can update their own username"""

@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 from users.constants import DEFAULT_COUNTRY_CODE
 from users.models import User
+from users.otp import validate_otp
 from users.validators import PhoneNumberValidator, UsernameValidator
 
 
@@ -92,3 +93,17 @@ class UserListSerializer(BaseUserDetailSerializer):
             "is_verified",
             "is_staff",
         ]
+
+
+class OTPVerificationSerializer(serializers.Serializer):
+    phone_number = serializers.CharField(required=True)
+    otp = serializers.CharField(required=True, max_length=6)
+
+    def validate(self, data):
+        phone_number = data.get("phone_number")
+        otp_code = data.get("otp")
+
+        if not validate_otp(otp_code, phone_number):
+            raise serializers.ValidationError("The OTP is invalid. Please try again.")
+
+        return data
