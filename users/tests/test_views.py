@@ -4,6 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from commons.throttles import RegisterThrottle
 from users.constants import MAX_USERNAME_LEN, MIN_USERNAME_LEN
 from users.models import User
 
@@ -182,3 +183,19 @@ class RegisterViewTestCase(APITestCase):
         call_args = send_sms_mock.call_args
         phone_number, _ = call_args[0]
         self.assertEqual(phone_number, "+254701456761")
+
+    @patch("commons.tasks.send_sms.delay")
+    def test_register_view_throttle(self, send_sms_mock):
+        """Assert the view throttles requests."""
+        data = {"phone_number": "+254701451731", "password": "passwordAl123"}
+        for _ in range(10):
+            self.client.post(reverse("auth:register"), data)
+
+        # Check that some requests are throttled (HTTP 429 Too Many Requests)
+        throttled_response = self.client.post(reverse("auth:register"), data)
+        self.assertEqual(
+            throttled_response.status_code, status.HTTP_429_TOO_MANY_REQUESTS
+        )
+
+        # Clear the throttle cache
+        RegisterThrottle.cache.clear()

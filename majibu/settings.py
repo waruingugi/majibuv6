@@ -165,6 +165,9 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+    "DEFAULT_THROTTLE_RATES": {
+        "register_throttle": "5/hour",
+    },
 }
 
 CELERY_BROKER_URL = os.environ["REDIS_URL"]
