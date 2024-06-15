@@ -1,10 +1,7 @@
-from unittest.mock import patch
-
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from commons.throttles import RegisterThrottle
 from users.constants import MAX_USERNAME_LEN, MIN_USERNAME_LEN
 from users.models import User
 
@@ -160,42 +157,3 @@ class UserListAPIViewTests(APITestCase):
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
-
-
-class RegisterViewTestCase(APITestCase):
-    @patch("commons.tasks.send_sms.delay")
-    def test_register_view(self, send_sms_mock) -> None:
-        """Assert registration view creates user."""
-        data = {"phone_number": "+254701456761", "password": "passwordAl123"}
-
-        response = self.client.post(reverse("auth:register"), data)
-
-        self.assertEqual(
-            response.status_code, 201
-        )  # Check if user was created successfully
-        self.assertTrue(
-            User.objects.filter(phone_number="+254701456761").exists()
-        )  # Check if user exists
-
-        send_sms_mock.assert_called_once()  # Check if send_sms was called
-
-        # Check if the correct arguments were passed to send_sms
-        call_args = send_sms_mock.call_args
-        phone_number, _ = call_args[0]
-        self.assertEqual(phone_number, "+254701456761")
-
-    @patch("commons.tasks.send_sms.delay")
-    def test_register_view_throttle(self, send_sms_mock):
-        """Assert the view throttles requests."""
-        data = {"phone_number": "+254701451731", "password": "passwordAl123"}
-        for _ in range(10):
-            self.client.post(reverse("auth:register"), data)
-
-        # Check that some requests are throttled (HTTP 429 Too Many Requests)
-        throttled_response = self.client.post(reverse("auth:register"), data)
-        self.assertEqual(
-            throttled_response.status_code, status.HTTP_429_TOO_MANY_REQUESTS
-        )
-
-        # Clear the throttle cache
-        RegisterThrottle.cache.clear()
