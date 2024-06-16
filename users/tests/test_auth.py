@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from commons.throttles import RegisterThrottle
+from commons.throttles import AuthenticationThrottle
 from users.models import User
 from users.otp import create_otp
 
@@ -45,7 +45,7 @@ class RegisterViewTestCase(APITestCase):
         )
 
         # Clear the throttle cache
-        RegisterThrottle.cache.clear()
+        AuthenticationThrottle.cache.clear()
 
 
 class AuthTokenTestCase(APITestCase):

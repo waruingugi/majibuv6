@@ -1,11 +1,13 @@
 from django.core.cache import cache
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.generics import CreateAPIView, GenericAPIView
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from commons.tasks import send_sms
-from commons.throttles import RegisterThrottle
+from commons.throttles import AuthenticationThrottle
 from commons.utils import md5_hash
 from users.constants import OTP_SMS
 from users.models import User
@@ -13,10 +15,12 @@ from users.otp import create_otp
 from users.serializers import OTPVerificationSerializer, UserCreateSerializer
 
 
+@extend_schema(tags=["auth"])
 class RegisterView(CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserCreateSerializer
-    throttle_classes = [RegisterThrottle]
+    throttle_classes = [AuthenticationThrottle]
+    permission_classes = [AllowAny]
 
     def perform_create(self, serializer):
         user = serializer.save()
@@ -28,8 +32,11 @@ class RegisterView(CreateAPIView):
         return user
 
 
+@extend_schema(tags=["auth"])
 class OTPVerificationView(GenericAPIView):
     serializer_class = OTPVerificationSerializer
+    permission_classes = [AllowAny]
+    throttle_classes = [AuthenticationThrottle]
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

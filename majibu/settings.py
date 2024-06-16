@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "phonenumber_field",
     "rest_framework",
     "rest_framework_simplejwt",
+    "drf_spectacular",
     # Apps
     "users",
     "commons",
@@ -166,8 +167,9 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     "DEFAULT_THROTTLE_RATES": {
-        "register_throttle": "5/hour",
+        "authentication_throttle": "5/hour",
     },
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 CELERY_BROKER_URL = os.environ["REDIS_URL"]
@@ -179,3 +181,11 @@ CELERY_TIMEZONE = "Africa/Nairobi"
 HOST_PINNACLE_USER_ID = ""
 HOST_PINNACLE_PASSWORD = ""
 HOST_PINNACLE_SENDER_ID = ""
+
+# DRF Spectacular Settings for Swagger
+SPECTACULAR_SETTINGS = {
+    "SERVE_INCLUDE_SCHEMA": False,
+    "SWAGGER_UI_SETTINGS": {
+        "defaultModelsExpandDepth": -1,
+    },
+}
