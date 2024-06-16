@@ -187,5 +187,16 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
     "SWAGGER_UI_SETTINGS": {
         "defaultModelsExpandDepth": -1,
+        "persistAuthorization": True,
     },
+    # Only authenticated users can access the schema and documentation views.
+    "SERVE_PERMISSIONS": ["rest_framework.permissions.IsAuthenticated"],
+    "AUTHENTICATION_WHITELIST": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "SERVE_AUTHENTICATION": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
 }

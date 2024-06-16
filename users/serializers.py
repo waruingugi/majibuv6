@@ -1,6 +1,9 @@
 from django.contrib.auth.password_validation import validate_password
+from phonenumber_field.phonenumber import PhoneNumber
+from phonenumber_field.serializerfields import PhoneNumberField
 from phonenumbers import PhoneNumberFormat, format_number, parse
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from users.constants import DEFAULT_COUNTRY_CODE
 from users.models import User
@@ -107,3 +110,18 @@ class OTPVerificationSerializer(serializers.Serializer):
             raise serializers.ValidationError("The OTP is invalid. Please try again.")
 
         return data
+
+
+class UserTokenObtainPairSerializer(TokenObtainPairSerializer):
+    phone_number = PhoneNumberField()
+
+    def validate(self, attrs):
+        phone_number = attrs.get("phone_number")
+        if phone_number:
+            # Format the phone number
+            formatted_phone_number = PhoneNumber.from_string(
+                phone_number, region=DEFAULT_COUNTRY_CODE
+            ).as_e164
+            attrs["phone_number"] = formatted_phone_number
+
+        return super().validate(attrs)

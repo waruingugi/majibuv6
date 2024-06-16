@@ -1,13 +1,8 @@
 from django.urls import path
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import TokenRefreshView
 
-from users.views.auth import OTPVerificationView, RegisterView
-
-# Extend the schema for the TokenObtainPairView
-TokenObtainPairView = extend_schema_view(post=extend_schema(tags=["auth"]))(  # type: ignore
-    TokenObtainPairView
-)
+from users.views.auth import OTPVerificationView, RegisterView, UserTokenObtainPairView
 
 # Extend the schema for the TokenRefreshView
 TokenRefreshView = extend_schema_view(  # type: ignore
@@ -19,7 +14,7 @@ TokenRefreshView = extend_schema_view(  # type: ignore
 app_name = "auth"
 
 urlpatterns = [
-    path("login/", TokenObtainPairView.as_view(), name="obtain-token"),
+    path("login/", UserTokenObtainPairView.as_view(), name="obtain-token"),
     path("token/refresh/", TokenRefreshView.as_view(), name="refresh-token"),
     path("register/", RegisterView.as_view(), name="register"),
     path("verify-otp/", OTPVerificationView.as_view(), name="verify-otp"),

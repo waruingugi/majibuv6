@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.generics import CreateAPIView, GenericAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from commons.tasks import send_sms
 from commons.throttles import AuthenticationThrottle
@@ -12,7 +13,16 @@ from commons.utils import md5_hash
 from users.constants import OTP_SMS
 from users.models import User
 from users.otp import create_otp
-from users.serializers import OTPVerificationSerializer, UserCreateSerializer
+from users.serializers import (
+    OTPVerificationSerializer,
+    UserCreateSerializer,
+    UserTokenObtainPairSerializer,
+)
+
+
+@extend_schema(tags=["auth"])
+class UserTokenObtainPairView(TokenObtainPairView):
+    serializer_class = UserTokenObtainPairSerializer  # type: ignore
 
 
 @extend_schema(tags=["auth"])
