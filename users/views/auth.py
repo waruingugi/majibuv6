@@ -1,5 +1,4 @@
 from django.core.cache import cache
-from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.generics import CreateAPIView, GenericAPIView
@@ -15,6 +14,8 @@ from users.models import User
 from users.otp import create_otp
 from users.serializers import (
     OTPVerificationSerializer,
+    PasswordResetConfirmSerializer,
+    PasswordResetRequestSerializer,
     UserCreateSerializer,
     UserTokenObtainPairSerializer,
 )
@@ -54,7 +55,7 @@ class OTPVerificationView(GenericAPIView):
             phone_number = serializer.validated_data["phone_number"]
 
             # Activate user
-            user = get_object_or_404(User, phone_number=phone_number)
+            user = User.objects.get(phone_number=phone_number)
             user.is_verified = True
             user.save()
 
@@ -63,5 +64,50 @@ class OTPVerificationView(GenericAPIView):
 
             return Response(
                 {"detail": "User activated successfully."}, status=status.HTTP_200_OK
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@extend_schema(tags=["auth"])
+class PasswordResetRequestView(GenericAPIView):
+    serializer_class = PasswordResetRequestSerializer
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            phone_number = serializer.validated_data["phone_number"]
+
+            otp = create_otp(phone_number)
+            send_sms.delay(phone_number, OTP_SMS.format(otp))
+
+            return Response(
+                {"detail": "OTP has been sent to your phone number."},
+                status=status.HTTP_200_OK,
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@extend_schema(tags=["auth"])
+class PasswordResetConfirmView(GenericAPIView):
+    serializer_class = PasswordResetConfirmSerializer
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            phone_number = serializer.validated_data["phone_number"]
+            user = User.objects.get(phone_number=phone_number)
+            user.set_password(serializer.validated_data["new_password"])
+
+            user.is_active = True  # Make the user active if necessary
+            user.save()
+
+            # Clear OTP from cache
+            cache.delete(md5_hash(phone_number))
+
+            return Response(
+                {"detail": "Password has been reset successfully."},
+                status=status.HTTP_200_OK,
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

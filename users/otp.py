@@ -52,7 +52,6 @@ def create_otp(phone_number: str):
         "totp_id": str(uuid4()),
         "secret": TOTP.secret(),
     }
-
     cache.set(md5_hash(phone_number), json.dumps(totp_data), timeout=TOTP_EXPIRY_TIME)
 
     return TOTP.create(totp_data["secret"], TOTP_LENGTH, TOTP_EXPIRY_TIME)

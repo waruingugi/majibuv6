@@ -11,7 +11,7 @@ from users.otp import create_otp
 
 class RegisterViewTestCase(APITestCase):
     @patch("commons.tasks.send_sms.delay")
-    def test_register_view(self, send_sms_mock) -> None:
+    def test_view_creates_user(self, send_sms_mock) -> None:
         """Assert registration view creates user."""
         data = {"phone_number": "+254701456761", "password": "passwordAl123"}
 
@@ -32,7 +32,16 @@ class RegisterViewTestCase(APITestCase):
         self.assertEqual(phone_number, "+254701456761")
 
     @patch("commons.tasks.send_sms.delay")
-    def test_register_view_throttle(self, send_sms_mock):
+    def test_view_creates_user_with_national_phone_number(self, send_sms_mock) -> None:
+        """Assert registration view creates user with national number."""
+        data = {"phone_number": "0701686761", "password": "passwordAl123"}
+
+        response = self.client.post(reverse("auth:register"), data)
+        self.assertEqual(response.status_code, 201)
+        self.assertTrue(User.objects.filter(phone_number="+254701686761").exists())
+
+    @patch("commons.tasks.send_sms.delay")
+    def test_view_throttles_requests(self, send_sms_mock):
         """Assert the view throttles requests."""
         data = {"phone_number": "+254701451731", "password": "passwordAl123"}
         for _ in range(10):
@@ -119,3 +128,59 @@ class OTPVerificationTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("otp", response.data)
         self.assertFalse(self.user.is_verified)
+
+
+class PasswordResetTestCase(APITestCase):
+    def setUp(self):
+        self.phone_number = "+254701234567"
+        self.user = User.objects.create_user(
+            phone_number=self.phone_number, password="StrongPassword123"
+        )
+        self.password_reset_url = reverse("auth:password-reset-request")
+        self.password_reset_confirm_url = reverse("auth:password-reset-confirm")
+
+    @patch("commons.tasks.send_sms.delay")
+    def test_view_sends_otp(self, send_sms_mock):
+        """Assert view sends OTP to validate user"""
+        response = self.client.post(
+            self.password_reset_url, {"phone_number": self.user.phone_number}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        send_sms_mock.assert_called_once()
+        self.assertEqual(
+            response.data["detail"], "OTP has been sent to your phone number."
+        )
+
+    def test_view_resets_password(self):
+        """Assert the updates the password"""
+        new_password = "NewStrongPassword123"
+        otp = create_otp(self.phone_number)
+
+        response = self.client.post(
+            self.password_reset_confirm_url,
+            {
+                "phone_number": "0701234567",
+                "otp": otp,
+                "new_password": new_password,
+            },
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Verify that the password has actually been changed
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password(new_password))
+
+    def test_view_fails_to_reset_password(self):
+        """Assert view fails to reset the password if OTP is invalid."""
+        new_password = "NewStrongPassword123"
+
+        response = self.client.post(
+            self.password_reset_confirm_url,
+            {
+                "phone_number": self.phone_number,
+                "otp": "wrong_otp",
+                "new_password": new_password,
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

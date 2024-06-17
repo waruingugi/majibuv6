@@ -1,19 +1,61 @@
 from django.contrib.auth.password_validation import validate_password
-from phonenumber_field.phonenumber import PhoneNumber
-from phonenumber_field.serializerfields import PhoneNumberField
-from phonenumbers import PhoneNumberFormat, format_number, parse
+from django.utils.translation import gettext_lazy as _
+from phonenumbers import (
+    NumberParseException,
+    PhoneNumberFormat,
+    PhoneNumberType,
+    format_number,
+    is_valid_number,
+    number_type,
+)
+from phonenumbers import parse as parse_phone_number
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from users.constants import DEFAULT_COUNTRY_CODE
 from users.models import User
-from users.otp import validate_otp
-from users.validators import PhoneNumberValidator, UsernameValidator
+from users.validators import (
+    OTPValidator,
+    PhoneNumberExistsValidator,
+    PhoneNumberIsAvailableValidator,
+    UsernameValidator,
+)
+
+
+class UserPhoneNumberField(serializers.CharField):
+    default_error_messages = {"invalid": _("This phone number is not valid")}
+
+    def __init__(self, *args, region=None, **kwargs) -> None:
+        """
+        :keyword str region: 2-letter country code as defined in ISO 3166-1.
+            When not supplied, defaults to :setting:`PHONENUMBER_DEFAULT_REGION`
+        """
+        super().__init__(*args, **kwargs)
+        self.region = region or DEFAULT_COUNTRY_CODE
+
+    def to_internal_value(self, phone_number) -> str:
+        """Format the phone number to international format: +254732567432"""
+        PHONE_NUMBER_TYPES = (
+            PhoneNumberType.MOBILE,
+            PhoneNumberType.FIXED_LINE_OR_MOBILE,
+        )
+
+        try:
+            phone_number = parse_phone_number(phone_number, self.region)
+        except NumberParseException:
+            raise serializers.ValidationError(self.error_messages["invalid"])
+
+        if number_type(phone_number) not in PHONE_NUMBER_TYPES or not is_valid_number(
+            phone_number
+        ):
+            raise serializers.ValidationError(self.error_messages["invalid"])
+
+        return format_number(phone_number, PhoneNumberFormat.E164)
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
-    phone_number = serializers.CharField(
-        required=True, validators=[PhoneNumberValidator()]
+    phone_number = UserPhoneNumberField(
+        required=True, validators=[PhoneNumberIsAvailableValidator()]
     )
     username = serializers.CharField(required=False, validators=[UsernameValidator()])
     password = serializers.CharField(
@@ -36,15 +78,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
             "is_staff",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
-
-    def validate_phone_number(self, phone):
-        """Change phone number input to international format: +254702005008"""
-        try:
-            parsed_phone = parse(phone, DEFAULT_COUNTRY_CODE)
-
-            return format_number(parsed_phone, PhoneNumberFormat.E164)
-        except Exception:
-            raise serializers.ValidationError("This phone number is not valid.")
 
 
 class BaseUserDetailSerializer(serializers.ModelSerializer):
@@ -99,29 +132,39 @@ class UserListSerializer(BaseUserDetailSerializer):
 
 
 class OTPVerificationSerializer(serializers.Serializer):
-    phone_number = serializers.CharField(required=True)
+    phone_number = UserPhoneNumberField(required=True)
     otp = serializers.CharField(required=True, max_length=6)
 
     def validate(self, data):
-        phone_number = data.get("phone_number")
-        otp_code = data.get("otp")
-
-        if not validate_otp(otp_code, phone_number):
-            raise serializers.ValidationError("The OTP is invalid. Please try again.")
-
+        OTPValidator.validate_otp(
+            phone_number=data.get("phone_number"), otp_code=data.get("otp")
+        )
         return data
 
 
 class UserTokenObtainPairSerializer(TokenObtainPairSerializer):
-    phone_number = PhoneNumberField()
+    phone_number = UserPhoneNumberField(
+        required=True, validators=[PhoneNumberExistsValidator()]
+    )
 
-    def validate(self, attrs):
-        phone_number = attrs.get("phone_number")
-        if phone_number:
-            # Format the phone number
-            formatted_phone_number = PhoneNumber.from_string(
-                phone_number, region=DEFAULT_COUNTRY_CODE
-            ).as_e164
-            attrs["phone_number"] = formatted_phone_number
 
-        return super().validate(attrs)
+class PasswordResetRequestSerializer(serializers.Serializer):
+    phone_number = UserPhoneNumberField(
+        required=True, validators=[PhoneNumberExistsValidator()]
+    )
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    phone_number = UserPhoneNumberField(
+        required=True, validators=[PhoneNumberExistsValidator()]
+    )
+    otp = serializers.CharField(required=True)
+    new_password = serializers.CharField(
+        required=True, write_only=True, validators=[validate_password]
+    )
+
+    def validate(self, data):
+        OTPValidator.validate_otp(
+            phone_number=data.get("phone_number"), otp_code=data.get("otp")
+        )
+        return data
