@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "phonenumber_field",
     "rest_framework",
     "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
     "drf_spectacular",
     # Apps
     "users",
@@ -62,6 +63,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Custom middleware
+    "commons.middlewares.UserIsActiveMiddleware",
 ]
 
 ROOT_URLCONF = "majibu.urls"
@@ -160,6 +163,8 @@ SIMPLE_JWT = {
         "rest_framework_simplejwt.tokens.AccessToken",
         "users.tokens.UserRefreshToken",
     ),
+    "BLACKLIST_AFTER_ROTATION": True,
+    "ROTATE_REFRESH_TOKENS": True,
 }
 
 REST_FRAMEWORK = {
