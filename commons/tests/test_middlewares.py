@@ -55,13 +55,13 @@ class UserIsActiveMiddlewareTestCase(TestCase):
             "This account is inactive.",
         )
 
-    def test_requests_with_no_token_do_not_raise_an_error(self):
+    def test_requests_with_no_token_does_not_raise_an_error(self):
         request = self.factory.get(reverse("users:user-list"))
 
         response = self.middleware.process_request(request)
 
         # No response means the middleware let the request pass through
-        self.assertEqual(response.status_code, 200)  # type: ignore
+        self.assertIsNone(response)
 
     def test_invalid_token_raises_error(self):
         request = self.factory.get(reverse("users:user-list"))
