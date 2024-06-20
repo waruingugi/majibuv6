@@ -114,7 +114,7 @@ class StaffUserRetrieveUpdateSerializer(BaseUserDetailSerializer):
     class Meta(BaseUserDetailSerializer.Meta):
         """Staff can edit any of the fields except those specified below."""
 
-        read_only_fields = ("id", "created_at", "updated_at")
+        read_only_fields = ("id", "created_at", "updated_at", "phone_number")
 
 
 class UserListSerializer(BaseUserDetailSerializer):

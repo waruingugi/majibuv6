@@ -1,24 +1,62 @@
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase
+from rest_framework.test import APIClient, APITestCase
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from users.constants import MAX_USERNAME_LEN, MIN_USERNAME_LEN
 from users.models import User
 
 
-class UserCreateAPIViewTests(APITestCase):
+class BaseUserAPITestCase(APITestCase):
+    def create_staff_user(self) -> None:
+        self.staff_user = User.objects.create_user(
+            phone_number="0701234567",
+            username="admin",
+            password="Adminpassword123",
+            is_staff=True,
+        )
+        self.staff_access_token = self.create_access_token(self.staff_user)
+
+        self.client.credentials(HTTP_AUTHORIZATION="Bearer " + self.staff_access_token)
+
+    def create_access_token(self, user) -> str:
+        refresh = RefreshToken.for_user(user)
+        return str(refresh.access_token)  # type: ignore
+
+
+class UserCreateAPIViewTests(BaseUserAPITestCase):
     def setUp(self) -> None:
         self.create_url = reverse("users:user-create")
-
-    def test_view_creates_user_successfully(self) -> None:
-        """Assert endpoint creates user successfully."""
-        data = {
+        self.data = {
             "phone_number": "0703245678",
             "username": "stacy",
             "password": "passwordAl123",
         }
+        self.create_staff_user()
 
-        response = self.client.post(self.create_url, data)
+    def test_staff_user_creates_user_successfully(self) -> None:
+        """Assert endpoint creates user successfully."""
+
+        response = self.client.post(self.create_url, self.data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn("id", response.data)
+        self.assertIn("phone_number", response.data)
+        self.assertIn("username", response.data)
+        self.assertFalse(response.data["is_verified"])
+        self.assertFalse(response.data["is_active"])
+
+    def test_normal_user_fails_to_create_user(self) -> None:
+        """Assert normal users do not have permission to create users."""
+        normal_user = User.objects.create(
+            phone_number="0778245678",
+            username="normaluser",
+            password="passwordAl123",
+        )
+        access_token = self.create_access_token(normal_user)
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION="Bearer " + access_token)
+        response = self.client.post(self.create_url, self.data)
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn("id", response.data)
         self.assertIn("phone_number", response.data)
@@ -82,14 +120,21 @@ class UserCreateAPIViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
-class UserRetrieveUpdateAPIViewTests(APITestCase):
+class UserRetrieveUpdateAPIViewTests(BaseUserAPITestCase):
     def setUp(self) -> None:
         self.user = User.objects.create_user(
             phone_number="+254703456781",
             password="password456",
             username="testuser1",
         )
+        self.foreign_user = User.objects.create_user(
+            phone_number="+254713476781", password="password456", username="testuser2"
+        )
         self.detail_url = reverse("users:user-detail", kwargs={"id": self.user.id})
+
+        self.create_staff_user()
+        access_token = self.create_access_token(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION="Bearer " + access_token)
 
     def test_user_can_not_update_read_only_fields(self) -> None:
         """Assert the phone number field can not be edited."""
@@ -107,14 +152,38 @@ class UserRetrieveUpdateAPIViewTests(APITestCase):
         self.assertFalse(response.data["is_staff"])
         self.assertTrue(response.data["is_active"])
 
+    def test_user_can_edit_their_profile(self) -> None:
+        """Assert a user can edit themselves."""
+        data = {"username": "activerodent"}
+
+        response = self.client.put(self.detail_url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.username, "activerodent")
+
+    def test_staff_can_edit_other_users(self) -> None:
+        """Assert a staff user can edit other users.."""
+        data = {
+            "is_active": False,
+            "is_verified": False,
+        }
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION="Bearer " + self.staff_access_token)
+        response = client.put(self.detail_url, data)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.is_active, False)
+
     def test_user_can_update_username_field(self) -> None:
         """Assert user can update their own username"""
-        data = {"username": "testuser2"}
+        data = {"username": "foreignuser"}
         response = self.client.put(self.detail_url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.user.refresh_from_db()
-        self.assertEqual(self.user.username, "testuser2")
+        self.assertEqual(self.user.username, "foreignuser")
 
     def test_view_fails_to_update_if_username_exists(self) -> None:
         """Assert updating to username that exists fails."""
@@ -143,7 +212,7 @@ class UserRetrieveUpdateAPIViewTests(APITestCase):
         self.assertIn("is_staff", response.data)
 
 
-class UserListAPIViewTests(APITestCase):
+class UserListAPIViewTests(BaseUserAPITestCase):
     def setUp(self) -> None:
         self.user1 = User.objects.create_user(
             phone_number="+254703456785", password="password123", username="testuser1"
@@ -153,7 +222,17 @@ class UserListAPIViewTests(APITestCase):
         )
         self.list_url = reverse("users:user-list")
 
+        self.create_staff_user()
+
     def test_view_returns_list_of_users(self) -> None:
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data), 3)
+
+    def test_normal_user_can_not_list_users(self) -> None:
+        client = APIClient()
+        access_token = self.create_access_token(self.user1)
+        client.credentials(HTTP_AUTHORIZATION="Bearer " + access_token)
+
+        response = client.get(self.list_url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

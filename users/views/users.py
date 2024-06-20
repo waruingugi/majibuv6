@@ -1,5 +1,6 @@
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveUpdateAPIView
 
+from commons.permissions import IsStaffOrSelfPermission, IsStaffPermission
 from users.models import User
 from users.serializers import (
     StaffUserRetrieveUpdateSerializer,
@@ -14,6 +15,7 @@ class UserCreateView(CreateAPIView):
 
     queryset = User.objects.all()
     serializer_class = UserCreateSerializer
+    permission_classes = [IsStaffPermission]
 
 
 class UserListView(ListAPIView):
@@ -21,6 +23,7 @@ class UserListView(ListAPIView):
 
     queryset = User.objects.all()
     serializer_class = UserListSerializer
+    permission_classes = [IsStaffPermission]
 
 
 class UserRetrieveUpdateView(RetrieveUpdateAPIView):
@@ -28,6 +31,7 @@ class UserRetrieveUpdateView(RetrieveUpdateAPIView):
 
     lookup_field = "id"
     queryset = User.objects.all()
+    permission_classes = [IsStaffOrSelfPermission]
 
     def get_serializer_class(self):
         if self.request.user.is_staff:
