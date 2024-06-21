@@ -1,5 +1,3 @@
-import logging
-
 from django.contrib.auth import get_user_model
 from django.http.response import JsonResponse
 from django.utils.deprecation import MiddlewareMixin
@@ -8,9 +6,7 @@ from rest_framework import status
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
+from commons.logger import logger
 
 User = get_user_model()
 
@@ -51,19 +47,34 @@ class UserIsActiveMiddleware(MiddlewareMixin):
 
 
 class RequestResponseLoggerMiddleware(MiddlewareMixin):
+    """Log incoming requests and outgoing responses."""
+
     def process_request(self, request):
-        user_id = request.user.id if request.user.is_authenticated else "Anonymous"
-        request_id = local.request_id
-        logger.info(
-            f"Request ID: {request_id} | User ID: {user_id} | Request: {request.method} {request.get_full_path()}"
+        exclude_keys = ["Authorization", "Cookie"]
+
+        # Create a new dictionary excluding the sensitive data
+        headers = {k: v for k, v in request.headers.items() if k not in exclude_keys}
+        headers.update(
+            dict(
+                headers=headers,
+                method=request.method,
+                path=request.get_full_path(),
+                user_id=(
+                    str(request.user.id)
+                    if request.user.is_authenticated
+                    else "Anonymous"
+                ),
+            )
         )
+        logger.info(f"Request: {local.request_id}: {headers}")
 
     def process_response(self, request, response):
-        user_id = request.user.id if request.user.is_authenticated else "Anonymous"
-        request_id = local.request_id
-        response["Request-ID"] = request_id
-        logger.info(
-            f"Request ID: {request_id} | User ID: {user_id} | Response: {response.status_code}"
+        response_log_data = dict(
+            status_code=response.status_code,
+            user_id=(
+                str(request.user.id) if request.user.is_authenticated else "Anonymous"
+            ),
         )
+        logger.info(f"Response: {local.request_id}: {response_log_data}")
 
         return response
