@@ -1,5 +1,6 @@
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveUpdateAPIView
 
+from commons.pagination import StandardPageNumberPagination
 from commons.permissions import IsStaffOrSelfPermission, IsStaffPermission
 from users.models import User
 from users.serializers import (
@@ -24,6 +25,7 @@ class UserListView(ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserListSerializer
     permission_classes = [IsStaffPermission]
+    pagination_class = StandardPageNumberPagination
 
 
 class UserRetrieveUpdateView(RetrieveUpdateAPIView):

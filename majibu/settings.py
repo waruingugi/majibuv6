@@ -175,6 +175,7 @@ REST_FRAMEWORK = {
         "authentication_throttle": "5/hour",
     },
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_PAGINATION_CLASS": "commons.pagination.StandardPageNumberPagination",
 }
 
 CELERY_BROKER_URL = os.environ["REDIS_URL"]
