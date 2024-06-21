@@ -143,9 +143,15 @@ class OTPVerificationSerializer(serializers.Serializer):
 
 
 class UserTokenObtainPairSerializer(TokenObtainPairSerializer):
-    phone_number = UserPhoneNumberField(
-        required=True, validators=[PhoneNumberExistsValidator()]
-    )
+    def validate(self, attrs):
+        """Change phone number to standard format"""
+        phone_field = UserPhoneNumberField()
+        # Username is phone number field(as specified in User model)
+        attrs[self.username_field] = phone_field.to_internal_value(
+            attrs[self.username_field]
+        )
+        data = super().validate(attrs)
+        return data
 
 
 class PasswordResetRequestSerializer(serializers.Serializer):

@@ -6,7 +6,7 @@ from functools import lru_cache
 
 class SourceFormatter(logging.Formatter):
     def format(self, record) -> str:
-        """Modify the logger so that it pre-pends source of te log"""
+        """Modify the logger so that it pre-pends source of the log"""
         module, func = record.module, record.funcName
 
         path_parts: list[str] = record.pathname.split(os.sep)

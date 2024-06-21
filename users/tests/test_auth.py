@@ -74,6 +74,15 @@ class AuthTokenTestCase(APITestCase):
         self.access_token = response.data["access"]
         self.refresh_token = response.data["refresh"]
 
+    def test_url_obtains_token_pair_using_national_number(self) -> None:
+        """Assert endpoint standardizes phone number to required format."""
+        url = reverse("auth:obtain-token")
+        data = {"phone_number": "0701456761", "password": "StrongPassword123"}
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("access", response.data)
+        self.assertIn("refresh", response.data)
+
     def test_url_refreshes_token_successfully(self):
         """Verify that the new access token is different from the old one"""
         # First, obtain a token pair

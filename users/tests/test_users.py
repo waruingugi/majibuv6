@@ -227,7 +227,7 @@ class UserListAPIViewTests(BaseUserAPITestCase):
     def test_view_returns_list_of_users(self) -> None:
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 3)
+        self.assertEqual(response.data["count"], User.objects.count())
 
     def test_normal_user_can_not_list_users(self) -> None:
         client = APIClient()
