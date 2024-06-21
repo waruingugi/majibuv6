@@ -56,7 +56,6 @@ class RequestResponseLoggerMiddleware(MiddlewareMixin):
         headers = {k: v for k, v in request.headers.items() if k not in exclude_keys}
         headers.update(
             dict(
-                headers=headers,
                 method=request.method,
                 path=request.get_full_path(),
                 user_id=(

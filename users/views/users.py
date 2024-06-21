@@ -1,3 +1,5 @@
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveUpdateAPIView
 
 from commons.pagination import StandardPageNumberPagination
@@ -26,6 +28,14 @@ class UserListView(ListAPIView):
     serializer_class = UserListSerializer
     permission_classes = [IsStaffPermission]
     pagination_class = StandardPageNumberPagination
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.OrderingFilter,
+        filters.SearchFilter,
+    ]
+    search_fields = ["phone_number", "username"]
+    filterset_fields = ["is_active", "is_verified", "is_staff"]
+    ordering_fields = ["created_at"]
 
 
 class UserRetrieveUpdateView(RetrieveUpdateAPIView):
