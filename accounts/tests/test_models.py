@@ -5,11 +5,15 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from accounts.constants import STKPUSH_DEPOSIT_DESCRPTION
+from accounts.models import MpesaPayment
 from accounts.serializers import (
     MpesaPaymentCreateSerializer,
+    MpesaPaymentResultCallbackMetadataSerializer,
+    MpesaPaymentResultStkCallbackSerializer,
     TransactionCreateSerializer,
     WithdrawalCreateSerializer,
 )
+from accounts.utils import process_mpesa_stk
 
 User = get_user_model()
 
@@ -92,6 +96,41 @@ class MpesaPaymentTestCase(TestCase):
             "customer_message": "Success. Request accepted for processing",
         }
 
+        mock_stk_push_result = {
+            "Body": {
+                "stkCallback": {
+                    "MerchantRequestID": "29115-34620561-1",
+                    "CheckoutRequestID": "ws_CO_191220191020363925",
+                    "ResultCode": 0,
+                    "ResultDesc": "The service request is processed successfully.",
+                    "CallbackMetadata": {
+                        "Item": [
+                            {"Name": "Amount", "Value": 1.00},
+                            {"Name": "MpesaReceiptNumber", "Value": "NLJ7RT61SV"},
+                            {"Name": "TransactionDate", "Value": 20191219102115},
+                            {"Name": "PhoneNumber", "Value": 254708374149},
+                        ]
+                    },
+                }
+            }
+        }
+
+        serialized_call_back_metadata = MpesaPaymentResultCallbackMetadataSerializer(
+            **mock_stk_push_result["Body"]["stkCallback"]["CallbackMetadata"]  # type: ignore
+        )
+
+        self.serialized_call_back = MpesaPaymentResultStkCallbackSerializer(
+            CallbackMetadata=serialized_call_back_metadata,
+            MerchantRequestID=mock_stk_push_result["Body"]["stkCallback"][
+                "MerchantRequestID"
+            ],
+            CheckoutRequestID=mock_stk_push_result["Body"]["stkCallback"][
+                "CheckoutRequestID"
+            ],
+            ResultCode=mock_stk_push_result["Body"]["stkCallback"]["ResultCode"],
+            ResultDesc=mock_stk_push_result["Body"]["stkCallback"]["ResultDesc"],
+        )
+
     def test_mpesa_payment_is_created_successfully(self):
         serializer = MpesaPaymentCreateSerializer(data=self.mock_stk_push_response)
         self.assertTrue(serializer.is_valid())
@@ -102,27 +141,17 @@ class MpesaPaymentTestCase(TestCase):
         self.assertIsNone(mpesa_payment.receipt_number)
         self.assertEqual(mpesa_payment.phone_number, str(self.user.phone_number))
 
-    # def test_mpesa_payment_is_updated_successfully(self):
-    #     serializer = MpesaPaymentCreateSerializer(data=self.mock_stk_push_response)
-    #     self.assertTrue(serializer.is_valid())
-    #     mpesa_payment = serializer.save()
+    def test_mpesa_payment_is_updated_successfully(self):
+        serializer = MpesaPaymentCreateSerializer(data=self.mock_stk_push_response)
+        self.assertTrue(serializer.is_valid())
+        mpesa_payment = serializer.save()
 
-    #     # Simulate callback process (This should be replaced with actual logic)
-    #     serialized_call_back = {
-    #         "ReceiptNumber": "ABC123",
-    #         "Amount": 100.0,
-    #         "PhoneNumber": "0712345678"
-    #     }
-    #     mpesa_payment.receipt_number = serialized_call_back["ReceiptNumber"]
-    #     mpesa_payment.amount = serialized_call_back["Amount"]
-    #     mpesa_payment.external_response = serialized_call_back
-    #     mpesa_payment.save()
+        process_mpesa_stk(self.serialized_call_back)
 
-    #     mpesa_payment.refresh_from_db()
+        mpesa_payment = MpesaPayment.objects.get(id=mpesa_payment.id)
 
-    #     self.assertIsNotNone(mpesa_payment.receipt_number)
-    #     self.assertEqual(mpesa_payment.external_response, serialized_call_back)
-    #     self.assertGreater(mpesa_payment.amount, 0.00)
+        self.assertIsNotNone(mpesa_payment.receipt_number)
+        self.assertEqual(mpesa_payment.amount, Decimal(1.00))
 
 
 class WithdrawalTestCase(TestCase):
