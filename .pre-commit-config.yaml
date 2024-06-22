@@ -41,7 +41,7 @@ repos:
       # Run the formatter.
       - id: ruff-format
 
-  # static type checker for Python.
+  # Static type checker for Python.
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: 'v1.7.1'
     hooks:
@@ -62,4 +62,8 @@ repos:
             dj-database-url,
             whitenoise,
             sentry-sdk,
+            django-phonenumber-field,
+            phonenumbers,
+            random-username,
+            djangorestframework_simplejwt
         ]
