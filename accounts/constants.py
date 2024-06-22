@@ -18,3 +18,9 @@ class TransactionStatuses(str, Enum):
     PENDING = "PENDING"
     SUCCESSFUL = "SUCCESSFUL"
     FAILED = "FAILED"
+
+
+class TransactionServices(str, Enum):
+    MPESA = "MPESA"
+    MAJIBU = "MAJIBU"
+    SESSION = "SESSION"

@@ -44,7 +44,7 @@ class Transaction(Base):
         default=Decimal("0.0"),
     )
     status = models.CharField(max_length=255, default=TransactionStatuses.PENDING.value)
-    service = models.CharField(max_length=255)
+    service = models.CharField(max_length=255, null=False)
     description = models.TextField()
     external_response = models.JSONField(null=True, blank=True)
     user = models.ForeignKey(
