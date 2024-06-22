@@ -35,7 +35,6 @@ platformdirs==4.2.2
 pre-commit==3.7.1
 prompt_toolkit==3.0.47
 psycopg2==2.9.9
-pydantic==2.7.4
 pydantic_core==2.18.4
 PyJWT==2.8.0
 pyotp==2.9.0

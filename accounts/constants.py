@@ -1,5 +1,8 @@
 from enum import Enum
 
+# M-Pesa STKPush deposit description
+STKPUSH_DEPOSIT_DESCRPTION = "Deposit of Ksh {} for account {} using M-Pesa STKPush."
+
 
 class TransactionCashFlow(str, Enum):
     INWARD = "INWARD"

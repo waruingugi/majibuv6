@@ -38,7 +38,7 @@ class Transaction(Base):
     )
     tax = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.0"))
     charge = models.DecimalField(
-        help_text="External costs related to the service.",
+        help_text="Total amount after deducting fees and tax.",
         max_digits=10,
         decimal_places=2,
         default=Decimal("0.0"),
@@ -55,8 +55,35 @@ class Transaction(Base):
         related_name="transactions",
     )
 
+    class Meta:
+        ordering = ("-created_at",)
+
     def __str__(self):
         return self.external_transaction_id
+
+    def save(self, *args, **kwargs):
+        """Auto fill db fields."""
+        latest_trans = (
+            Transaction.objects.filter(user=self.user).order_by("-created_at").first()
+        )
+
+        initial_final_balance = (
+            latest_trans.final_balance if latest_trans else Decimal(0.0)
+        )
+        charge = Decimal(0.0)
+
+        if self.cash_flow == TransactionCashFlow.INWARD.value:
+            charge = self.amount - self.fee - self.tax
+            self.final_balance = initial_final_balance + charge
+
+        else:
+            charge = self.amount + self.fee + self.tax
+            self.final_balance = initial_final_balance - charge
+
+        self.initial_balance = initial_final_balance
+        self.charge = charge
+
+        super().save(*args, **kwargs)
 
 
 class MpesaPayment(Base):
