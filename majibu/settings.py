@@ -175,9 +175,11 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_THROTTLE_RATES": {
         "authentication_throttle": "5/hour",
         "mpesa_stkpush_throttle": "3/minute",
+        "mpesa_withdrawal_throttle": "1/minute",
     },
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_PAGINATION_CLASS": "commons.pagination.StandardPageNumberPagination",
@@ -214,6 +216,7 @@ SPECTACULAR_SETTINGS = {
 }
 
 
+MPESA_B2C_CHARGE = int(os.environ["MPESA_B2C_CHARGE"])
 MPESA_CALLBACK_URL = os.environ["MPESA_CALLBACK_URL"]
 MPESA_CONSUMER_KEY = os.environ["MPESA_CONSUMER_KEY"]
 MPESA_SECRET = os.environ["MPESA_SECRET"]

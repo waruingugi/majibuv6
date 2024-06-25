@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from pydantic import ValidationError
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from accounts.permissions import IsMpesaWhiteListedIP
@@ -10,19 +11,21 @@ from accounts.serializers import (
     MpesaDirectPaymentSerializer,
     MpesaPaymentResultSerializer,
     WithdrawalResultSerializer,
+    WithdrawAmountSerializer,
 )
 from accounts.tasks import (
     process_b2c_payment_result_task,
+    process_b2c_payment_task,
     process_mpesa_paybill_payment_task,
     process_mpesa_stk_task,
     trigger_mpesa_stkpush_payment_task,
 )
 from commons.raw_logger import logger
-from commons.throttles import MpesaSTKPushThrottle
+from commons.throttles import MpesaSTKPushThrottle, MpesaWithdrawalThrottle
 
 
 class WithdrawalRequestTimeoutView(GenericAPIView):
-    permission_classes = [IsMpesaWhiteListedIP]
+    permission_classes = [IsMpesaWhiteListedIP, AllowAny]
 
     def post(self, request, *args, **kwargs):
         """
@@ -34,7 +37,7 @@ class WithdrawalRequestTimeoutView(GenericAPIView):
 
 
 class WithdrawalResultView(GenericAPIView):
-    permission_classes = [IsMpesaWhiteListedIP]
+    permission_classes = [IsMpesaWhiteListedIP, AllowAny]
 
     def post(self, request, *args, **kwargs):
         """
@@ -57,7 +60,7 @@ class WithdrawalResultView(GenericAPIView):
 
 
 class PaybillPaymentConfirmationView(GenericAPIView):
-    permission_classes = [IsMpesaWhiteListedIP]
+    permission_classes = [IsMpesaWhiteListedIP, AllowAny]
 
     def post(self, request, *args, **kwargs):
         """
@@ -82,7 +85,7 @@ class PaybillPaymentConfirmationView(GenericAPIView):
 
 
 class STKPushCallbackView(GenericAPIView):
-    permission_classes = [IsMpesaWhiteListedIP]
+    permission_classes = [IsMpesaWhiteListedIP, AllowAny]
 
     def post(self, request, *args, **kwargs):
         """
@@ -125,3 +128,18 @@ class TriggerSTKPushView(GenericAPIView):
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class WithdrawalRequestView(GenericAPIView):
+    serializer_class = WithdrawAmountSerializer
+    throttle_classes = [MpesaWithdrawalThrottle]
+
+    def post(self, request, *args, **kwargs):
+        """User makes a post to this endpoint to make a cash withdrawal."""
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            process_b2c_payment_task(
+                user=request.user, amount=serializer.validated_data["amount"]
+            )
+
+        return Response(status=status.HTTP_200_OK)

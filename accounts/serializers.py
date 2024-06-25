@@ -1,14 +1,50 @@
 from typing import List, Optional, Union
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from pydantic import BaseModel
 from rest_framework import serializers
 
-from accounts.constants import DEPOSIT_AMOUNT_CHOICES
+from accounts.constants import (
+    DEPOSIT_AMOUNT_CHOICES,
+    MAX_WITHDRAWAL_AMOUNT,
+    MIN_WITHDRAWAL_AMOUNT,
+)
 from accounts.models import MpesaPayment, Transaction, Withdrawal
 from commons.serializers import UserPhoneNumberField
+from commons.utils import md5_hash
 
 User = get_user_model()
+
+
+class WithdrawAmountSerializer(serializers.Serializer):
+    amount = serializers.IntegerField(
+        required=True, min_value=MIN_WITHDRAWAL_AMOUNT, max_value=MAX_WITHDRAWAL_AMOUNT
+    )
+
+    def validate(self, data):
+        request = self.context.get("request")
+        if not request:
+            raise serializers.ValidationError(
+                "Request context is required for validation."
+            )
+
+        user_balance = Transaction.objects.get_user_balance(user=request.user)
+        withdrawal_amount = data["amount"]
+        total_withdrawal_charge = withdrawal_amount + settings.MPESA_B2C_CHARGE
+
+        if user_balance < total_withdrawal_charge:
+            raise serializers.ValidationError(
+                f"You do not have sufficient balance to withdraw ksh {withdrawal_amount}"
+            )
+
+        if cache.get(md5_hash(f"{request.user.phone}:withdraw_request")):
+            raise serializers.ValidationError(
+                f"A similar withdrawal request for ksh {withdrawal_amount} is currently being processed."
+            )
+
+        return data
 
 
 class DepositAmountSerializer(serializers.Serializer):

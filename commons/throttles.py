@@ -13,3 +13,10 @@ class MpesaSTKPushThrottle(SimpleRateThrottle):
 
     def get_cache_key(self, request, view):
         return self.get_ident(request)
+
+
+class MpesaWithdrawalThrottle(SimpleRateThrottle):
+    scope = "mpesa_withdrawal_throttle"
+
+    def get_cache_key(self, request, view):
+        return self.get_ident(request)

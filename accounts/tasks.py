@@ -6,6 +6,7 @@ from accounts.serializers import (
     WithdrawalResultBodySerializer,
 )
 from accounts.utils import (
+    process_b2c_payment,
     process_b2c_payment_result,
     process_mpesa_paybill_payment,
     process_mpesa_stk,
@@ -41,3 +42,8 @@ def process_mpesa_stk_task(
 def trigger_mpesa_stkpush_payment_task(*, amount: int, phone_number: str) -> None:
     """trigger_mpesa_stkpush_payment background task"""
     trigger_mpesa_stkpush_payment(amount, phone_number)
+
+
+@shared_task  # type: ignore
+def process_b2c_payment_task(*, user, amount) -> None:
+    process_b2c_payment(user=user, amount=amount)

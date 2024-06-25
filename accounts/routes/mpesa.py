@@ -3,7 +3,9 @@ from django.urls import path
 from accounts.views.mpesa import (
     PaybillPaymentConfirmationView,
     STKPushCallbackView,
+    TriggerSTKPushView,
     WithdrawalRequestTimeoutView,
+    WithdrawalRequestView,
     WithdrawalResultView,
 )
 
@@ -29,5 +31,15 @@ urlpatterns = [
         "payments/stkpush/callback/",
         STKPushCallbackView.as_view(),
         name="stkpush-callback",
+    ),
+    path(
+        "payments/stkpush/trigger/",
+        TriggerSTKPushView.as_view(),
+        name="trigger-stkpush",
+    ),
+    path(
+        "payments/withdrawal/request/",
+        WithdrawalRequestView.as_view(),
+        name="trigger-withdrawal",
     ),
 ]

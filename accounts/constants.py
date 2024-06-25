@@ -1,6 +1,10 @@
 from enum import Enum
 
-# You can only deposit an amoun in this options
+# Withdraw amount restrictions
+MIN_WITHDRAWAL_AMOUNT = 20
+MAX_WITHDRAWAL_AMOUNT = 1000
+
+# You can only deposit an amount in this options
 DEPOSIT_AMOUNT_CHOICES = [50, 100, 200, 500, 1000]
 
 # M-Pesa STKPush deposit description

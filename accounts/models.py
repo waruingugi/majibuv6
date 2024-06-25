@@ -13,6 +13,15 @@ from commons.models import Base
 User = get_user_model()
 
 
+class TransactionManager(models.Manager):
+    def get_user_balance(self, user) -> Decimal:
+        """Get current user balance"""
+        latest_transaction = self.filter(user=user).order_by("-created_at").first()
+        if latest_transaction:
+            return latest_transaction.final_balance
+        return Decimal("0.0")
+
+
 class Transaction(Base):
     external_transaction_id = models.CharField(max_length=255, unique=True)
     initial_balance = models.DecimalField(
@@ -54,6 +63,8 @@ class Transaction(Base):
         blank=True,
         related_name="transactions",
     )
+
+    objects = TransactionManager()
 
     class Meta:
         ordering = ("-created_at",)

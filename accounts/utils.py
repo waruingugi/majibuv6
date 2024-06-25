@@ -359,7 +359,7 @@ def initiate_b2c_payment(
         raise e
 
 
-def process_b2c_payment(*, user, amount):
+def process_b2c_payment(*, user, amount) -> None:
     """Process an M-Pesa B2C payment request"""
     logger.info("Processing B2C payment")
 
