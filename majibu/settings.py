@@ -177,6 +177,7 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_THROTTLE_RATES": {
         "authentication_throttle": "5/hour",
+        "mpesa_stkpush_throttle": "3/minute",
     },
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_PAGINATION_CLASS": "commons.pagination.StandardPageNumberPagination",

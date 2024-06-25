@@ -4,10 +4,15 @@ from django.contrib.auth import get_user_model
 from pydantic import BaseModel
 from rest_framework import serializers
 
+from accounts.constants import DEPOSIT_AMOUNT_CHOICES
 from accounts.models import MpesaPayment, Transaction, Withdrawal
 from commons.serializers import UserPhoneNumberField
 
 User = get_user_model()
+
+
+class DepositAmountSerializer(serializers.Serializer):
+    amount = serializers.ChoiceField(required=True, choices=DEPOSIT_AMOUNT_CHOICES)
 
 
 class TransactionCreateSerializer(serializers.ModelSerializer):
@@ -95,7 +100,7 @@ class WithdrawalReferenceItemSerializer(BaseModel):
     ReferenceItem: KeyValueDict
 
 
-class WithdrawalResultBodyParaments(BaseModel):
+class WithdrawalResultBodyParameters(BaseModel):
     ResultParameter: List[KeyValueDict]
 
 
@@ -106,9 +111,17 @@ class WithdrawalResultBodySerializer(BaseModel):
     OriginatorConversationID: str
     ConversationID: str
     TransactionID: str
-    ResultParameters: WithdrawalResultBodyParaments
+    ResultParameters: WithdrawalResultBodyParameters
     ReferenceData: WithdrawalReferenceItemSerializer
 
 
 class WithdrawalResultSerializer(BaseModel):
     Result: WithdrawalResultBodySerializer
+
+
+class MpesaPaymentResultBodySerializer(BaseModel):
+    stkCallback: MpesaPaymentResultStkCallbackSerializer
+
+
+class MpesaPaymentResultSerializer(BaseModel):
+    Body: MpesaPaymentResultBodySerializer

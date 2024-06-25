@@ -6,3 +6,10 @@ class AuthenticationThrottle(SimpleRateThrottle):
 
     def get_cache_key(self, request, view):
         return self.get_ident(request)
+
+
+class MpesaSTKPushThrottle(SimpleRateThrottle):
+    scope = "mpesa_stkpush_throttle"
+
+    def get_cache_key(self, request, view):
+        return self.get_ident(request)

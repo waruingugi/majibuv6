@@ -47,7 +47,7 @@ def format_mpesa_result_params_to_dict(result_parameters) -> dict:
     """Format value in serializer into a key - value dict"""
     result_dict = {}
     for serialized_item in result_parameters:
-        item = serialized_item.dict()
+        item = serialized_item.model_dump()
         result_dict[item["Key"]] = item["Value"]
 
     return result_dict
@@ -439,7 +439,7 @@ def process_b2c_payment_result(mpesa_b2c_result: WithdrawalResultBodySerializer)
                 "charges_paid_account_available_funds": result_params[
                     "B2CChargesPaidAccountAvailableFunds"
                 ],
-                "external_response": json.dumps(mpesa_b2c_result.dict()),
+                "external_response": json.dumps(mpesa_b2c_result.model_dump()),
             }
 
             Withdrawal.objects.filter(id=withdrawal_request.id).update(
@@ -448,7 +448,7 @@ def process_b2c_payment_result(mpesa_b2c_result: WithdrawalResultBodySerializer)
 
     except Exception as e:
         logger.warning(
-            f"Error encountered while processing B2C response: {mpesa_b2c_result.dict()}"
+            f"Error encountered while processing B2C response: {mpesa_b2c_result.model_dump()}"
         )
         logger.warning(f"An error occurred while processing B2C result: {e}")
         raise e
