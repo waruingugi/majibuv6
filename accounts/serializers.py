@@ -129,7 +129,7 @@ class MpesaDirectPaymentSerializer(BaseModel):
 
 class KeyValueDict(BaseModel):
     Key: str
-    Value: str
+    Value: str | int | float
 
 
 class WithdrawalReferenceItemSerializer(BaseModel):

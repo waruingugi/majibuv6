@@ -2,7 +2,6 @@ from django.http import JsonResponse
 from pydantic import ValidationError
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
-from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from accounts.permissions import IsMpesaWhiteListedIP
@@ -25,7 +24,7 @@ from commons.throttles import MpesaSTKPushThrottle, MpesaWithdrawalThrottle
 
 
 class WithdrawalRequestTimeoutView(GenericAPIView):
-    permission_classes = [IsMpesaWhiteListedIP, AllowAny]
+    permission_classes = [IsMpesaWhiteListedIP]
 
     def post(self, request, *args, **kwargs):
         """
@@ -37,7 +36,7 @@ class WithdrawalRequestTimeoutView(GenericAPIView):
 
 
 class WithdrawalResultView(GenericAPIView):
-    permission_classes = [IsMpesaWhiteListedIP, AllowAny]
+    permission_classes = [IsMpesaWhiteListedIP]
 
     def post(self, request, *args, **kwargs):
         """
@@ -60,7 +59,7 @@ class WithdrawalResultView(GenericAPIView):
 
 
 class PaybillPaymentConfirmationView(GenericAPIView):
-    permission_classes = [IsMpesaWhiteListedIP, AllowAny]
+    permission_classes = [IsMpesaWhiteListedIP]
 
     def post(self, request, *args, **kwargs):
         """
@@ -85,7 +84,7 @@ class PaybillPaymentConfirmationView(GenericAPIView):
 
 
 class STKPushCallbackView(GenericAPIView):
-    permission_classes = [IsMpesaWhiteListedIP, AllowAny]
+    permission_classes = [IsMpesaWhiteListedIP]
 
     def post(self, request, *args, **kwargs):
         """
