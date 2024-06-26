@@ -1,6 +1,6 @@
 from celery import shared_task
 
-from accounts.serializers import (
+from accounts.serializers.mpesa import (
     MpesaDirectPaymentSerializer,
     MpesaPaymentResultStkCallbackSerializer,
     WithdrawalResultBodySerializer,

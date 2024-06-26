@@ -6,7 +6,7 @@ from django.test import TestCase
 
 from accounts.constants import STKPUSH_DEPOSIT_DESCRPTION
 from accounts.models import MpesaPayment, Transaction
-from accounts.serializers import (
+from accounts.serializers.mpesa import (
     MpesaPaymentCreateSerializer,
     MpesaPaymentResultCallbackMetadataSerializer,
     MpesaPaymentResultStkCallbackSerializer,

@@ -2,7 +2,7 @@ import json
 
 from django.conf import settings
 
-from accounts.serializers import (
+from accounts.serializers.mpesa import (
     MpesaDirectPaymentSerializer,
     MpesaPaymentResultBodySerializer,
     MpesaPaymentResultCallbackMetadataSerializer,

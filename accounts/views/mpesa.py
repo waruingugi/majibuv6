@@ -5,7 +5,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 
 from accounts.permissions import IsMpesaWhiteListedIP
-from accounts.serializers import (
+from accounts.serializers.mpesa import (
     DepositAmountSerializer,
     MpesaDirectPaymentSerializer,
     MpesaPaymentResultSerializer,

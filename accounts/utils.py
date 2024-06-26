@@ -21,7 +21,7 @@ from accounts.constants import (
     TransactionTypes,
 )
 from accounts.models import MpesaPayment, Withdrawal
-from accounts.serializers import (
+from accounts.serializers.mpesa import (
     MpesaDirectPaymentSerializer,
     MpesaPaymentCreateSerializer,
     MpesaPaymentResultStkCallbackSerializer,
