@@ -80,7 +80,7 @@ class User(AbstractBaseUser, PermissionsMixin, Base):
     REQUIRED_FIELDS: list[str] = []  # type: ignore
 
     def __str__(self) -> str:
-        return self.phone_number
+        return str(self.phone_number)
 
     class Meta:
         ordering = ("-created_at",)

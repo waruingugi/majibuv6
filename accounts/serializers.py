@@ -39,7 +39,7 @@ class WithdrawAmountSerializer(serializers.Serializer):
                 f"You do not have sufficient balance to withdraw ksh {withdrawal_amount}"
             )
 
-        if cache.get(md5_hash(f"{request.user.phone}:withdraw_request")):
+        if cache.get(md5_hash(f"{request.user.phone_number}:withdraw_request")):
             raise serializers.ValidationError(
                 f"A similar withdrawal request for ksh {withdrawal_amount} is currently being processed."
             )

@@ -118,7 +118,7 @@ class TriggerSTKPushView(GenericAPIView):
         if serializer.is_valid():
             trigger_mpesa_stkpush_payment_task.delay(
                 amount=serializer.validated_data["amount"],
-                phone_number=request.user.phone_number,
+                phone_number=str(request.user.phone_number),
             )
 
             return Response(
@@ -137,8 +137,9 @@ class WithdrawalRequestView(GenericAPIView):
         """User makes a post to this endpoint to make a cash withdrawal."""
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            process_b2c_payment_task(
+            process_b2c_payment_task.delay(
                 user=request.user, amount=serializer.validated_data["amount"]
             )
+            return Response(status=status.HTTP_200_OK)
 
-        return Response(status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

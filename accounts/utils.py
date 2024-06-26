@@ -367,7 +367,7 @@ def process_b2c_payment(*, user, amount) -> None:
         # Save hashed value that expires every 2 minutes.
         # That effectively only limits a user to 1 successful withdrawal
         # each 2 minutes
-        hashed_withdrawal_request = md5_hash(f"{user.phone}:withdraw_request")
+        hashed_withdrawal_request = md5_hash(f"{user.phone_number}:withdraw_request")
         cache.set(
             hashed_withdrawal_request, amount, timeout=settings.WITHDRAWAL_BUFFER_PERIOD
         )
