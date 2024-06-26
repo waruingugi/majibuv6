@@ -1,27 +1,10 @@
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient, APITestCase
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.test import APIClient
 
+from commons.tests.base_tests import BaseUserAPITestCase
 from users.constants import MAX_USERNAME_LEN, MIN_USERNAME_LEN
 from users.models import User
-
-
-class BaseUserAPITestCase(APITestCase):
-    def create_staff_user(self) -> None:
-        self.staff_user = User.objects.create_user(
-            phone_number="0701234567",
-            username="admin",
-            password="Adminpassword123",
-            is_staff=True,
-        )
-        self.staff_access_token = self.create_access_token(self.staff_user)
-
-        self.client.credentials(HTTP_AUTHORIZATION="Bearer " + self.staff_access_token)
-
-    def create_access_token(self, user) -> str:
-        refresh = RefreshToken.for_user(user)
-        return str(refresh.access_token)  # type: ignore
 
 
 class UserCreateAPIViewTests(BaseUserAPITestCase):
