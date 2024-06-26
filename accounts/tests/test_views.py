@@ -12,6 +12,7 @@ from accounts.tests.test_data import (
     mock_stk_push_result,
     mock_successful_b2c_result,
 )
+from commons.tests.base_tests import BaseUserAPITestCase
 from commons.throttles import MpesaSTKPushThrottle, MpesaWithdrawalThrottle
 
 User = get_user_model()
@@ -139,18 +140,15 @@ class STKPushCallbackViewTests(APITestCase):
         mock_task.assert_called_once()
 
 
-class TriggerSTKPushViewTests(APITestCase):
-    def setUp(self):
-        self.client = APIClient()
+class TriggerSTKPushViewTests(BaseUserAPITestCase):
+    def setUp(self) -> None:
         self.url = reverse("mpesa:trigger-stkpush")  # Replace with your actual URL name
-        self.user = User.objects.create_user(
-            username="testuser", password="testpassword", phone_number="+254712345678"
-        )
-        self.client.force_authenticate(user=self.user)
+
         self.sample_deposit_data = {"amount": DEPOSIT_AMOUNT_CHOICES[0]}
         self.invalid_deposit_data = {
             "amount": 15000000
         }  # Not in DEPOSIT_AMOUNT_CHOICES
+        self.force_authentication_user()
 
     @patch("accounts.views.mpesa.trigger_mpesa_stkpush_payment_task.delay")
     def test_successful_request_calls_background_task(self, mock_task):
@@ -180,19 +178,13 @@ class TriggerSTKPushViewTests(APITestCase):
         self.assertIn("amount", response.data)
 
 
-class WithdrawalRequestViewTests(APITestCase):
+class WithdrawalRequestViewTests(BaseUserAPITestCase):
     def setUp(self):
-        self.client = APIClient()
-        self.url = reverse(
-            "mpesa:trigger-withdrawal"
-        )  # Replace with your actual URL name
-        self.user = User.objects.create_user(
-            username="testuser", password="testpassword", phone_number="+254712345678"
-        )
-        self.client.force_authenticate(user=self.user)
+        self.url = reverse("mpesa:trigger-withdrawal")
         self.sample_withdrawal_data = {"amount": 100}
         self.insufficient_funds_data = {"amount": 900}
         self.similar_request_data = {"amount": 50}
+        self.force_authentication_user()
 
     @patch("accounts.views.mpesa.process_b2c_payment_task.delay")
     def test_successful_request_calls_delay_task(self, mock_task):

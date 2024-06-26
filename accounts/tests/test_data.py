@@ -82,8 +82,8 @@ sample_negative_transaction_instance_info = {
 }
 
 
-# Sample pf failed STKPush response
-sample_failed_stk_push_response = {
+# Sample of failed STKPush response
+mock_failed_stk_push_response = {
     "Body": {
         "stkCallback": {
             "MerchantRequestID": "29115-34620561-1",
@@ -112,14 +112,14 @@ serialized_result_body = MpesaPaymentResultBodySerializer(
 )
 
 serialized_failed_call_back = MpesaPaymentResultStkCallbackSerializer(
-    MerchantRequestID=sample_failed_stk_push_response["Body"]["stkCallback"][
+    MerchantRequestID=mock_failed_stk_push_response["Body"]["stkCallback"][
         "MerchantRequestID"
     ],
-    CheckoutRequestID=sample_failed_stk_push_response["Body"]["stkCallback"][
+    CheckoutRequestID=mock_failed_stk_push_response["Body"]["stkCallback"][
         "CheckoutRequestID"
     ],
-    ResultCode=sample_failed_stk_push_response["Body"]["stkCallback"]["ResultCode"],
-    ResultDesc=sample_failed_stk_push_response["Body"]["stkCallback"]["ResultDesc"],
+    ResultCode=mock_failed_stk_push_response["Body"]["stkCallback"]["ResultCode"],
+    ResultDesc=mock_failed_stk_push_response["Body"]["stkCallback"]["ResultDesc"],
 )
 
 
