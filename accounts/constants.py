@@ -13,6 +13,23 @@ STKPUSH_DEPOSIT_DESCRPTION = "Deposit of Ksh {} for account {} using M-Pesa STKP
 # M-Pesa direct paybill payment description
 PAYBILL_DEPOSIT_DESCRIPTION = "Deposit of Ksh {} for account {} using M-Pesa paybill."
 
+# M-Pesa B2C payment description
+PAYBILL_B2C_DESCRIPTION = "Payment of Ksh {} for account {} using B2C payment."
+
+# Withdrawal to play session description
+SESSION_WITHDRAWAL_DESCRIPTION = "Withdrawal by user: {} for session id: {}."
+
+# Deposit from winning a session description
+SESSION_WIN_DESCRIPION = "Deposit to user: {} for winning session id: {}"
+
+# Refund for party_a for playing a session description
+REFUND_SESSION_DESCRIPTION = "Refund user: {} for playing session id: {}"
+
+# Partially refund for party_a for playing a session description
+PARTIALLY_REFUND_SESSION_DESCRIPTION = (
+    "Partially refund user: {} for playing session id: {}"
+)
+
 
 class TransactionCashFlow(str, Enum):
     INWARD = "INWARD"

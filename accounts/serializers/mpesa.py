@@ -51,23 +51,6 @@ class DepositAmountSerializer(serializers.Serializer):
     amount = serializers.ChoiceField(required=True, choices=DEPOSIT_AMOUNT_CHOICES)
 
 
-class TransactionCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Transaction
-        exclude = ["description", "external_response"]
-        extra_kwargs = {
-            "id": {"read_only": True},
-            "created_at": {"read_only": True},
-            "updated_at": {"read_only": True},
-            "initial_balance": {"read_only": True},
-            "final_balance": {"read_only": True},
-            "fee": {"required": False},
-            "tax": {"required": False},
-            "charge": {"required": False},
-            "external_response": {"required": False},
-        }
-
-
 class MpesaPaymentCreateSerializer(serializers.ModelSerializer):
     phone_number = UserPhoneNumberField()
 

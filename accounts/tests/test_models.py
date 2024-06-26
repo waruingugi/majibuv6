@@ -10,9 +10,9 @@ from accounts.serializers.mpesa import (
     MpesaPaymentCreateSerializer,
     MpesaPaymentResultCallbackMetadataSerializer,
     MpesaPaymentResultStkCallbackSerializer,
-    TransactionCreateSerializer,
     WithdrawalCreateSerializer,
 )
+from accounts.serializers.transactions import TransactionCreateSerializer
 from accounts.utils import process_mpesa_stk
 
 User = get_user_model()

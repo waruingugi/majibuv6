@@ -4,6 +4,8 @@ from django.contrib.auth import get_user_model
 from django.db import models
 
 from accounts.constants import (
+    PAYBILL_B2C_DESCRIPTION,
+    STKPUSH_DEPOSIT_DESCRPTION,
     TransactionCashFlow,
     TransactionStatuses,
     TransactionTypes,
@@ -72,8 +74,8 @@ class Transaction(Base):
     def __str__(self):
         return self.external_transaction_id
 
-    def save(self, *args, **kwargs):
-        """Auto fill db fields."""
+    def update_balance_fields(self) -> None:
+        """Auto-calculate initial and final balances"""
         latest_trans = (
             Transaction.objects.filter(user=self.user).order_by("-created_at").first()
         )
@@ -94,6 +96,24 @@ class Transaction(Base):
         self.initial_balance = initial_final_balance
         self.charge = charge
 
+    def update_description_field(self) -> None:
+        if not self.description:  # If description is not set, auto-fill with defaults
+            if self.type == TransactionTypes.WITHDRAWAL.value:
+                self.description = PAYBILL_B2C_DESCRIPTION.format(
+                    self.amount,
+                    self.user.phone_number,  # type: ignore
+                )
+
+            elif self.type == TransactionTypes.DEPOSIT.value:
+                self.description = STKPUSH_DEPOSIT_DESCRPTION.format(
+                    self.amount,
+                    self.user.phone_number,  # type: ignore
+                )
+
+    def save(self, *args, **kwargs):
+        """Auto fill db fields."""
+        self.update_balance_fields()
+        self.update_description_field()
         super().save(*args, **kwargs)
 
 

@@ -39,6 +39,15 @@ class UserCreateSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "created_at", "updated_at"]
 
 
+class UserReadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "username",
+            "phone_number",
+        ]
+
+
 class BaseUserDetailSerializer(serializers.ModelSerializer):
     username = serializers.CharField(required=False, validators=[UsernameValidator()])
 

@@ -25,10 +25,10 @@ from accounts.serializers.mpesa import (
     MpesaDirectPaymentSerializer,
     MpesaPaymentCreateSerializer,
     MpesaPaymentResultStkCallbackSerializer,
-    TransactionCreateSerializer,
     WithdrawalCreateSerializer,
     WithdrawalResultBodySerializer,
 )
+from accounts.serializers.transactions import TransactionCreateSerializer
 from commons.raw_logger import logger
 from commons.serializers import UserPhoneNumberField
 from commons.utils import md5_hash
