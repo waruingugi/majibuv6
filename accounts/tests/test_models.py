@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from accounts.constants import STKPUSH_DEPOSIT_DESCRPTION
-from accounts.models import MpesaPayment
+from accounts.models import MpesaPayment, Transaction
 from accounts.serializers import (
     MpesaPaymentCreateSerializer,
     MpesaPaymentResultCallbackMetadataSerializer,
@@ -38,6 +38,19 @@ class TransactionTestCase(TestCase):
             "amount": 1.0,
             "external_response": json.dumps({}),
         }
+
+    def test_model_returns_user_balance(self) -> None:
+        serializer = TransactionCreateSerializer(
+            data=self.sample_positive_transaction_instance_info
+        )
+        serializer.initial_data["user"] = self.user.id
+        serializer.is_valid()
+        serializer.save()
+
+        self.assertEqual(
+            self.sample_positive_transaction_instance_info["amount"],
+            float(Transaction.objects.get_user_balance(self.user)),
+        )
 
     def test_create_positive_transaction_instance_successfully(self):
         serializer = TransactionCreateSerializer(
