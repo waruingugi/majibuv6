@@ -15,7 +15,7 @@ class UserCreateAPIViewTests(BaseUserAPITestCase):
             "username": "stacy",
             "password": "passwordAl123",
         }
-        self.force_authentication_staff_user()
+        self.force_authenticate_staff_user()
 
     def test_staff_user_creates_user_successfully(self) -> None:
         """Assert endpoint creates user successfully."""
@@ -110,7 +110,7 @@ class UserRetrieveUpdateAPIViewTests(BaseUserAPITestCase):
         self.foreign_user = User.objects.create_user(
             phone_number="+254713476781", password="password456", username="testuser2"
         )
-        self.force_authentication_user()
+        self.force_authenticate_user()
         self.detail_url = reverse("users:user-detail", kwargs={"id": self.user.id})
 
     def test_user_can_not_update_read_only_fields(self) -> None:
@@ -133,7 +133,7 @@ class UserRetrieveUpdateAPIViewTests(BaseUserAPITestCase):
         """Assert a user can edit themselves."""
         data = {"username": "activerodent"}
 
-        self.force_authentication_user()
+        self.force_authenticate_user()
         response = self.client.put(self.detail_url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.user.refresh_from_db()
@@ -145,7 +145,7 @@ class UserRetrieveUpdateAPIViewTests(BaseUserAPITestCase):
             "is_active": False,
             "is_verified": False,
         }
-        self.force_authentication_staff_user()
+        self.force_authenticate_staff_user()
         response = self.client.put(self.detail_url, data)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -199,7 +199,7 @@ class UserListAPIViewTests(BaseUserAPITestCase):
         )
         self.list_url = reverse("users:user-list")
 
-        self.force_authentication_staff_user()
+        self.force_authenticate_staff_user()
 
     def test_view_returns_list_of_users(self) -> None:
         response = self.client.get(self.list_url)

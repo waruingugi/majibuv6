@@ -6,7 +6,7 @@ from accounts.views.transactions import (
     TransactionRetrieveUpdateView,
 )
 
-app_name = "transaction"
+app_name = "transactions"
 
 urlpatterns = [
     path(
@@ -20,7 +20,7 @@ urlpatterns = [
         name="transaction-detail",
     ),
     path(
-        "transactions/list/",
+        "transactions/",
         TransactionListView.as_view(),
         name="transaction-list",
     ),

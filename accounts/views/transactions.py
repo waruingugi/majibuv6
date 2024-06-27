@@ -7,6 +7,7 @@ from accounts.models import Transaction
 from accounts.serializers.transactions import (
     TransactionCreateSerializer,
     TransactionListSerializer,
+    TransactionRetrieveUpdateSerializer,
 )
 from commons.pagination import StandardPageNumberPagination
 
@@ -31,7 +32,7 @@ class TransactionListView(ListAPIView):
         filters.OrderingFilter,
         filters.SearchFilter,
     ]
-    search_fields = ["external_transaction_id", "description", "user__phone_number"]
+    search_fields = ["external_transaction_id", "description"]
     filterset_fields = ["cash_flow", "type", "status"]
     ordering_fields = ["created_at", "updated_at"]
 
@@ -40,5 +41,6 @@ class TransactionRetrieveUpdateView(RetrieveUpdateAPIView):
     """Retrieve or update a transaction."""
 
     lookup_field = "id"
+    serializer_class = TransactionRetrieveUpdateSerializer
     queryset = Transaction.objects.all()
     permission_classes = [IsAdminUser]

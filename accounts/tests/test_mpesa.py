@@ -148,7 +148,7 @@ class TriggerSTKPushViewTests(BaseUserAPITestCase):
         self.invalid_deposit_data = {
             "amount": 15000000
         }  # Not in DEPOSIT_AMOUNT_CHOICES
-        self.force_authentication_user()
+        self.force_authenticate_user()
 
     @patch("accounts.views.mpesa.trigger_mpesa_stkpush_payment_task.delay")
     def test_successful_request_calls_background_task(self, mock_task):
@@ -184,7 +184,7 @@ class WithdrawalRequestViewTests(BaseUserAPITestCase):
         self.sample_withdrawal_data = {"amount": 100}
         self.insufficient_funds_data = {"amount": 900}
         self.similar_request_data = {"amount": 50}
-        self.force_authentication_user()
+        self.force_authenticate_user()
 
     @patch("accounts.views.mpesa.process_b2c_payment_task.delay")
     def test_successful_request_calls_delay_task(self, mock_task):

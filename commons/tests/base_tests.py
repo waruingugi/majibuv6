@@ -29,7 +29,7 @@ class BaseUserAPITestCase(APITestCase):
         )
         return self.staff_user
 
-    def force_authentication_user(self) -> None:
+    def force_authenticate_user(self) -> None:
         self.client = APIClient()
         if not hasattr(self, "user"):
             self.user = self.create_user()
@@ -37,7 +37,7 @@ class BaseUserAPITestCase(APITestCase):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
-    def force_authentication_staff_user(self) -> None:
+    def force_authenticate_staff_user(self) -> None:
         if not hasattr(self, "staff_user"):
             self.create_staff_user()
 
