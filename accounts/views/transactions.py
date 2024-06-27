@@ -25,7 +25,6 @@ class TransactionListView(ListAPIView):
 
     queryset = Transaction.objects.all()
     serializer_class = TransactionListSerializer
-    permission_classes = [IsAdminUser]
     pagination_class = StandardPageNumberPagination
     filter_backends = [
         DjangoFilterBackend,
@@ -35,6 +34,12 @@ class TransactionListView(ListAPIView):
     search_fields = ["external_transaction_id", "description"]
     filterset_fields = ["cash_flow", "type", "status"]
     ordering_fields = ["created_at", "updated_at"]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return Transaction.objects.all()
+        return Transaction.objects.filter(user=user)  # type: ignore
 
 
 class TransactionRetrieveUpdateView(RetrieveUpdateAPIView):

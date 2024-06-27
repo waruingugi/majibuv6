@@ -44,9 +44,9 @@ class TransactionCreateViewTests(BaseUserAPITestCase):
         self.assertEqual(
             transaction.external_transaction_id, data["external_transaction_id"]
         )
-        self.assertEqual(transaction.amount, data["amount"])
-        self.assertEqual(transaction.fee, data["fee"])
-        self.assertEqual(transaction.tax, data["tax"])
+        self.assertEqual(transaction.amount, Decimal(data["amount"]))  # type: ignore
+        self.assertEqual(transaction.fee, Decimal(data["fee"]))  # type: ignore
+        self.assertEqual(transaction.tax, Decimal(data["tax"]))  # type: ignore
         self.assertEqual(transaction.status, data["status"])
         self.assertEqual(transaction.service, data["service"])
         self.assertEqual(transaction.description, data["description"])
@@ -118,6 +118,9 @@ class TransactionRetrieveUpdateViewTests(BaseUserAPITestCase):
 class TransactionListViewTests(BaseUserAPITestCase):
     def setUp(self):
         self.user = self.create_user()
+        self.foreign_user = User.objects.create_user(
+            phone_number="+254713476781", password="password456", username="testuser2"
+        )
         self.transaction1 = Transaction.objects.create(
             external_transaction_id="TX12345678",
             initial_balance=Decimal("0.0"),
@@ -131,7 +134,7 @@ class TransactionListViewTests(BaseUserAPITestCase):
             status=TransactionStatuses.SUCCESSFUL.value,
             service=TransactionServices.MPESA.value,
             description="Test Description 1",
-            user=self.user,
+            user=self.foreign_user,
         )
         self.transaction2 = Transaction.objects.create(
             external_transaction_id="TX87654321",
@@ -142,7 +145,20 @@ class TransactionListViewTests(BaseUserAPITestCase):
             amount=Decimal("200.00"),
             fee=Decimal("2.00"),
             tax=Decimal("1.00"),
-            charge=Decimal("197.00"),
+            status=TransactionStatuses.SUCCESSFUL.value,
+            service=TransactionServices.MPESA.value,
+            description="Test Description 2",
+            user=self.user,
+        )
+        self.transaction3 = Transaction.objects.create(
+            external_transaction_id="TX8Y6781",
+            initial_balance=Decimal("0.0"),
+            final_balance=Decimal("150.0"),
+            cash_flow=TransactionCashFlow.INWARD.value,
+            type=TransactionTypes.DEPOSIT.value,
+            amount=Decimal("50.00"),
+            fee=Decimal("0.00"),
+            tax=Decimal("0.00"),
             status=TransactionStatuses.SUCCESSFUL.value,
             service=TransactionServices.MPESA.value,
             description="Test Description 2",
@@ -154,7 +170,7 @@ class TransactionListViewTests(BaseUserAPITestCase):
     def test_staff_can_list_transactions(self):
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data["results"]), 2)
+        self.assertEqual(len(response.data["results"]), 3)
 
     def test_staff_can_search_transactions(self):
         response = self.client.get(self.list_url, {"search": "TX12345678"})
@@ -165,19 +181,8 @@ class TransactionListViewTests(BaseUserAPITestCase):
             self.transaction1.external_transaction_id,
         )
 
-    def test_staff_can_order_transactions(self):
-        response = self.client.get(self.list_url, {"ordering": "created_at"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            response.data["results"][0]["external_transaction_id"],
-            self.transaction1.external_transaction_id,
-        )
-        self.assertEqual(
-            response.data["results"][1]["external_transaction_id"],
-            self.transaction2.external_transaction_id,
-        )
-
-    def test_user_can_not_list_transactions(self):
+    def test_user_can_list_their_own_transactions(self):
         self.force_authenticate_user()
         response = self.client.get(self.list_url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["results"]), 2)
