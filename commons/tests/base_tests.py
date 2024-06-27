@@ -1,8 +1,7 @@
-from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient, APITestCase
 from rest_framework_simplejwt.tokens import RefreshToken
 
-User = get_user_model()
+from users.models import User
 
 
 class BaseUserAPITestCase(APITestCase):
@@ -13,25 +12,37 @@ class BaseUserAPITestCase(APITestCase):
     staff_phone_number = "0701234567"
     staff_password = "Adminpassword123"
 
-    def force_authentication_user(self) -> None:
-        self.client = APIClient()
+    def create_user(self) -> User:
         self.user = User.objects.create_user(
             username=self.username,
             password=self.password,
             phone_number=self.phone_number,
         )
-        self.client.force_authenticate(user=self.user)
+        return self.user
 
-    def create_staff_user(self) -> None:
+    def create_staff_user(self) -> User:
         self.staff_user = User.objects.create_user(
             phone_number=self.staff_phone_number,
             username=self.staff_username,
             password=self.staff_password,
             is_staff=True,
         )
-        self.staff_access_token = self.create_access_token(self.staff_user)
+        return self.staff_user
 
-        self.client.credentials(HTTP_AUTHORIZATION="Bearer " + self.staff_access_token)
+    def force_authentication_user(self) -> None:
+        self.client = APIClient()
+        if not hasattr(self, "user"):
+            self.user = self.create_user()
+
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+    def force_authentication_staff_user(self) -> None:
+        if not hasattr(self, "staff_user"):
+            self.create_staff_user()
+
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.staff_user)
 
     def create_access_token(self, user) -> str:
         refresh = RefreshToken.for_user(user)

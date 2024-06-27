@@ -82,5 +82,9 @@ class User(AbstractBaseUser, PermissionsMixin, Base):
     def __str__(self) -> str:
         return str(self.phone_number)
 
+    @property
+    def phone(self) -> str:
+        return str(self.phone_number)
+
     class Meta:
         ordering = ("-created_at",)
