@@ -1,4 +1,5 @@
 from django.http import JsonResponse
+from drf_spectacular.utils import extend_schema
 from pydantic import ValidationError
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
@@ -23,6 +24,7 @@ from commons.raw_logger import logger
 from commons.throttles import MpesaSTKPushThrottle, MpesaWithdrawalThrottle
 
 
+@extend_schema(tags=["payments"], exclude=True)
 class WithdrawalRequestTimeoutView(GenericAPIView):
     permission_classes = [IsMpesaWhiteListedIP]
 
@@ -35,8 +37,12 @@ class WithdrawalRequestTimeoutView(GenericAPIView):
         return Response(status=status.HTTP_200_OK)
 
 
+@extend_schema(tags=["payments"], exclude=True)
 class WithdrawalResultView(GenericAPIView):
     permission_classes = [IsMpesaWhiteListedIP]
+
+    def get_serializer_class(self):
+        return WithdrawalResultSerializer
 
     def post(self, request, *args, **kwargs):
         """
@@ -58,6 +64,7 @@ class WithdrawalResultView(GenericAPIView):
         return Response(status=status.HTTP_200_OK)
 
 
+@extend_schema(tags=["payments"], exclude=True)
 class PaybillPaymentConfirmationView(GenericAPIView):
     permission_classes = [IsMpesaWhiteListedIP]
 
@@ -83,6 +90,7 @@ class PaybillPaymentConfirmationView(GenericAPIView):
         return Response(status=status.HTTP_200_OK)
 
 
+@extend_schema(tags=["payments"], exclude=True)
 class STKPushCallbackView(GenericAPIView):
     permission_classes = [IsMpesaWhiteListedIP]
 
