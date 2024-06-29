@@ -7,7 +7,7 @@ from celery import Celery
 from django.conf import settings
 
 # Set the default Django settings module for the 'celery' program
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "aviator.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "majibu.settings")
 
 app = Celery(
     __name__, timezone="Africa/Nairobi", broker_connection_retry_on_startup=True

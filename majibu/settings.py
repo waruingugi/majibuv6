@@ -16,11 +16,14 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Path of the env file used in development
+ENV_PATH = os.path.join(BASE_DIR, "scripts/.env.local").replace("\\", "/")
+
+# Load environment variables
+load_dotenv(ENV_PATH, override=True)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -216,17 +219,8 @@ SPECTACULAR_SETTINGS = {
 }
 
 
-MPESA_B2C_CHARGE = int(os.environ["MPESA_B2C_CHARGE"])
-MPESA_CALLBACK_URL = os.environ["MPESA_CALLBACK_URL"]
-MPESA_CONSUMER_KEY = os.environ["MPESA_CONSUMER_KEY"]
-MPESA_SECRET = os.environ["MPESA_SECRET"]
 MPESA_BUSINESS_SHORT_CODE = os.environ["MPESA_BUSINESS_SHORT_CODE"]
-
-MPESA_STKPUSH_URL = os.environ["MPESA_STKPUSH_URL"]
-MPESA_PASS_KEY = os.environ["MPESA_PASS_KEY"]
-MPESA_DATETIME_FORMAT = "%Y%m%d%H%M%S"
-MPESA_TOKEN_URL = os.environ["MPESA_TOKEN_URL"]
-
+MPESA_B2C_CHARGE = int(os.environ["MPESA_B2C_CHARGE"])
 MPESA_B2C_CONSUMER_KEY = os.environ["MPESA_B2C_CONSUMER_KEY"]
 MPESA_B2C_SECRET = os.environ["MPESA_B2C_SECRET"]
 MPESA_B2C_PASSWORD = os.environ["MPESA_B2C_PASSWORD"]
@@ -235,4 +229,14 @@ MPESA_B2C_INITIATOR_NAME = os.environ["MPESA_B2C_INITIATOR_NAME"]
 MPESA_B2C_SHORT_CODE = os.environ["MPESA_B2C_SHORT_CODE"]
 MPESA_B2C_QUEUE_TIMEOUT_URL = os.environ["MPESA_B2C_QUEUE_TIMEOUT_URL"]
 MPESA_B2C_RESULT_URL = os.environ["MPESA_B2C_RESULT_URL"]
+
+
+MPESA_CALLBACK_URL = os.environ["MPESA_CALLBACK_URL"]
+MPESA_CONSUMER_KEY = os.environ["MPESA_CONSUMER_KEY"]
+MPESA_DATETIME_FORMAT = "%Y%m%d%H%M%S"
+
+MPESA_PASS_KEY = os.environ["MPESA_PASS_KEY"]
+MPESA_SECRET = os.environ["MPESA_SECRET"]
+MPESA_STKPUSH_URL = os.environ["MPESA_STKPUSH_URL"]
+MPESA_TOKEN_URL = os.environ["MPESA_TOKEN_URL"]
 WITHDRAWAL_BUFFER_PERIOD = int(os.environ["WITHDRAWAL_BUFFER_PERIOD"])

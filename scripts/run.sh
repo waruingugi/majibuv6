@@ -13,3 +13,7 @@ redis-server --daemonize yes
 
 # To stop redis server running in background
 # sudo /etc/init.d/redis-server stop
+
+# Start Celery in a different terminal
+# celery -A majibu.celery beat
+# celery -A majibu worker --loglevel=info
