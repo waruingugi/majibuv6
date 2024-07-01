@@ -92,7 +92,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "majibu.wsgi.application"
+WSGI_APPLICATION = "majibu.local_wsgi.application"
 
 
 # Database
