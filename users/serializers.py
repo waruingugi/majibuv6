@@ -1,7 +1,9 @@
 from django.contrib.auth.password_validation import validate_password
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
+from commons.errors import ErrorCodes
 from commons.serializers import UserPhoneNumberField
 from users.models import User
 from users.validators import (
@@ -111,6 +113,10 @@ class OTPVerificationSerializer(serializers.Serializer):
 
 
 class UserTokenObtainPairSerializer(TokenObtainPairSerializer):
+    default_error_messages = {
+        "no_active_account": _(ErrorCodes.INCORRECT_USERNAME_OR_PASSWORD.value)
+    }
+
     def validate(self, attrs):
         """Change phone number to standard format"""
         phone_field = UserPhoneNumberField()
