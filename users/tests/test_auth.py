@@ -11,7 +11,7 @@ from users.otp import create_otp
 
 
 class RegisterViewTestCase(APITestCase):
-    @patch("commons.tasks.send_sms.delay")
+    @patch("users.views.auth.send_sms.delay")
     def test_view_creates_user(self, send_sms_mock) -> None:
         """Assert registration view creates user."""
         data = {
@@ -42,7 +42,7 @@ class RegisterViewTestCase(APITestCase):
         self.assertFalse(User.objects.get(phone_number=phone_number).is_staff)
         self.assertEqual(phone_number, "+254701456761")
 
-    @patch("commons.tasks.send_sms.delay")
+    @patch("users.views.auth.send_sms.delay")
     def test_view_creates_user_with_national_phone_number(self, send_sms_mock) -> None:
         """Assert registration view creates user with national number."""
         data = {"phone_number": "0701686761", "password": "passwordAl123"}
@@ -51,7 +51,7 @@ class RegisterViewTestCase(APITestCase):
         self.assertEqual(response.status_code, 201)
         self.assertTrue(User.objects.filter(phone_number="+254701686761").exists())
 
-    @patch("commons.tasks.send_sms.delay")
+    @patch("users.views.auth.send_sms.delay")
     def test_view_throttles_requests(self, send_sms_mock):
         """Assert the view throttles requests."""
         data = {"phone_number": "+254701451731", "password": "passwordAl123"}
@@ -192,7 +192,7 @@ class PasswordResetTestCase(APITestCase):
         self.password_reset_url = reverse("auth:password-reset-request")
         self.password_reset_confirm_url = reverse("auth:password-reset-confirm")
 
-    @patch("commons.tasks.send_sms.delay")
+    @patch("users.views.auth.send_sms.delay")
     def test_view_sends_otp(self, send_sms_mock):
         """Assert view sends OTP to validate user"""
         response = self.client.post(
