@@ -5,6 +5,7 @@ from uuid import uuid4
 import pyotp
 from django.core.cache import cache
 
+from commons.raw_logger import logger
 from commons.utils import md5_hash
 from users.constants import TOTP_EXPIRY_TIME, TOTP_LENGTH
 
@@ -53,6 +54,7 @@ def create_otp(phone_number: str):
         "secret": TOTP.secret(),
     }
     cache.set(md5_hash(phone_number), json.dumps(totp_data), timeout=TOTP_EXPIRY_TIME)
+    logger.info(f"Created OTP to validate {phone_number}.")
 
     return TOTP.create(totp_data["secret"], TOTP_LENGTH, TOTP_EXPIRY_TIME)
 
