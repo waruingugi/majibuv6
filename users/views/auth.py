@@ -17,6 +17,7 @@ from users.serializers import (
     OTPVerificationSerializer,
     PasswordResetConfirmSerializer,
     PasswordResetRequestSerializer,
+    ResendOTPVerificationSerializer,
     UserCreateSerializer,
     UserTokenObtainPairSerializer,
 )
@@ -43,6 +44,27 @@ class RegisterView(CreateAPIView):
         send_sms.delay(phone_number, OTP_SMS.format(otp))
 
         return user
+
+
+@extend_schema(tags=["auth"])
+class ResendOTPVerificationView(GenericAPIView):
+    serializer_class = ResendOTPVerificationSerializer
+    permission_classes = [AllowAny]
+    throttle_classes = [AuthenticationThrottle]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            phone_number = serializer.validated_data["phone_number"]
+            otp = create_otp(phone_number)
+
+            logger.info(f"Sending {otp} to {phone_number}")
+            send_sms.delay(phone_number, OTP_SMS.format(otp))
+
+            return Response(
+                {"detail": "OTP sent successfully"}, status=status.HTTP_200_OK
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @extend_schema(tags=["auth"])
