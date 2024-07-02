@@ -75,7 +75,7 @@ services:
     #   - .env
     networks:
       - majibu-backend-network
-    command: celery -A majibu beat -l info
+    command: celery -A majibu.celery  -l info
     volumes:
       - .:/majibu
     depends_on:
