@@ -14,7 +14,7 @@ from users.validators import (
 )
 
 
-class UserCreateSerializer(serializers.ModelSerializer):
+class BaseUserCreateSerializer(serializers.ModelSerializer):
     phone_number = UserPhoneNumberField(
         required=True, validators=[PhoneNumberIsAvailableValidator()]
     )
@@ -27,6 +27,31 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
+
+
+class UserCreateSerializer(BaseUserCreateSerializer):
+    class Meta(BaseUserCreateSerializer.Meta):
+        model = User
+        fields = [
+            "id",
+            "username",
+            "phone_number",
+            "password",
+            "is_active",
+            "is_verified",
+        ]
+        extra_kwargs = {
+            "id": {"read_only": True},
+            "username": {"read_only": True},
+            "is_active": {"read_only": True},
+            "is_verified": {"read_only": True},
+            "password": {"write_only": True},
+        }
+
+
+class StaffUserCreateSerializer(BaseUserCreateSerializer):
+    class Meta(BaseUserCreateSerializer.Meta):
+        model = User
         fields = [
             "id",
             "created_at",
@@ -38,7 +63,39 @@ class UserCreateSerializer(serializers.ModelSerializer):
             "is_verified",
             "is_staff",
         ]
-        read_only_fields = ["id", "created_at", "updated_at"]
+        extra_kwargs = {
+            "id": {"read_only": True},
+            "created_at": {"read_only": True},
+            "updated_at": {"read_only": True},
+            "password": {"write_only": True},
+        }
+
+
+# class UserCreateSerializer(serializers.ModelSerializer):
+#     phone_number = UserPhoneNumberField(
+#         required=True, validators=[PhoneNumberIsAvailableValidator()]
+#     )
+#     username = serializers.CharField(required=False, validators=[UsernameValidator()])
+#     password = serializers.CharField(
+#         write_only=True,
+#         required=True,
+#         validators=[validate_password],  # Use Django's built-in validators
+#     )
+
+#     class Meta:
+#         model = User
+#         fields = [
+#             "id",
+#             "created_at",
+#             "updated_at",
+#             "username",
+#             "phone_number",
+#             "password",
+#             "is_active",
+#             "is_verified",
+#             "is_staff",
+#         ]
+#         read_only_fields = ["id", "created_at", "updated_at"]
 
 
 class UserReadSerializer(serializers.ModelSerializer):

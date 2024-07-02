@@ -13,7 +13,11 @@ class RegisterViewTestCase(APITestCase):
     @patch("commons.tasks.send_sms.delay")
     def test_view_creates_user(self, send_sms_mock) -> None:
         """Assert registration view creates user."""
-        data = {"phone_number": "+254701456761", "password": "passwordAl123"}
+        data = {
+            "phone_number": "+254701456761",
+            "password": "passwordAl123",
+            "is_staff": True,
+        }
 
         response = self.client.post(reverse("auth:register"), data)
 
@@ -29,6 +33,12 @@ class RegisterViewTestCase(APITestCase):
         # Check if the correct arguments were passed to send_sms
         call_args = send_sms_mock.call_args
         phone_number, _ = call_args[0]
+
+        self.assertTrue(response.data["is_active"])
+        self.assertFalse(response.data["is_verified"])
+        self.assertNotIn("password", response.data)
+        self.assertNotIn("is_staff", response.data)
+        self.assertFalse(User.objects.get(phone_number=phone_number).is_staff)
         self.assertEqual(phone_number, "+254701456761")
 
     @patch("commons.tasks.send_sms.delay")
