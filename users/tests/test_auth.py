@@ -4,6 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from commons.tests.base_tests import BaseUserAPITestCase
 from commons.throttles import AuthenticationThrottle
 from users.models import User
 from users.otp import create_otp
@@ -147,6 +148,39 @@ class OTPVerificationTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("otp", response.data)
         self.assertFalse(self.user.is_verified)
+
+
+class ResendOTPVerificationTestCase(BaseUserAPITestCase):
+    def setUp(self) -> None:
+        self.user = self.create_user()
+        self.url = reverse("auth:resend-otp")
+        self.data = {"phone_number": str(self.user.phone_number)}
+
+    @patch("users.views.auth.create_otp")
+    @patch("users.views.auth.send_sms.delay")
+    def test_throttling(self, mock_send_sms, mock_create_otp) -> None:
+        for _ in range(20):  # Assuming throttle limit is 5 requests per hour
+            response = self.client.post(self.url, self.data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+        AuthenticationThrottle.cache.clear()
+
+    @patch("users.views.auth.create_otp")
+    @patch("users.views.auth.send_sms.delay")
+    def test_user_is_already_verified(self, mock_send_sms, mock_create_otp) -> None:
+        self.user.is_verified = True
+        self.user.save()
+
+        response = self.client.post(self.url, self.data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @patch("users.views.auth.create_otp")
+    @patch("users.views.auth.send_sms.delay")
+    def test_user_does_not_exist(self, mock_send_sms, mock_create_otp):
+        data = {"phone_number": "+254711111111"}
+        response = self.client.post(self.url, data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 class PasswordResetTestCase(APITestCase):

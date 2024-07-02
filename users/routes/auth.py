@@ -7,6 +7,7 @@ from users.views.auth import (
     PasswordResetConfirmView,
     PasswordResetRequestView,
     RegisterView,
+    ResendOTPVerificationView,
     UserTokenObtainPairView,
 )
 
@@ -24,6 +25,7 @@ urlpatterns = [
     path("token/refresh/", TokenRefreshView.as_view(), name="refresh-token"),
     path("register/", RegisterView.as_view(), name="register"),
     path("verify-otp/", OTPVerificationView.as_view(), name="verify-otp"),
+    path("resend-otp/", ResendOTPVerificationView.as_view(), name="resend-otp"),
     path(
         "password-reset/",
         PasswordResetRequestView.as_view(),
