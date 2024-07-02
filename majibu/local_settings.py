@@ -180,7 +180,7 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_THROTTLE_RATES": {
-        "authentication_throttle": "5/hour",
+        "authentication_throttle": "10/hour",
         "mpesa_stkpush_throttle": "3/minute",
         "mpesa_withdrawal_throttle": "1/minute",
     },
