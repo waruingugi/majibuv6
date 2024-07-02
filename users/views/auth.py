@@ -6,6 +6,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 
+from commons.raw_logger import logger
 from commons.tasks import send_sms
 from commons.throttles import AuthenticationThrottle
 from commons.utils import md5_hash
@@ -37,6 +38,7 @@ class RegisterView(CreateAPIView):
         user = serializer.save()
         phone_number = str(user.phone_number)
         otp = create_otp(phone_number)
+        logger.info(f"Sending {otp} to {phone_number}")
 
         send_sms.delay(phone_number, OTP_SMS.format(otp))
 
