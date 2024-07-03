@@ -39,6 +39,7 @@ class RegisterView(CreateAPIView):
         user = serializer.save()
         phone_number = str(user.phone_number)
         otp = create_otp(phone_number)
+        # TODO: Remove
         logger.info(f"Sending {otp} to {phone_number}")
 
         send_sms.delay(phone_number, OTP_SMS.format(otp))
@@ -58,6 +59,7 @@ class ResendOTPVerificationView(GenericAPIView):
             phone_number = serializer.validated_data["phone_number"]
             otp = create_otp(phone_number)
 
+            # TODO: Remove
             logger.info(f"Sending {otp} to {phone_number}")
             send_sms.delay(phone_number, OTP_SMS.format(otp))
 
@@ -103,6 +105,8 @@ class PasswordResetRequestView(GenericAPIView):
             phone_number = serializer.validated_data["phone_number"]
 
             otp = create_otp(phone_number)
+            # TODO: Remove
+            logger.info(f"Sending {otp} to {phone_number}")
             send_sms.delay(phone_number, OTP_SMS.format(otp))
 
             return Response(
