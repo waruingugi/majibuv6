@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from commons.errors import ErrorCodes
 from users.constants import MAX_USERNAME_LEN, MIN_USERNAME_LEN
 from users.models import User
 from users.otp import validate_otp
@@ -44,4 +45,4 @@ class OTPValidator:
     @staticmethod
     def validate_otp(phone_number: str, otp_code: str) -> None:
         if not validate_otp(otp_code, phone_number):
-            raise serializers.ValidationError("The OTP is invalid. Please try again.")
+            raise serializers.ValidationError(ErrorCodes.INVALID_OTP.value)
