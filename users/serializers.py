@@ -172,7 +172,9 @@ class ResendOTPVerificationSerializer(serializers.Serializer):
 
 
 class OTPVerificationSerializer(serializers.Serializer):
-    phone_number = UserPhoneNumberField(required=True)
+    phone_number = UserPhoneNumberField(
+        required=True, validators=[PhoneNumberExistsValidator()]
+    )
     otp = serializers.CharField(required=True, max_length=TOTP_LENGTH)
 
     def validate(self, data):
