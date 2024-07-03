@@ -176,6 +176,14 @@ class UserRetrieveUpdateAPIViewTests(BaseUserAPITestCase):
         self.assertIn("is_active", response.data)
         self.assertIn("is_staff", response.data)
 
+    def test_user_can_only_retrieve_their_own_data(self) -> None:
+        """Assert user can only view their own data."""
+        self.detail_url = reverse(
+            "users:user-detail", kwargs={"id": self.foreign_user.id}
+        )
+        response = self.client.put(self.detail_url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
 
 class UserListAPIViewTests(BaseUserAPITestCase):
     def setUp(self) -> None:
