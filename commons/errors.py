@@ -6,3 +6,4 @@ class ErrorCodes(str, Enum):
         "The phone number or password is incorrect. " "Please try again."
     )
     USER_IS_VERIFIED = "This user is already verified."
+    INVALID_OTP = "The OTP entered is incorrect. Please try again"
