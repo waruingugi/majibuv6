@@ -197,6 +197,7 @@ class UserTokenObtainPairSerializer(TokenObtainPairSerializer):
             attrs[self.username_field]
         )
         data = super().validate(attrs)
+        data["id"] = self.user.id  # type: ignore
         return data
 
 

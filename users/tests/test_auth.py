@@ -80,6 +80,7 @@ class AuthTokenTestCase(APITestCase):
         data = {"phone_number": self.user.phone_number, "password": "StrongPassword123"}
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("id", response.data)
         self.assertIn("access", response.data)
         self.assertIn("refresh", response.data)
         self.access_token = response.data["access"]
