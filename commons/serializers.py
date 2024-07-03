@@ -10,11 +10,12 @@ from phonenumbers import (
 from phonenumbers import parse as parse_phone_number
 from rest_framework import serializers
 
+from commons.errors import ErrorCodes
 from users.constants import DEFAULT_COUNTRY_CODE
 
 
 class UserPhoneNumberField(serializers.CharField):
-    default_error_messages = {"invalid": _("This phone number is not valid")}
+    default_error_messages = {"invalid": _(ErrorCodes.INVALID_PHONE_NUMBER.value)}
 
     def __init__(self, *args, region=None, **kwargs) -> None:
         """
