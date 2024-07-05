@@ -51,8 +51,6 @@ RUN chmod +x /scripts/entrypoint.sh && \
 # Switch back to non-root user
 USER admin
 
-EXPOSE 8000
-
 # This script will run before any command executed in the container
 ENTRYPOINT [ "/scripts/entrypoint.sh" ]
 
