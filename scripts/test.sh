@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Uncomment below if you have a different test file for tests
-export $(grep -v '^#' scripts/.env.test | xargs)
+export $(grep -v '^#' env/.env.test | xargs)
 
 # Start redis server and run it in the background
 echo "Starting redis server in the background..."

@@ -6,8 +6,8 @@ from commons.pagination import StandardPageNumberPagination
 from commons.permissions import IsStaffOrSelfPermission, IsStaffPermission
 from users.models import User
 from users.serializers import (
+    StaffUserCreateSerializer,
     StaffUserRetrieveUpdateSerializer,
-    UserCreateSerializer,
     UserListSerializer,
     UserRetrieveUpdateSerializer,
 )
@@ -17,7 +17,7 @@ class UserCreateView(CreateAPIView):
     """Create a user."""
 
     queryset = User.objects.all()
-    serializer_class = UserCreateSerializer
+    serializer_class = StaffUserCreateSerializer
     permission_classes = [IsStaffPermission]
 
 

@@ -28,25 +28,6 @@ class UserCreateAPIViewTests(BaseUserAPITestCase):
         self.assertFalse(response.data["is_verified"])
         self.assertFalse(response.data["is_active"])
 
-    def test_normal_user_fails_to_create_user(self) -> None:
-        """Assert normal users do not have permission to create users."""
-        normal_user = User.objects.create(
-            phone_number="0778245678",
-            username="normaluser",
-            password="passwordAl123",
-        )
-        access_token = self.create_access_token(normal_user)
-        client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION="Bearer " + access_token)
-        response = self.client.post(self.create_url, self.data)
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertIn("id", response.data)
-        self.assertIn("phone_number", response.data)
-        self.assertIn("username", response.data)
-        self.assertFalse(response.data["is_verified"])
-        self.assertFalse(response.data["is_active"])
-
     def test_view_generates_default_username(self) -> None:
         """Assert a default username is generated if the field is not defined."""
         data = {"phone_number": "0703245674", "password": "password124"}
@@ -101,6 +82,13 @@ class UserCreateAPIViewTests(BaseUserAPITestCase):
         data = {"phone_number": "070324", "password": "password124"}
         response = self.client.post(self.create_url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_normal_user_fails_to_create_user(self) -> None:
+        """Assert normal users do not have permission to create users."""
+        self.force_authenticate_user()
+        response = self.client.post(self.create_url, self.data)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class UserRetrieveUpdateAPIViewTests(BaseUserAPITestCase):
@@ -187,6 +175,14 @@ class UserRetrieveUpdateAPIViewTests(BaseUserAPITestCase):
         self.assertIn("is_verified", response.data)
         self.assertIn("is_active", response.data)
         self.assertIn("is_staff", response.data)
+
+    def test_user_can_only_retrieve_their_own_data(self) -> None:
+        """Assert user can only view their own data."""
+        self.detail_url = reverse(
+            "users:user-detail", kwargs={"id": self.foreign_user.id}
+        )
+        response = self.client.put(self.detail_url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class UserListAPIViewTests(BaseUserAPITestCase):

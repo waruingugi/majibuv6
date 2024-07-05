@@ -6,6 +6,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 
+from commons.raw_logger import logger
 from commons.tasks import send_sms
 from commons.throttles import AuthenticationThrottle
 from commons.utils import md5_hash
@@ -16,6 +17,7 @@ from users.serializers import (
     OTPVerificationSerializer,
     PasswordResetConfirmSerializer,
     PasswordResetRequestSerializer,
+    ResendOTPVerificationSerializer,
     UserCreateSerializer,
     UserTokenObtainPairSerializer,
 )
@@ -37,10 +39,34 @@ class RegisterView(CreateAPIView):
         user = serializer.save()
         phone_number = str(user.phone_number)
         otp = create_otp(phone_number)
+        # TODO: Remove
+        logger.info(f"Sending {otp} to {phone_number}")
 
         send_sms.delay(phone_number, OTP_SMS.format(otp))
 
         return user
+
+
+@extend_schema(tags=["auth"])
+class ResendOTPVerificationView(GenericAPIView):
+    serializer_class = ResendOTPVerificationSerializer
+    permission_classes = [AllowAny]
+    throttle_classes = [AuthenticationThrottle]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            phone_number = serializer.validated_data["phone_number"]
+            otp = create_otp(phone_number)
+
+            # TODO: Remove
+            logger.info(f"Sending {otp} to {phone_number}")
+            send_sms.delay(phone_number, OTP_SMS.format(otp))
+
+            return Response(
+                {"detail": "OTP sent successfully"}, status=status.HTTP_200_OK
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @extend_schema(tags=["auth"])
@@ -79,6 +105,8 @@ class PasswordResetRequestView(GenericAPIView):
             phone_number = serializer.validated_data["phone_number"]
 
             otp = create_otp(phone_number)
+            # TODO: Remove
+            logger.info(f"Sending {otp} to {phone_number}")
             send_sms.delay(phone_number, OTP_SMS.format(otp))
 
             return Response(

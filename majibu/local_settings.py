@@ -32,9 +32,9 @@ load_dotenv(ENV_PATH, override=True)
 SECRET_KEY = os.environ["SECRET_KEY"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
-ALLOWED_HOSTS: list[str] = ["localhost", "127.0.0.1", ".fly.dev"]
+DEBUG = bool(int(os.environ["DEBUG"]))
 
-CSRF_TRUSTED_ORIGINS: list[str] = ["https://*.fly.dev"]
+ALLOWED_HOSTS: list[str] = ["*"]
 
 
 # Application definition
@@ -92,7 +92,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "majibu.wsgi.application"
+WSGI_APPLICATION = "majibu.local_wsgi.application"
 
 
 # Database
@@ -146,15 +146,6 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = "static/"
-
-# Absolute path to the directory static files should be collected to.
-# Don't put anything in this directory yourself; store your static files
-# in apps' "static/" subdirectories and in STATICFILES_DIRS.
-# Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = os.path.join(BASE_DIR, "static").replace("\\", "/")
-
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -249,23 +240,3 @@ MPESA_SECRET = os.environ["MPESA_SECRET"]
 MPESA_STKPUSH_URL = os.environ["MPESA_STKPUSH_URL"]
 MPESA_TOKEN_URL = os.environ["MPESA_TOKEN_URL"]
 WITHDRAWAL_BUFFER_PERIOD = int(os.environ["WITHDRAWAL_BUFFER_PERIOD"])
-
-
-# If DEV_ENV=True, the system is running in dev environment so load local settings instead
-SERVER_IN_PROD = os.getenv("SERVER_IN_PROD", "0")
-if bool(SERVER_IN_PROD):
-    try:
-        from majibu.local_settings import *  # noqa
-    except Exception as e:  # noqa
-        pass
-else:
-    # Parse database configuration from $DATABASE_URL
-    import dj_database_url  # noqa
-
-    prod_db = dj_database_url.config(conn_max_age=500)
-    DATABASES["default"].update(prod_db)
-
-    # Honor the 'X-Forwarded-Proto' header for request.is_secure()
-    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-
-    PROJECT_ROOT = Path(__file__).resolve().parent
