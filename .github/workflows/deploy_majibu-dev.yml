@@ -28,8 +28,8 @@ jobs:
 
     - name: Build and push Docker Compose services
       run: |
-        docker-compose -f ./docker/docker-compose.yml build
-        docker-compose -f ./docker/docker-compose.yml push
+        docker-compose -f ./docker/docker-compose.azure.yml build
+        docker-compose -f ./docker/docker-compose.azure.yml push
       env:
         TAG: ${{ github.sha }}
         DOCKER_REGISTRY: majiburegistry.azurecr.io
