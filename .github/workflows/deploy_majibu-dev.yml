@@ -31,7 +31,7 @@ jobs:
       with:
         push: true
         tags: majiburegistry.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_687d70e7df624d50bc0cd3044c6a1517 }}/majibu:${{ github.sha }}
-        file: ./Dockerfile
+        file: ./docker/Dockerfile
 
   deploy:
     runs-on: ubuntu-latest
