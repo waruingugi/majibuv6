@@ -37,8 +37,7 @@ services:
       dockerfile: ./docker/Dockerfile
     # env_file:
     #   - .env
-    #image: majibu
-    image: ${DOCKER_REGISTRY}/majibu:${TAG}
+    image: majibu
     networks:
       - majibu-backend-network
     container_name: majibu-api
