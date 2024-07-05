@@ -26,12 +26,16 @@ jobs:
         username: ${{ secrets.AzureAppService_ContainerUsername_d004955daf6541348c40d60605414e41 }}
         password: ${{ secrets.AzureAppService_ContainerPassword_0623c502ff134d56998dea5d5f149396 }}
 
-    - name: Build and push container image to registry
-      uses: docker/build-push-action@v3
-      with:
-        push: true
-        tags: majiburegistry.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_d004955daf6541348c40d60605414e41 }}/majiburegistry/majibu:${{ github.sha }}
-        file: ./Dockerfile
+    - name: Build and push Docker Compose services
+      run: |
+        docker-compose -f ./docker/docker-compose.yml build
+        docker-compose -f ./docker/docker-compose.yml push
+      env:
+        TAG: ${{ github.sha }}
+        DOCKER_REGISTRY: majiburegistry.azurecr.io
+        DOCKER_USERNAME: ${{ secrets.AzureAppService_ContainerUsername_979e745da9a34d2483389e2386e99c5d }}
+        DOCKER_PASSWORD: ${{ secrets.AzureAppService_ContainerPassword_6fddbb06ad5249198b4dbf71ea271730 }}
+
 
   deploy:
     runs-on: ubuntu-latest
