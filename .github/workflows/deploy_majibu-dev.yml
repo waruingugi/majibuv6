@@ -23,15 +23,15 @@ jobs:
       uses: docker/login-action@v2
       with:
         registry: https://majiburegistry.azurecr.io/
-        username: ${{ secrets.AzureAppService_ContainerUsername_687d70e7df624d50bc0cd3044c6a1517 }}
-        password: ${{ secrets.AzureAppService_ContainerPassword_dcb67c37610944f08bac65e00f870a45 }}
+        username: ${{ secrets.AzureAppService_ContainerUsername_d004955daf6541348c40d60605414e41 }}
+        password: ${{ secrets.AzureAppService_ContainerPassword_0623c502ff134d56998dea5d5f149396 }}
 
     - name: Build and push container image to registry
       uses: docker/build-push-action@v3
       with:
         push: true
-        tags: majiburegistry.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_687d70e7df624d50bc0cd3044c6a1517 }}/majibu:${{ github.sha }}
-        file: ./docker/Dockerfile
+        tags: majiburegistry.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_d004955daf6541348c40d60605414e41 }}/majiburegistry/majibu:${{ github.sha }}
+        file: ./Dockerfile
 
   deploy:
     runs-on: ubuntu-latest
@@ -47,5 +47,5 @@ jobs:
       with:
         app-name: 'majibu-dev'
         slot-name: 'production'
-        publish-profile: ${{ secrets.AzureAppService_PublishProfile_66d1cf307c42465da0e9565ef72b0ddf }}
-        images: 'majiburegistry.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_687d70e7df624d50bc0cd3044c6a1517 }}/majibu:${{ github.sha }}'
+        publish-profile: ${{ secrets.AzureAppService_PublishProfile_c398f47db45143a5b4bace6876906c18 }}
+        images: 'majiburegistry.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_d004955daf6541348c40d60605414e41 }}/majiburegistry/majibu:${{ github.sha }}'
