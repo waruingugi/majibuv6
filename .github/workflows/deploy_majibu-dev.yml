@@ -52,4 +52,4 @@ jobs:
         app-name: 'majibu-dev'
         slot-name: 'production'
         publish-profile: ${{ secrets.AzureAppService_PublishProfile_c398f47db45143a5b4bace6876906c18 }}
-        images: 'majiburegistry.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_d004955daf6541348c40d60605414e41 }}/majiburegistry/majibu:${{ github.sha }}'
+        images: 'majiburegistry.azurecr.io/majibu'
