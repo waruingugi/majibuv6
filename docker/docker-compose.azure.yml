@@ -1,35 +1,6 @@
 version: "3.9"
 
 services:
-  # db:
-  #   image: postgres:12
-  #   container_name: postgres-server
-  #   networks:
-  #     - majibu-backend-network
-  #   environment:
-  #     - POSTGRES_DB=${POSTGRES_DB}
-  #     - POSTGRES_USER=${POSTGRES_USER}
-  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-  #   restart: always
-  #   volumes:
-  #     - db_data:/var/lib/postgresql/data/
-  #   ports:
-  #     - "5432:5432"
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
-  #     start_period: 10s
-
-  redis:
-    image: redis
-    container_name: redis-server
-    networks:
-      - majibu-backend-network
-    restart: always
-    ports:
-      - "6379:6379"
 
   app:
     build:
@@ -37,7 +8,7 @@ services:
       dockerfile: ./docker/Dockerfile
     # env_file:
     #   - .env
-    image: majibu
+    image: ${DOCKER_REGISTRY}/majibu
     networks:
       - majibu-backend-network
     container_name: majibu-api
@@ -45,10 +16,7 @@ services:
     volumes:
       - .:/majibu
     ports:
-      - "8000:8000"
-    depends_on:
-      # - db
-      - redis
+      - "80:8000"
 
   celery_worker:
     container_name: celery-worker
@@ -64,7 +32,6 @@ services:
       - .:/majibu
     depends_on:
       - app
-      - redis
 
   celery_beat:
     container_name: celery-beat
@@ -80,7 +47,6 @@ services:
       - .:/majibu
     depends_on:
       - app
-      - redis
 
 volumes:
   db_data:
