@@ -158,7 +158,13 @@ class UserRetrieveUpdateAPIViewTests(BaseUserAPITestCase):
             password="password455",
             username="testuser5",
         )
+        # Case sensitive search
         data = {"username": "testuser5"}
+        response = self.client.put(self.detail_url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # Case insensitive search
+        data = {"username": "TestUser5"}
         response = self.client.put(self.detail_url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
