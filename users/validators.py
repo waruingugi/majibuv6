@@ -27,11 +27,9 @@ class UsernameValidator:
             raise serializers.ValidationError(ErrorCodes.USERNAME_IS_TOO_LONG.value)
 
         if not username.isalnum():
-            raise serializers.ValidationError(
-                "Username can only contain letters[a-z] and numbers[0-9]."
-            )
+            raise serializers.ValidationError(ErrorCodes.USERNAME_IS_INVALID.value)
 
-        if User.objects.filter(username=username).exists():
+        if User.objects.filter(username__iexact=username).exists():
             raise serializers.ValidationError(ErrorCodes.USERNAME_EXISTS.value)
 
 
