@@ -116,7 +116,7 @@ class TransactionRetrieveUpdateViewTests(BaseUserAPITestCase):
 
 
 class TransactionListViewTests(BaseUserAPITestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.user = self.create_user()
         self.foreign_user = User.objects.create_user(
             phone_number="+254713476781", password="password456", username="testuser2"
@@ -167,12 +167,12 @@ class TransactionListViewTests(BaseUserAPITestCase):
         self.force_authenticate_staff_user()
         self.list_url = reverse("transactions:transaction-list")
 
-    def test_staff_can_list_transactions(self):
+    def test_staff_can_list_transactions(self) -> None:
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 3)
 
-    def test_staff_can_search_transactions(self):
+    def test_staff_can_search_transactions(self) -> None:
         response = self.client.get(self.list_url, {"search": "TX12345678"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 1)
@@ -181,8 +181,48 @@ class TransactionListViewTests(BaseUserAPITestCase):
             self.transaction1.external_transaction_id,
         )
 
-    def test_user_can_list_their_own_transactions(self):
+    def test_user_can_list_their_own_transactions(self) -> None:
         self.force_authenticate_user()
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 2)
+
+
+class TransactionRetrieveUserBalanceViewTests(BaseUserAPITestCase):
+    def setUp(self):
+        self.user = self.create_user()
+        self.foreign_user = User.objects.create_user(
+            phone_number="+254713476781", password="password456", username="testuser2"
+        )
+
+    def test_staff_can_get_all_user_balances(self) -> None:
+        """Assert staff can read all user balances"""
+        self.force_authenticate_staff_user()
+        user_url = reverse("transactions:user-balance", kwargs={"id": self.user.id})
+        foreign_url = reverse(
+            "transactions:user-balance", kwargs={"id": self.foreign_user.id}
+        )
+
+        user_response = self.client.get(user_url)
+        foreign_response = self.client.get(foreign_url)
+
+        self.assertEqual(user_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(foreign_response.status_code, status.HTTP_200_OK)
+
+        self.assertIn("balance", user_response.data)
+        self.assertIn("balance", foreign_response.data)
+
+    def test_user_can_get_own_user_balance(self) -> None:
+        """Assert user can only read their own user balance"""
+        self.force_authenticate_user()
+        user_url = reverse("transactions:user-balance", kwargs={"id": self.user.id})
+        foreign_url = reverse(
+            "transactions:user-balance", kwargs={"id": self.foreign_user.id}
+        )
+
+        user_response = self.client.get(user_url)
+        foreign_response = self.client.get(foreign_url)
+
+        self.assertEqual(user_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(foreign_response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn("balance", user_response.data)
