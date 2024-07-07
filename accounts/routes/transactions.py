@@ -4,6 +4,7 @@ from accounts.views.transactions import (
     TransactionCreateView,
     TransactionListView,
     TransactionRetrieveUpdateView,
+    TransactionRetrieveUserBalanceView,
 )
 
 app_name = "transactions"
@@ -23,5 +24,10 @@ urlpatterns = [
         "transactions/",
         TransactionListView.as_view(),
         name="transaction-list",
+    ),
+    path(
+        "transactions/users/<str:id>/balance/",
+        TransactionRetrieveUserBalanceView.as_view(),
+        name="user-balance",
     ),
 ]
