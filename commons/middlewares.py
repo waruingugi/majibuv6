@@ -51,24 +51,34 @@ class RequestResponseLoggerMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
         exclude_keys = ["Authorization", "Cookie"]
+        sensitive_keys_data = ["refresh", "access"]
 
         # Create a new dictionary excluding the sensitive data
         headers = {k: v for k, v in request.headers.items() if k not in exclude_keys}
-        headers.update(
-            dict(
-                method=request.method,
-                path=request.get_full_path(),
-                user_id=(
-                    str(request.user.id)
-                    if request.user.is_authenticated
-                    else "Anonymous"
-                ),
-            )
+
+        # Pop sensitive key data
+        data = request.POST.dict() if request.method in ["POST", "PUT", "PATCH"] else {}
+        for key in sensitive_keys_data:
+            if key in data:
+                data.pop(key)
+
+        log_data = {
+            "method": request.method,
+            "headers": headers,
+            "path": request.get_full_path(),
+            "user_id": (
+                str(request.user.id) if request.user.is_authenticated else "Anonymous"
+            ),
+            "ip_address": request.META.get("REMOTE_ADDR"),
+            "data": data,
+        }
+        logger.info(
+            f"Request: {local.request_id} - {log_data['ip_address']}: {log_data}"
         )
-        logger.info(f"Request: {local.request_id}: {headers}")
 
     def process_response(self, request, response):
         response_log_data = dict(
+            ip_address=request.META.get("REMOTE_ADDR"),
             status_code=response.status_code,
             user_id=(
                 str(request.user.id) if request.user.is_authenticated else "Anonymous"

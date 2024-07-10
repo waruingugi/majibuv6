@@ -13,6 +13,7 @@ from accounts.models import Transaction
 from accounts.serializers.transactions import (
     TransactionCreateSerializer,
     TransactionListSerializer,
+    TransactionRetrieveSerializer,
     TransactionRetrieveUpdateSerializer,
 )
 from commons.pagination import StandardPageNumberPagination
@@ -65,6 +66,7 @@ class TransactionRetrieveUserBalanceView(RetrieveAPIView):
     lookup_field = "id"
     queryset = User.objects.all()
     permission_classes = [IsStaffOrSelfPermission]
+    serializer_class = TransactionRetrieveSerializer
 
     def retrieve(self, request, *args, **kwargs):
         user = self.get_object()
