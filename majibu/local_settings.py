@@ -191,6 +191,7 @@ REST_FRAMEWORK = {
 
 # Celery settings
 CELERY_CACHE_BACKEND = "default"
+CELERY_TASK_SOFT_TIME_LIMIT = 60 * 5  # Tasks expire after 5 minutes
 CELERY_BROKER_URL = os.environ["REDIS_URL"]
 CELERY_ACCEPT_CONTENT = {"application/json"}
 CELERY_RESULT_SERIALIZER = "json"
