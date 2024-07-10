@@ -66,5 +66,6 @@ repos:
             phonenumbers,
             random-username,
             djangorestframework_simplejwt,
-            django-celery-results
+            django-celery-results,
+            pyotp
         ]

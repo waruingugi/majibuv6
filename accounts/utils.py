@@ -11,15 +11,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 
-from accounts.constants import (
-    PAYBILL_DEPOSIT_DESCRIPTION,
-    B2CMpesaCommandIDs,
-    MpesaAccountTypes,
-    TransactionCashFlow,
-    TransactionServices,
-    TransactionStatuses,
-    TransactionTypes,
-)
+from accounts.constants import B2CMpesaCommandIDs, MpesaAccountTypes
 from accounts.models import MpesaPayment, Withdrawal
 from accounts.serializers.mpesa import (
     MpesaDirectPaymentSerializer,
@@ -28,10 +20,8 @@ from accounts.serializers.mpesa import (
     WithdrawalCreateSerializer,
     WithdrawalResultBodySerializer,
 )
-from accounts.serializers.transactions import TransactionCreateSerializer
 from commons.raw_logger import logger
-from commons.serializers import UserPhoneNumberField
-from commons.utils import md5_hash
+from commons.utils import get_valid_fields, md5_hash
 
 User = get_user_model()
 
@@ -246,7 +236,8 @@ def process_mpesa_stk(
                 if item.Name == "PhoneNumber":
                     updated_mpesa_payment["phone_number"] = "+" + str(item.Value)
 
-        MpesaPayment.objects.filter(id=mpesa_payment.id).update(**updated_mpesa_payment)
+        filtered_data = get_valid_fields(MpesaPayment, updated_mpesa_payment)
+        MpesaPayment.objects.filter(id=mpesa_payment.id).update(**filtered_data)
         logger.info(f"Received mpesa payment: {updated_mpesa_payment}")
 
     else:
@@ -257,38 +248,39 @@ def process_mpesa_paybill_payment(
     mpesa_response_in: MpesaDirectPaymentSerializer,
 ) -> None:
     """Process direct payments to paybill"""
-    logger.info("Processing M-Pesa paybill payment")
+    logger.info("DEPRECATED: Processing M-Pesa paybill payment")
     # If the input is a dictionary, serialize it
     if isinstance(mpesa_response_in, dict):
+        logger.info(f"DEPRECATED: API will not process {mpesa_response_in}")
         mpesa_response_in = MpesaDirectPaymentSerializer(**mpesa_response_in)
 
-    description = PAYBILL_DEPOSIT_DESCRIPTION.format(
-        mpesa_response_in.TransAmount, mpesa_response_in.MSISDN
-    )
+    # description = PAYBILL_DEPOSIT_DESCRIPTION.format(
+    #     mpesa_response_in.TransAmount, mpesa_response_in.MSISDN
+    # )
 
-    phone_field = UserPhoneNumberField()
-    phone_number = phone_field.to_internal_value(mpesa_response_in.MSISDN)
-    user = User.objects.filter(phone_number=phone_number).first()
+    # phone_field = UserPhoneNumberField()
+    # phone_number = phone_field.to_internal_value(mpesa_response_in.MSISDN)
+    # user = User.objects.filter(phone_number=phone_number).first()
 
-    if user:
-        """Only record paybill payments by registered users."""
+    # if user:
+    #     """Only record paybill payments by registered users."""
 
-        transaction_serializer = TransactionCreateSerializer(
-            data={
-                "external_transaction_id": mpesa_response_in.TransID,
-                "cash_flow": TransactionCashFlow.INWARD.value,
-                "type": TransactionTypes.DEPOSIT.value,
-                "status": TransactionStatuses.SUCCESSFUL.value,
-                "service": TransactionServices.MPESA.value,
-                "description": description,
-                "amount": float(mpesa_response_in.TransAmount),
-                "external_response": json.dumps(mpesa_response_in),
-            }
-        )
+    #     transaction_serializer = TransactionCreateSerializer(
+    #         data={
+    #             "external_transaction_id": mpesa_response_in.TransID,
+    #             "cash_flow": TransactionCashFlow.INWARD.value,
+    #             "type": TransactionTypes.DEPOSIT.value,
+    #             "status": TransactionStatuses.SUCCESSFUL.value,
+    #             "service": TransactionServices.MPESA.value,
+    #             "description": description,
+    #             "amount": float(mpesa_response_in.TransAmount),
+    #             "external_response": json.dumps(mpesa_response_in),
+    #         }
+    #     )
 
-        transaction_serializer.initial_data["user"] = user.id
-        transaction_serializer.is_valid()
-        transaction_serializer.save()
+    #     transaction_serializer.initial_data["user"] = user.id
+    #     transaction_serializer.is_valid()
+    #     transaction_serializer.save()
 
 
 def get_mpesa_certificate() -> str:

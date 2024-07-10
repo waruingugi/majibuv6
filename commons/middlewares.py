@@ -79,8 +79,6 @@ class RequestResponseLoggerMiddleware(MiddlewareMixin):
 
     def process_response(self, request, response):
         response_log_data = dict(
-            ip_address=request.META.get("HTTP_FLY_CLIENT_IP")
-            or request.META.get("REMOTE_ADDR"),
             status_code=response.status_code,
             user_id=(
                 str(request.user.id) if request.user.is_authenticated else "Anonymous"

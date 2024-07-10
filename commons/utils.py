@@ -24,3 +24,15 @@ def calculate_b2c_withdrawal_charge(amount: int) -> int:
             return charge_range.charge
     # Default case if amount is outside defined ranges
     return DEFAULT_B2C_CHARGE
+
+
+def get_valid_fields(model, data) -> dict:
+    """
+    Filters the given data dictionary to only include keys that are valid fields of the model.
+
+    :param model: The Django model class.
+    :param data: The dictionary to filter.
+    :return: A new dictionary with only valid field keys.
+    """
+    valid_fields = {f.name for f in model._meta.get_fields()}
+    return {k: v for k, v in data.items() if k in valid_fields}
