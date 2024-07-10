@@ -1,10 +1,5 @@
 from celery import shared_task
 
-from accounts.serializers.mpesa import (
-    MpesaDirectPaymentSerializer,
-    MpesaPaymentResultStkCallbackSerializer,
-    WithdrawalResultBodySerializer,
-)
 from accounts.utils import (
     process_b2c_payment,
     process_b2c_payment_result,
@@ -16,24 +11,20 @@ from accounts.utils import (
 
 @shared_task  # type: ignore
 def process_b2c_payment_result_task(
-    mpesa_b2c_result: WithdrawalResultBodySerializer,
+    mpesa_b2c_result,
 ) -> None:
     """process_b2c_payment_result background task."""
     process_b2c_payment_result(mpesa_b2c_result)
 
 
 @shared_task  # type: ignore
-def process_mpesa_paybill_payment_task(
-    paybill_payment_result: MpesaDirectPaymentSerializer,
-) -> None:
+def process_mpesa_paybill_payment_task(paybill_payment_result) -> None:
     """process_mpesa_paybill_payment background task"""
     process_mpesa_paybill_payment(paybill_payment_result)
 
 
 @shared_task  # type: ignore
-def process_mpesa_stk_task(
-    mpesa_response: MpesaPaymentResultStkCallbackSerializer,
-) -> None:
+def process_mpesa_stk_task(mpesa_response) -> None:
     """process_mpesa_stk background task"""
     process_mpesa_stk(mpesa_response)
 

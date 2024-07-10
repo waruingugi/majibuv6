@@ -59,7 +59,9 @@ class WithdrawalResultView(GenericAPIView):
         logger.info(f"Received withdrawal confirmation request from {request.headers}")
 
         # Schedule background task
-        process_b2c_payment_result_task.delay(withdrawal_response_in.Result)
+        process_b2c_payment_result_task.delay(
+            withdrawal_response_in.Result.model_dump()
+        )
 
         return Response(status=status.HTTP_200_OK)
 
@@ -109,7 +111,7 @@ class STKPushCallbackView(GenericAPIView):
         logger.info(f"Received STKPush callback request from {request.headers}")
 
         # Schedule background task
-        process_mpesa_stk_task.delay(mpesa_response_in.Body.stkCallback)
+        process_mpesa_stk_task.delay(mpesa_response_in.Body.stkCallback.model_dump())
 
         return Response(status=status.HTTP_200_OK)
 

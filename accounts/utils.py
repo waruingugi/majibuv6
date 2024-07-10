@@ -212,6 +212,10 @@ def process_mpesa_stk(
     Process Mpesa STK payment from Callback or From Queue
     """
     logger.info("Initiating process_mpesa_stk task...")
+    # If the input is a dictionary, serialize it
+    if isinstance(mpesa_response_in, dict):
+        mpesa_response_in = MpesaPaymentResultStkCallbackSerializer(**mpesa_response_in)
+
     mpesa_payment = MpesaPayment.objects.filter(
         checkout_request_id=mpesa_response_in.CheckoutRequestID
     ).first()
@@ -254,6 +258,10 @@ def process_mpesa_paybill_payment(
 ) -> None:
     """Process direct payments to paybill"""
     logger.info("Processing M-Pesa paybill payment")
+    # If the input is a dictionary, serialize it
+    if isinstance(mpesa_response_in, dict):
+        mpesa_response_in = MpesaDirectPaymentSerializer(**mpesa_response_in)
+
     description = PAYBILL_DEPOSIT_DESCRIPTION.format(
         mpesa_response_in.TransAmount, mpesa_response_in.MSISDN
     )
@@ -399,6 +407,9 @@ def process_b2c_payment(*, user, amount) -> None:
 def process_b2c_payment_result(mpesa_b2c_result: WithdrawalResultBodySerializer):
     """Process B2C payment"""
     logger.info("Processing B2C payment result.")
+    # If the input is a dictionary, serialize it
+    if isinstance(mpesa_b2c_result, dict):
+        mpesa_b2c_result = WithdrawalResultBodySerializer(**mpesa_b2c_result)
     try:
         withdrawal_request = Withdrawal.objects.get(
             conversation_id=mpesa_b2c_result.ConversationID
