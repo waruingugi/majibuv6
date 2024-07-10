@@ -46,3 +46,8 @@ kill_timeout = '10s'
 [[statics]]
   guest_path = '/app/static'
   url_prefix = '/static'
+
+[processes]
+  app = ""
+  celery_worker = "celery -A majibu worker -l info"
+  celery_beat = "celery -A majibu beat -l info"

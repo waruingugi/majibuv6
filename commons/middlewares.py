@@ -51,7 +51,7 @@ class RequestResponseLoggerMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
         exclude_keys = ["Authorization", "Cookie"]
-        sensitive_keys_data = ["refresh", "access"]
+        sensitive_keys_data = ["refresh", "access", "password"]
 
         # Create a new dictionary excluding the sensitive data
         headers = {k: v for k, v in request.headers.items() if k not in exclude_keys}

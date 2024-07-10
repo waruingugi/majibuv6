@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "drf_spectacular",
     "django_filters",
+    "django_celery_results",
     # Apps
     "users",
     "commons",
@@ -188,6 +189,8 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "commons.pagination.StandardPageNumberPagination",
 }
 
+# Celery settings
+CELERY_CACHE_BACKEND = "default"
 CELERY_BROKER_URL = os.environ["REDIS_URL"]
 CELERY_ACCEPT_CONTENT = {"application/json"}
 CELERY_RESULT_SERIALIZER = "json"
