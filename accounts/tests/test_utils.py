@@ -4,13 +4,14 @@ from django.conf import settings
 from django.core.cache import cache
 from django.test import TestCase
 
-from accounts.constants import MpesaAccountTypes
+from accounts.constants import DEFAULT_B2C_CHARGE, MpesaAccountTypes
 from accounts.utils import (
     get_mpesa_access_token,
     initiate_b2c_payment,
     initiate_mpesa_stkpush_payment,
     trigger_mpesa_stkpush_payment,
 )
+from commons.utils import calculate_b2c_withdrawal_charge
 
 
 class TestMpesaSTKPush(TestCase):
@@ -164,3 +165,32 @@ class TestMpesaB2CPayment(TestCase):
             )
 
             self.assertIsNone(response)
+
+
+class TestCalculateB2CWithdrawalCharge(TestCase):
+    def test_within_first_range(self) -> None:
+        self.assertEqual(calculate_b2c_withdrawal_charge(50), 1)
+
+    def test_within_second_range(self) -> None:
+        self.assertEqual(calculate_b2c_withdrawal_charge(300), 8)
+
+    def test_within_third_range(self) -> None:
+        self.assertEqual(calculate_b2c_withdrawal_charge(800), 15)
+
+    def test_within_fourth_range(self) -> None:
+        self.assertEqual(calculate_b2c_withdrawal_charge(1500), 25)
+
+    def test_within_fifth_range(self) -> None:
+        self.assertEqual(calculate_b2c_withdrawal_charge(2500), 35)
+
+    def test_within_sixth_range(self) -> None:
+        self.assertEqual(calculate_b2c_withdrawal_charge(3000), 55)
+
+    def test_within_seventh_range(self) -> None:
+        self.assertEqual(calculate_b2c_withdrawal_charge(5000), 60)
+
+    def test_above_defined_ranges(self) -> None:
+        self.assertEqual(calculate_b2c_withdrawal_charge(10000), DEFAULT_B2C_CHARGE)
+
+    def test_below_defined_ranges(self) -> None:
+        self.assertEqual(calculate_b2c_withdrawal_charge(-10), DEFAULT_B2C_CHARGE)

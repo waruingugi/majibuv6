@@ -1,6 +1,5 @@
 from typing import List, Optional, Union
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from pydantic import BaseModel
@@ -13,7 +12,7 @@ from accounts.constants import (
 )
 from accounts.models import MpesaPayment, Transaction, Withdrawal
 from commons.serializers import UserPhoneNumberField
-from commons.utils import md5_hash
+from commons.utils import calculate_b2c_withdrawal_charge, md5_hash
 
 User = get_user_model()
 
@@ -32,7 +31,9 @@ class WithdrawAmountSerializer(serializers.Serializer):
 
         user_balance = Transaction.objects.get_user_balance(user=request.user)
         withdrawal_amount = data["amount"]
-        total_withdrawal_charge = withdrawal_amount + settings.MPESA_B2C_CHARGE
+        total_withdrawal_charge = withdrawal_amount + calculate_b2c_withdrawal_charge(
+            withdrawal_amount
+        )
 
         if user_balance < total_withdrawal_charge:
             raise serializers.ValidationError(

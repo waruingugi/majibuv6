@@ -1,4 +1,18 @@
+from collections import namedtuple
 from enum import Enum
+
+DEFAULT_B2C_CHARGE = 100
+MpesaB2CCharge = namedtuple("MpesaB2CCharge", ["min", "max", "charge"])
+
+B2C_WITHDRAWAL_CHARGES = [
+    MpesaB2CCharge(0, 100, 1),
+    MpesaB2CCharge(101, 500, 8),
+    MpesaB2CCharge(501, 1000, 15),
+    MpesaB2CCharge(1001, 1500, 25),
+    MpesaB2CCharge(1501, 2500, 35),
+    MpesaB2CCharge(2501, 3500, 55),
+    MpesaB2CCharge(3501, 5000, 60),
+]
 
 # Withdraw amount restrictions
 MIN_WITHDRAWAL_AMOUNT = 20

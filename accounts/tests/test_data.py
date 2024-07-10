@@ -77,7 +77,7 @@ sample_negative_transaction_instance_info = {
     "service": "MPESA",
     "description": "",
     "amount": 20.0,
-    "fee": settings.MPESA_B2C_CHARGE,
+    "fee": 1.0,
     "external_response": json.dumps({}),
 }
 
