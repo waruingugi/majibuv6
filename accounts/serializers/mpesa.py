@@ -11,6 +11,7 @@ from accounts.constants import (
     MIN_WITHDRAWAL_AMOUNT,
 )
 from accounts.models import MpesaPayment, Transaction, Withdrawal
+from commons.raw_logger import logger
 from commons.serializers import UserPhoneNumberField
 from commons.utils import calculate_b2c_withdrawal_charge, md5_hash
 
@@ -29,6 +30,9 @@ class WithdrawAmountSerializer(serializers.Serializer):
                 "Request context is required for validation."
             )
 
+        logger.info(
+            f"Processing {request.user.phone_number} withdrawal request fo Kshs: {data['amount']}"
+        )
         user_balance = Transaction.objects.get_user_balance(user=request.user)
         withdrawal_amount = data["amount"]
         total_withdrawal_charge = withdrawal_amount + calculate_b2c_withdrawal_charge(
@@ -75,7 +79,9 @@ class WithdrawalCreateSerializer(serializers.ModelSerializer):
             "originator_conversation_id",
             "response_code",
             "response_description",
+            "transaction_amount",
         ]
+        extra_kwargs = {"transaction_amount": {"required": False}}
 
 
 class MpesaPaymentResultItemSerializer(BaseModel):
@@ -131,7 +137,7 @@ class WithdrawalResultBodySerializer(BaseModel):
     OriginatorConversationID: str
     ConversationID: str
     TransactionID: str
-    ResultParameters: WithdrawalResultBodyParameters
+    # ResultParameters: WithdrawalResultBodyParameters
     ReferenceData: WithdrawalReferenceItemSerializer
 
 
@@ -145,3 +151,40 @@ class MpesaPaymentResultBodySerializer(BaseModel):
 
 class MpesaPaymentResultSerializer(BaseModel):
     Body: MpesaPaymentResultBodySerializer
+
+
+# -----------------------------------------------------------------
+class KeyValueSerializer(serializers.Serializer):
+    Key = serializers.CharField()
+    Value = serializers.CharField()
+
+
+class ReferenceItemSerializer(KeyValueSerializer):
+    pass
+
+
+class ReferenceDataSerializer(serializers.Serializer):
+    ReferenceItem = ReferenceItemSerializer()
+
+
+class ResultParameterSerializer(KeyValueSerializer):
+    pass
+
+
+class ResultParametersSerializer(serializers.Serializer):
+    ResultParameter = ResultParameterSerializer(many=True)
+
+
+class B2CResultSerializer(serializers.Serializer):
+    ResultType = serializers.IntegerField()
+    ResultCode = serializers.IntegerField()
+    ResultDesc = serializers.CharField()
+    OriginatorConversationID = serializers.CharField()
+    ConversationID = serializers.CharField()
+    TransactionID = serializers.CharField()
+    ReferenceData = ReferenceDataSerializer()
+    ResultParameters = ResultParametersSerializer(required=False)
+
+
+class B2CResponseSerializer(serializers.Serializer):
+    Result = B2CResultSerializer()

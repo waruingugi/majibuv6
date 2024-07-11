@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.auth import get_user_model
 from django.http.response import JsonResponse
 from django.utils.deprecation import MiddlewareMixin
@@ -57,10 +59,17 @@ class RequestResponseLoggerMiddleware(MiddlewareMixin):
         headers = {k: v for k, v in request.headers.items() if k not in exclude_keys}
 
         # Pop sensitive key data
-        data = request.POST.dict() if request.method in ["POST", "PUT", "PATCH"] else {}
-        for key in sensitive_keys_data:
-            if key in data:
-                data.pop(key)
+        data = {}
+        if request.content_type == "application/json" and request.method in [
+            "POST",
+            "PUT",
+            "PATCH",
+        ]:
+            try:
+                data = json.loads(request.body)
+                data = {k: v for k, v in data.items() if k not in sensitive_keys_data}
+            except json.JSONDecodeError:
+                pass
 
         log_data = {
             "method": request.method,

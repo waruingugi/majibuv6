@@ -30,7 +30,7 @@ from accounts.serializers.mpesa import (
 from accounts.serializers.transactions import TransactionCreateSerializer
 from commons.raw_logger import logger
 from commons.serializers import UserPhoneNumberField
-from commons.utils import get_valid_fields, md5_hash
+from commons.utils import calculate_b2c_withdrawal_charge, get_valid_fields, md5_hash
 
 User = get_user_model()
 
@@ -42,14 +42,14 @@ def format_mpesa_receiver_details(receiver_string) -> tuple[str, str]:
     return phone_number, full_name
 
 
-def format_mpesa_result_params_to_dict(result_parameters) -> dict:
-    """Format value in serializer into a key - value dict"""
-    result_dict = {}
-    for serialized_item in result_parameters:
-        item = serialized_item.model_dump()
-        result_dict[item["Key"]] = item["Value"]
+# def format_mpesa_result_params_to_dict(result_parameters) -> dict:
+#     """Format value in serializer into a key - value dict"""
+#     result_dict = {}
+#     for serialized_item in result_parameters:
+#         item = serialized_item.model_dump()
+#         result_dict[item["Key"]] = item["Value"]
 
-    return result_dict
+#     return result_dict
 
 
 def format_b2c_mpesa_date_to_timestamp(date_string) -> datetime:
@@ -395,7 +395,7 @@ def initiate_b2c_payment(
         raise e
 
 
-def process_b2c_payment(*, user, amount) -> None:
+def process_b2c_payment(*, user_id, amount) -> None:
     """Process an M-Pesa B2C payment request"""
     logger.info("Processing B2C payment")
 
@@ -403,13 +403,14 @@ def process_b2c_payment(*, user, amount) -> None:
         # Save hashed value that expires every 2 minutes.
         # That effectively only limits a user to 1 successful withdrawal
         # each 2 minutes
+        user = User.objects.get(id=user_id)
         hashed_withdrawal_request = md5_hash(f"{user.phone_number}:withdraw_request")
         cache.set(
             hashed_withdrawal_request, amount, timeout=settings.WITHDRAWAL_BUFFER_PERIOD
         )
-        phone = str(user.phone_number)
+        phone = str(user.phone_number).lstrip("+")
 
-        data = initiate_b2c_payment(amount=amount, party_b=phone)
+        data = initiate_b2c_payment(amount=amount, party_b=phone.lstrip("+"))
 
         if data is not None:
             logger.info(
@@ -421,6 +422,8 @@ def process_b2c_payment(*, user, amount) -> None:
                     "originator_conversation_id": data["OriginatorConversationID"],
                     "response_code": data["ResponseCode"],
                     "response_description": data["ResponseDescription"],
+                    "transaction_amount": amount,
+                    "phone_number": phone,
                 }
             )
 
@@ -432,58 +435,57 @@ def process_b2c_payment(*, user, amount) -> None:
         raise e
 
 
-def process_b2c_payment_result(mpesa_b2c_result: WithdrawalResultBodySerializer):
+def process_b2c_payment_result(mpesa_b2c_result: dict):
     """Process B2C payment"""
     logger.info("Processing B2C payment result.")
     # If the input is a dictionary, serialize it
     if isinstance(mpesa_b2c_result, dict):
         mpesa_b2c_result = WithdrawalResultBodySerializer(**mpesa_b2c_result)
     try:
-        withdrawal_request = Withdrawal.objects.get(
-            conversation_id=mpesa_b2c_result.ConversationID
+        logger.info(
+            f"Searching for previous withdrawal request id: {mpesa_b2c_result.ConversationID}"
         )
+        withdrawal_request = Withdrawal.objects.filter(
+            conversation_id=mpesa_b2c_result.ConversationID
+        ).first()
 
-        result_parameters = mpesa_b2c_result.ResultParameters
-        result_parameter = result_parameters.ResultParameter
-
-        if (
-            result_parameter is not None  # Confirms request origin was from Majibu
-            and withdrawal_request.transaction_id
-            is None  # Confirms a similar update has not been made
-            and withdrawal_request.transaction_amount
-            is None  # Double confirm similar update has not been made
-        ):
-            result_params = format_mpesa_result_params_to_dict(result_parameter)
-            time_stamp = format_b2c_mpesa_date_to_timestamp(
-                result_params["TransactionCompletedDateTime"]
-            )
-            phone, full_name = format_mpesa_receiver_details(
-                result_params["ReceiverPartyPublicName"]
+        if withdrawal_request and withdrawal_request.transaction_id is None:
+            # If a previous withdrawal request is found and it has not been updated.
+            logger.info(
+                f"Previous withdrawal request id: {mpesa_b2c_result.ConversationID} found."
             )
 
-            updated_withdrawal_request = {
-                "result_code": mpesa_b2c_result.ResultCode,
-                "result_description": mpesa_b2c_result.ResultDesc,
-                "transaction_id": mpesa_b2c_result.TransactionID,
-                "transaction_amount": result_params["TransactionAmount"],
-                "working_account_available_funds": result_params[
-                    "B2CWorkingAccountAvailableFunds"
-                ],
-                "utility_account_available_funds": result_params[
-                    "B2CUtilityAccountAvailableFunds"
-                ],
-                "transaction_date": time_stamp,
-                "phone_number": phone,
-                "full_name": full_name,
-                "charges_paid_account_available_funds": result_params[
-                    "B2CChargesPaidAccountAvailableFunds"
-                ],
-                "external_response": json.dumps(mpesa_b2c_result.model_dump()),
-            }
-
-            Withdrawal.objects.filter(id=withdrawal_request.id).update(
-                **updated_withdrawal_request
+            withdrawal_request.result_code = mpesa_b2c_result.ResultCode
+            withdrawal_request.result_description = mpesa_b2c_result.ResultDesc
+            withdrawal_request.transaction_id = mpesa_b2c_result.TransactionID
+            withdrawal_request.external_response = json.dumps(
+                mpesa_b2c_result.model_dump()
             )
+            withdrawal_request.save()
+
+            user = User.objects.filter(
+                phone_number=withdrawal_request.phone_number
+            ).first()
+
+            if user:
+                logger.info(f"Saving withdrawal instance for {user.phone_number}")
+                amount = withdrawal_request.transaction_amount or 0
+                transaction_serializer = TransactionCreateSerializer(
+                    data={
+                        "external_transaction_id": mpesa_b2c_result.TransactionID,
+                        "cash_flow": TransactionCashFlow.OUTWARD.value,
+                        "type": TransactionTypes.WITHDRAWAL.value,
+                        "status": TransactionStatuses.SUCCESSFUL.value,
+                        "service": TransactionServices.MPESA.value,
+                        "amount": amount,
+                        "fee": calculate_b2c_withdrawal_charge(amount),
+                        "external_response": json.dumps(mpesa_b2c_result.model_dump()),
+                    }
+                )
+
+                transaction_serializer.initial_data["user"] = user.id
+                transaction_serializer.is_valid()
+                transaction_serializer.save()
 
     except Exception as e:
         logger.warning(

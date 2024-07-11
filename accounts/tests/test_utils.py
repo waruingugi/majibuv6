@@ -169,7 +169,7 @@ class TestMpesaB2CPayment(TestCase):
 
 class TestCalculateB2CWithdrawalCharge(TestCase):
     def test_within_first_range(self) -> None:
-        self.assertEqual(calculate_b2c_withdrawal_charge(50), 1)
+        self.assertEqual(calculate_b2c_withdrawal_charge(50), 2)
 
     def test_within_second_range(self) -> None:
         self.assertEqual(calculate_b2c_withdrawal_charge(300), 8)

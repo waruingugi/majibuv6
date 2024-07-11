@@ -11,7 +11,7 @@ from accounts.utils import (
 
 @shared_task  # type: ignore
 def process_b2c_payment_result_task(
-    mpesa_b2c_result,
+    mpesa_b2c_result: dict,
 ) -> None:
     """process_b2c_payment_result background task."""
     process_b2c_payment_result(mpesa_b2c_result)
@@ -36,5 +36,5 @@ def trigger_mpesa_stkpush_payment_task(*, amount: int, phone_number: str) -> Non
 
 
 @shared_task  # type: ignore
-def process_b2c_payment_task(*, user, amount) -> None:
-    process_b2c_payment(user=user, amount=amount)
+def process_b2c_payment_task(*, user_id, amount) -> None:
+    process_b2c_payment(user_id=user_id, amount=amount)

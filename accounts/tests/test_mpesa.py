@@ -8,6 +8,7 @@ from rest_framework.test import APIClient, APITestCase
 from accounts.constants import DEPOSIT_AMOUNT_CHOICES, MPESA_WHITE_LISTED_IPS
 from accounts.models import Transaction
 from accounts.tests.test_data import (
+    mock_failed_b2c_result,
     mock_paybill_deposit_response,
     mock_stk_push_result,
     mock_successful_b2c_result,
@@ -67,6 +68,16 @@ class WithdrawalResultViewTests(APITestCase):
         self.client.defaults["REMOTE_ADDR"] = ip
         response = self.client.post(
             self.url, data=self.mock_successful_b2c_result, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        mock_task.assert_called_once()
+
+    @patch("accounts.views.mpesa.process_b2c_payment_result_task.delay")
+    def test_failed_request_triggers_background_task(self, mock_task) -> None:
+        ip = MPESA_WHITE_LISTED_IPS[0]
+        self.client.defaults["REMOTE_ADDR"] = ip
+        response = self.client.post(
+            self.url, data=mock_failed_b2c_result, format="json"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         mock_task.assert_called_once()

@@ -1,3 +1,4 @@
+from decimal import Decimal
 from hashlib import md5
 
 from accounts.constants import B2C_WITHDRAWAL_CHARGES, DEFAULT_B2C_CHARGE
@@ -17,7 +18,7 @@ def send_sms(phone_number: str, message: str) -> None:
     # Raise error if all providers failed here
 
 
-def calculate_b2c_withdrawal_charge(amount: int) -> int:
+def calculate_b2c_withdrawal_charge(amount: int | float | Decimal) -> int:
     """Calculate B2C Withdrawal charge"""
     for charge_range in B2C_WITHDRAWAL_CHARGES:
         if charge_range.min <= amount <= charge_range.max:
