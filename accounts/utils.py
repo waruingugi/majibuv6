@@ -25,12 +25,11 @@ from accounts.serializers.mpesa import (
     MpesaPaymentCreateSerializer,
     MpesaPaymentResultStkCallbackSerializer,
     WithdrawalCreateSerializer,
-    WithdrawalResultBodySerializer,
 )
 from accounts.serializers.transactions import TransactionCreateSerializer
 from commons.raw_logger import logger
 from commons.serializers import UserPhoneNumberField
-from commons.utils import calculate_b2c_withdrawal_charge, get_valid_fields, md5_hash
+from commons.utils import get_valid_fields, md5_hash
 
 User = get_user_model()
 
@@ -436,60 +435,56 @@ def process_b2c_payment(*, user_id, amount) -> None:
 
 
 def process_b2c_payment_result(mpesa_b2c_result: dict):
-    """Process B2C payment"""
-    logger.info("Processing B2C payment result.")
-    # If the input is a dictionary, serialize it
-    if isinstance(mpesa_b2c_result, dict):
-        mpesa_b2c_result = WithdrawalResultBodySerializer(**mpesa_b2c_result)
+    """Process B2C payment result"""
     try:
         logger.info(
-            f"Searching for previous withdrawal request id: {mpesa_b2c_result.ConversationID}"
+            f"Searching for withdrawal request id: {mpesa_b2c_result['ConversationID']} ..."
         )
         withdrawal_request = Withdrawal.objects.filter(
-            conversation_id=mpesa_b2c_result.ConversationID
+            conversation_id=mpesa_b2c_result["ConversationID"]
         ).first()
 
+        # Asserts the withdrawal request exists AND
+        # the withdrawal request has not beed updated before.
+        # :withdrawal_request.transaction_id is not None for requests that have been updated."""
         if withdrawal_request and withdrawal_request.transaction_id is None:
-            # If a previous withdrawal request is found and it has not been updated.
             logger.info(
-                f"Previous withdrawal request id: {mpesa_b2c_result.ConversationID} found."
+                f"Previous withdrawal request id: {mpesa_b2c_result['ConversationID']} found."
             )
 
-            withdrawal_request.result_code = mpesa_b2c_result.ResultCode
-            withdrawal_request.result_description = mpesa_b2c_result.ResultDesc
-            withdrawal_request.transaction_id = mpesa_b2c_result.TransactionID
-            withdrawal_request.external_response = json.dumps(
-                mpesa_b2c_result.model_dump()
-            )
+            withdrawal_request.result_code = mpesa_b2c_result["ResultCode"]
+            withdrawal_request.result_description = mpesa_b2c_result["ResultDesc"]
+            withdrawal_request.transaction_id = mpesa_b2c_result["TransactionID"]
+            withdrawal_request.external_response = json.dumps(mpesa_b2c_result)
             withdrawal_request.save()
 
-            user = User.objects.filter(
-                phone_number=withdrawal_request.phone_number
-            ).first()
+            # user = User.objects.filter(
+            #     phone_number=withdrawal_request.phone_number
+            # ).first()
 
-            if user:
-                logger.info(f"Saving withdrawal instance for {user.phone_number}")
-                amount = withdrawal_request.transaction_amount or 0
-                transaction_serializer = TransactionCreateSerializer(
-                    data={
-                        "external_transaction_id": mpesa_b2c_result.TransactionID,
-                        "cash_flow": TransactionCashFlow.OUTWARD.value,
-                        "type": TransactionTypes.WITHDRAWAL.value,
-                        "status": TransactionStatuses.SUCCESSFUL.value,
-                        "service": TransactionServices.MPESA.value,
-                        "amount": amount,
-                        "fee": calculate_b2c_withdrawal_charge(amount),
-                        "external_response": json.dumps(mpesa_b2c_result.model_dump()),
-                    }
-                )
+            # if user:
+            #     logger.info(f"Saving withdrawal instance for {user.phone_number}")
+            #     amount = withdrawal_request.transaction_amount or 0
+            #     transaction_serializer = TransactionCreateSerializer(
+            #         data={
+            #             "external_transaction_id": mpesa_b2c_result.TransactionID,
+            #             "cash_flow": TransactionCashFlow.OUTWARD.value,
+            #             "type": TransactionTypes.WITHDRAWAL.value,
+            #             "status": TransactionStatuses.SUCCESSFUL.value,
+            #             "service": TransactionServices.MPESA.value,
+            #             "amount": amount,
+            #             "fee": calculate_b2c_withdrawal_charge(amount),
+            #             "external_response": json.dumps(mpesa_b2c_result.model_dump()),
+            #         }
+            #     )
 
-                transaction_serializer.initial_data["user"] = user.id
-                transaction_serializer.is_valid()
-                transaction_serializer.save()
+            #     transaction_serializer.initial_data["user"] = user.id
+            #     transaction_serializer.is_valid()
+            #     transaction_serializer.save()
 
     except Exception as e:
         logger.warning(
-            f"Error encountered while processing B2C response: {mpesa_b2c_result.model_dump()}"
+            f"Error encountered while processing B2C response: {mpesa_b2c_result}"
         )
         logger.warning(f"An error occurred while processing B2C result: {e}")
         raise e

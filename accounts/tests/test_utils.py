@@ -1,3 +1,4 @@
+import json
 from unittest.mock import MagicMock, patch
 
 from django.conf import settings
@@ -5,10 +6,18 @@ from django.core.cache import cache
 from django.test import TestCase
 
 from accounts.constants import DEFAULT_B2C_CHARGE, MpesaAccountTypes
+from accounts.models import Withdrawal
+from accounts.tests.test_data import (
+    mock_failed_b2c_result,
+    mock_successful_b2c_result,
+    sample_b2c_response,
+    withdrawal_obj_instance,
+)
 from accounts.utils import (
     get_mpesa_access_token,
     initiate_b2c_payment,
     initiate_mpesa_stkpush_payment,
+    process_b2c_payment_result,
     trigger_mpesa_stkpush_payment,
 )
 from commons.utils import calculate_b2c_withdrawal_charge
@@ -124,12 +133,7 @@ class TestMpesaB2CPayment(TestCase):
     mock_response = MagicMock()
 
     def setUp(self) -> None:
-        self.sample_b2c_response = {
-            "ConversationID": "AG_20191219_00005797af5d7d75f652",
-            "OriginatorConversationID": "16740-34861180-1",
-            "ResponseCode": "0",
-            "ResponseDescription": "Accept the service request successfully.",
-        }
+        self.sample_b2c_response = sample_b2c_response
 
     @patch("accounts.utils.get_mpesa_access_token")
     def test_initiate_b2c_payment_returns_correct_response(
@@ -165,6 +169,60 @@ class TestMpesaB2CPayment(TestCase):
             )
 
             self.assertIsNone(response)
+
+
+class TestProcessB2CPaymentResult(TestCase):
+    def setUp(self):
+        self.withdrawal = Withdrawal.objects.create(**withdrawal_obj_instance)
+        self.sample_b2c_response_success = mock_successful_b2c_result["Result"]
+        self.sample_b2c_response_failure = mock_failed_b2c_result["Result"]
+
+    def test_updates_model_on_successfull_response(self):
+        process_b2c_payment_result(self.sample_b2c_response_success)
+        self.withdrawal.refresh_from_db()
+        self.assertEqual(
+            self.withdrawal.result_code, self.sample_b2c_response_success["ResultCode"]
+        )
+        self.assertEqual(
+            self.withdrawal.result_description,
+            self.sample_b2c_response_success["ResultDesc"],
+        )
+        self.assertEqual(
+            self.withdrawal.transaction_id,
+            self.sample_b2c_response_success["TransactionID"],
+        )
+        self.assertEqual(
+            json.loads(self.withdrawal.external_response),
+            self.sample_b2c_response_success,
+        )
+
+    def test_updates_model_on_failed_response(self):
+        process_b2c_payment_result(self.sample_b2c_response_failure)
+        self.withdrawal.refresh_from_db()
+        self.assertEqual(
+            self.withdrawal.result_code, self.sample_b2c_response_failure["ResultCode"]
+        )
+        self.assertEqual(
+            self.withdrawal.result_description,
+            self.sample_b2c_response_failure["ResultDesc"],
+        )
+        self.assertEqual(
+            self.withdrawal.transaction_id,
+            self.sample_b2c_response_failure["TransactionID"],
+        )
+        self.assertEqual(
+            json.loads(self.withdrawal.external_response),
+            self.sample_b2c_response_failure,
+        )
+
+    def test_no_update_if_transaction_id_exists(self):
+        # Set transaction_id to simulate a previously updated withdrawal
+        self.withdrawal.transaction_id = "EXISTING_TRANSACTION_ID"
+        self.withdrawal.save()
+        process_b2c_payment_result(self.sample_b2c_response_success)
+        self.withdrawal.refresh_from_db()
+        # Ensure no changes occurred
+        self.assertEqual(self.withdrawal.transaction_id, "EXISTING_TRANSACTION_ID")
 
 
 class TestCalculateB2CWithdrawalCharge(TestCase):

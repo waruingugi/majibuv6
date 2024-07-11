@@ -13,6 +13,7 @@ from accounts.serializers.mpesa import (
     WithdrawalCreateSerializer,
 )
 from accounts.serializers.transactions import TransactionCreateSerializer
+from accounts.tests.test_data import withdrawal_obj_instance
 from accounts.utils import process_mpesa_stk
 
 User = get_user_model()
@@ -168,23 +169,15 @@ class MpesaPaymentTestCase(TestCase):
 
 
 class WithdrawalTestCase(TestCase):
-    def setUp(self):
-        self.sample_b2c_response = {
-            "conversation_id": "AG_20191219_00005797af5d7d75f652",
-            "originator_conversation_id": "16740-34861180-1",
-            "response_code": "0",
-            "response_description": "Accept the service request successfully.",
-        }
-
     def test_create_withdrawal_instance_successfully(self):
-        serializer = WithdrawalCreateSerializer(data=self.sample_b2c_response)
+        serializer = WithdrawalCreateSerializer(data=withdrawal_obj_instance)
         self.assertTrue(serializer.is_valid())
         withdrawal = serializer.save()
 
         self.assertEqual(
-            withdrawal.conversation_id, self.sample_b2c_response["conversation_id"]
+            withdrawal.conversation_id, withdrawal_obj_instance["conversation_id"]
         )
         self.assertEqual(
             withdrawal.originator_conversation_id,
-            self.sample_b2c_response["originator_conversation_id"],
+            withdrawal_obj_instance["originator_conversation_id"],
         )

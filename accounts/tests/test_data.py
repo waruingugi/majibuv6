@@ -146,8 +146,9 @@ serialized_paybill_deposit_response = MpesaDirectPaymentSerializer(
 
 
 # M-Pesa B2C sample data
+CONVERSATION_ID = "AG_20191219_00005797af5d7d75f652"
 sample_b2c_response = {
-    "ConversationID": "AG_20191219_00005797af5d7d75f652",
+    "ConversationID": CONVERSATION_ID,
     "OriginatorConversationID": "16740-34861180-1",
     "ResponseCode": "0",
     "ResponseDescription": "Accept the service request successfully.",
@@ -158,13 +159,21 @@ sample_failed_b2c_response = {
     "errorMessage": "Error Occurred - Invalid Access Token - BJGFGOXv5aZnw90KkA4TDtu4Xdyf",
 }
 
+
+withdrawal_obj_instance = {
+    "conversation_id": CONVERSATION_ID,
+    "originator_conversation_id": "16740-34861180-1",
+    "response_code": "0",
+    "response_description": "Accept the service request successfully.",
+}
+
 mock_failed_b2c_result = {
     "Result": {
         "ResultType": 0,
         "ResultCode": 2001,
         "ResultDesc": "The initiator information is invalid.",
         "OriginatorConversationID": "29112-34801843-1",
-        "ConversationID": "AG_20191219_00006c6fddb15123addf",
+        "ConversationID": CONVERSATION_ID,
         "TransactionID": "NLJ0000000",
         "ReferenceData": {
             "ReferenceItem": {
@@ -180,8 +189,8 @@ mock_successful_b2c_result = {
         "ResultType": 0,
         "ResultCode": 0,
         "ResultDesc": "The service request is processed successfully.",
-        "OriginatorConversationID": "16740-34861180-1",
-        "ConversationID": "AG_20191219_00005797af5d7d75f652",
+        "OriginatorConversationID": "29112-34801843-1",
+        "ConversationID": CONVERSATION_ID,
         "TransactionID": "REH3SOIU9T",
         "ResultParameters": {
             "ResultParameter": [
