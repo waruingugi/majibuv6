@@ -11,7 +11,14 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 
-from accounts.constants import B2CMpesaCommandIDs, MpesaAccountTypes
+from accounts.constants import (
+    B2CMpesaCommandIDs,
+    MpesaAccountTypes,
+    TransactionCashFlow,
+    TransactionServices,
+    TransactionStatuses,
+    TransactionTypes,
+)
 from accounts.models import MpesaPayment, Withdrawal
 from accounts.serializers.mpesa import (
     MpesaDirectPaymentSerializer,
@@ -20,7 +27,9 @@ from accounts.serializers.mpesa import (
     WithdrawalCreateSerializer,
     WithdrawalResultBodySerializer,
 )
+from accounts.serializers.transactions import TransactionCreateSerializer
 from commons.raw_logger import logger
+from commons.serializers import UserPhoneNumberField
 from commons.utils import get_valid_fields, md5_hash
 
 User = get_user_model()
@@ -239,6 +248,33 @@ def process_mpesa_stk(
         filtered_data = get_valid_fields(MpesaPayment, updated_mpesa_payment)
         MpesaPayment.objects.filter(id=mpesa_payment.id).update(**filtered_data)
         logger.info(f"Received mpesa payment: {updated_mpesa_payment}")
+
+        phone_field = UserPhoneNumberField()
+        phone_number = phone_field.to_internal_value(
+            updated_mpesa_payment["phone_number"]
+        )
+        user = User.objects.filter(phone_number=phone_number).first()
+
+        if user:
+            """Only record paybill payments by registered users."""
+            logger.info(
+                f"Creating Ksh{updated_mpesa_payment['amount']} deposit for {phone_number}."
+            )
+            transaction_serializer = TransactionCreateSerializer(
+                data={
+                    "external_transaction_id": updated_mpesa_payment["receipt_number"],
+                    "cash_flow": TransactionCashFlow.INWARD.value,
+                    "type": TransactionTypes.DEPOSIT.value,
+                    "status": TransactionStatuses.SUCCESSFUL.value,
+                    "service": TransactionServices.MPESA.value,
+                    "amount": updated_mpesa_payment["amount"],
+                    "external_response": json.dumps(mpesa_response_in.model_dump()),
+                }
+            )
+
+            transaction_serializer.initial_data["user"] = user.id
+            transaction_serializer.is_valid()
+            transaction_serializer.save()
 
     else:
         logger.warning(f"Received an unknown STKPush response: {mpesa_response_in}")
