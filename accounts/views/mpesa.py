@@ -51,6 +51,7 @@ class WithdrawalResultView(GenericAPIView):
 
             return Response(status=status.HTTP_200_OK)
 
+        logger.info(f"WithdrawalResultView failed with errors: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -74,6 +75,7 @@ class STKPushCallbackView(GenericAPIView):
 
             return Response(status=status.HTTP_200_OK)
 
+        logger.info(f"STKPushCallbackView failed with errors: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -97,6 +99,7 @@ class TriggerSTKPushView(GenericAPIView):
                 status=status.HTTP_200_OK,
             )
 
+        logger.info(f"TriggerSTKPushView failed with errors: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -113,4 +116,5 @@ class WithdrawalRequestView(GenericAPIView):
             )
             return Response(status=status.HTTP_200_OK)
 
+        logger.info(f"WithdrawalRequestView failed with errors: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -215,8 +215,6 @@ def process_mpesa_stk(
                     mpesa_payment.amount = item["Value"]
                 if item["Name"] == "MpesaReceiptNumber":
                     mpesa_payment.receipt_number = item["Value"]
-                if item["Name"] == "Balance":
-                    mpesa_payment.balance = item["Value"]
                 if item["Name"] == "TransactionDate":
                     mpesa_payment.transaction_date = datetime.strptime(
                         str(item["Value"]), settings.MPESA_DATETIME_FORMAT
@@ -226,7 +224,7 @@ def process_mpesa_stk(
                     mpesa_payment.phone_number = str(phone_number)
 
         mpesa_payment.save()
-        logger.info(f"Saved successful STKPUsh for {mpesa_payment.phone_number}")
+        logger.info(f"Saved STKPUsh for {mpesa_payment.phone_number}")
 
 
 def get_mpesa_certificate() -> str:

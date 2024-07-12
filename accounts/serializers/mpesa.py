@@ -82,19 +82,12 @@ class WithdrawalCreateSerializer(serializers.ModelSerializer):
 
 
 # -----------------------------------------------------------------
-class KeyValueSerializer(serializers.Serializer):
-    Key = serializers.CharField()
-    Value = serializers.CharField()
-
 
 # STKPush serializers
-class NameValueSerializer(serializers.Serializer):
-    Name = serializers.CharField()
-    Value = serializers.CharField()
 
 
 class CallbackMetadataSerializer(serializers.Serializer):
-    Item = NameValueSerializer(many=True)
+    Item = serializers.ListField(child=serializers.DictField())
 
 
 class C2BSTKResultSerializer(serializers.Serializer):
@@ -117,20 +110,14 @@ class STKPushSerializer(serializers.Serializer):
 
 
 # M-Pesa B2C serializers
-class ReferenceItemSerializer(KeyValueSerializer):
-    pass
 
 
 class ReferenceDataSerializer(serializers.Serializer):
-    ReferenceItem = ReferenceItemSerializer()
-
-
-class ResultParameterSerializer(KeyValueSerializer):
-    pass
+    ReferenceItem = serializers.DictField()
 
 
 class ResultParametersSerializer(serializers.Serializer):
-    ResultParameter = ResultParameterSerializer(many=True)
+    ResultParameter = serializers.ListField(child=serializers.DictField())
 
 
 class B2CResultSerializer(serializers.Serializer):
