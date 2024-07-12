@@ -2,13 +2,6 @@ import json
 
 from django.conf import settings
 
-from accounts.serializers.mpesa import (
-    MpesaDirectPaymentSerializer,
-    MpesaPaymentResultBodySerializer,
-    MpesaPaymentResultCallbackMetadataSerializer,
-    MpesaPaymentResultStkCallbackSerializer,
-)
-
 # M-Pesa Reference Number
 mpesa_reference_no = "NLJ7RT61SV"
 
@@ -95,36 +88,6 @@ sample_negative_transaction_instance_info = {
     "external_response": json.dumps({}),
 }
 
-
-# Serialized M-Pesa STKPush result
-serialized_call_back_metadata = MpesaPaymentResultCallbackMetadataSerializer(  # type: ignore
-    **mock_stk_push_result["Body"]["stkCallback"]["CallbackMetadata"]
-)
-
-serialized_call_back = MpesaPaymentResultStkCallbackSerializer(
-    CallbackMetadata=serialized_call_back_metadata,
-    MerchantRequestID=mock_stk_push_result["Body"]["stkCallback"]["MerchantRequestID"],
-    CheckoutRequestID=mock_stk_push_result["Body"]["stkCallback"]["CheckoutRequestID"],
-    ResultCode=mock_stk_push_result["Body"]["stkCallback"]["ResultCode"],
-    ResultDesc=mock_stk_push_result["Body"]["stkCallback"]["ResultDesc"],
-)
-
-serialized_result_body = MpesaPaymentResultBodySerializer(
-    stkCallback=serialized_call_back
-)
-
-serialized_failed_call_back = MpesaPaymentResultStkCallbackSerializer(
-    MerchantRequestID=mock_failed_stk_push_response["Body"]["stkCallback"][
-        "MerchantRequestID"
-    ],
-    CheckoutRequestID=mock_failed_stk_push_response["Body"]["stkCallback"][
-        "CheckoutRequestID"
-    ],
-    ResultCode=mock_failed_stk_push_response["Body"]["stkCallback"]["ResultCode"],
-    ResultDesc=mock_failed_stk_push_response["Body"]["stkCallback"]["ResultDesc"],
-)
-
-
 # M-Pesa Paybill Response
 
 mock_paybill_deposit_response = {
@@ -142,9 +105,6 @@ mock_paybill_deposit_response = {
     "MiddleName": "NGUGI",
     "LastName": "NGUGI",
 }
-serialized_paybill_deposit_response = MpesaDirectPaymentSerializer(
-    **mock_paybill_deposit_response
-)
 
 
 # M-Pesa B2C sample data

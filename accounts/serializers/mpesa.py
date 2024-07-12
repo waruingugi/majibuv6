@@ -1,8 +1,5 @@
-from typing import List, Optional, Union
-
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
-from pydantic import BaseModel
 from rest_framework import serializers
 
 from accounts.constants import (
@@ -82,75 +79,6 @@ class WithdrawalCreateSerializer(serializers.ModelSerializer):
             "transaction_amount",
         ]
         extra_kwargs = {"transaction_amount": {"required": False}}
-
-
-class MpesaPaymentResultItemSerializer(BaseModel):
-    Name: str
-    Value: Optional[Union[int, str]] = ""
-
-
-class MpesaPaymentResultCallbackMetadataSerializer(BaseModel):
-    Item: List[MpesaPaymentResultItemSerializer]
-
-
-class MpesaPaymentResultStkCallbackSerializer(BaseModel):
-    MerchantRequestID: str
-    CheckoutRequestID: str
-    ResultCode: int
-    ResultDesc: str
-    CallbackMetadata: Optional[MpesaPaymentResultCallbackMetadataSerializer] = None
-
-
-class MpesaDirectPaymentSerializer(BaseModel):
-    TransactionType: str
-    TransID: str
-    TransTime: str
-    TransAmount: str
-    BusinessShortCode: str
-    BillRefNumber: Optional[str] = ""
-    InvoiceNumber: Optional[str] = ""
-    OrgAccountBalance: Optional[str] = ""
-    ThirdPartyTransID: Optional[str] = ""
-    MSISDN: str
-    FirstName: Optional[str] = ""
-    MiddleName: Optional[str] = ""
-    LastName: Optional[str] = ""
-
-
-class KeyValueDict(BaseModel):
-    Key: str
-    Value: str | int | float
-
-
-class WithdrawalReferenceItemSerializer(BaseModel):
-    ReferenceItem: KeyValueDict
-
-
-class WithdrawalResultBodyParameters(BaseModel):
-    ResultParameter: List[KeyValueDict]
-
-
-class WithdrawalResultBodySerializer(BaseModel):
-    ResultType: int
-    ResultCode: int
-    ResultDesc: str
-    OriginatorConversationID: str
-    ConversationID: str
-    TransactionID: str
-    # ResultParameters: WithdrawalResultBodyParameters
-    ReferenceData: WithdrawalReferenceItemSerializer
-
-
-class WithdrawalResultSerializer(BaseModel):
-    Result: WithdrawalResultBodySerializer
-
-
-class MpesaPaymentResultBodySerializer(BaseModel):
-    stkCallback: MpesaPaymentResultStkCallbackSerializer
-
-
-class MpesaPaymentResultSerializer(BaseModel):
-    Body: MpesaPaymentResultBodySerializer
 
 
 # -----------------------------------------------------------------

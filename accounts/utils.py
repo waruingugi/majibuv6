@@ -14,7 +14,6 @@ from django.core.cache import cache
 from accounts.constants import B2CMpesaCommandIDs, MpesaAccountTypes
 from accounts.models import MpesaPayment, Withdrawal
 from accounts.serializers.mpesa import (
-    MpesaDirectPaymentSerializer,
     MpesaPaymentCreateSerializer,
     WithdrawalCreateSerializer,
 )
@@ -31,16 +30,6 @@ def format_mpesa_receiver_details(receiver_string) -> tuple[str, str]:
     phone_number = f"+{parts[0].strip()}"
     full_name = parts[1].strip()
     return phone_number, full_name
-
-
-# def format_mpesa_result_params_to_dict(result_parameters) -> dict:
-#     """Format value in serializer into a key - value dict"""
-#     result_dict = {}
-#     for serialized_item in result_parameters:
-#         item = serialized_item.model_dump()
-#         result_dict[item["Key"]] = item["Value"]
-
-#     return result_dict
 
 
 def format_b2c_mpesa_date_to_timestamp(date_string) -> datetime:
@@ -239,100 +228,6 @@ def process_mpesa_stk(
         mpesa_payment.save()
         logger.info(f"Saved successful STKPUsh for {mpesa_payment.phone_number}")
 
-    #     updated_mpesa_payment = {
-    #         "result_code": mpesa_response_in["ResultCode"],
-    #         "result_description": mpesa_response_in["ResultDesc"],
-    #         "external_response": json.dumps(mpesa_response_in),
-    #     }
-
-    #     if "CallbackMetadata" in mpesa_response_in:
-    #         metadata_items = mpesa_response_in["CallbackMetadata"]["Item"]
-    #         for item in metadata_items:
-    #             if item["Name"] == "Amount":
-    #                 updated_mpesa_payment["amount"] = item["Value"]
-    #             if item["Name"] == "MpesaReceiptNumber":
-    #                 updated_mpesa_payment["receipt_number"] = item["Value"]
-    #             if item["Name"] == "Balance":
-    #                 updated_mpesa_payment["balance"] = item["Value"]
-    #             if item["Name"] == "TransactionDate":
-    #                 updated_mpesa_payment["transaction_date"] = datetime.strptime(
-    #                     str(item["Value"]), settings.MPESA_DATETIME_FORMAT
-    #                 )
-    #             if item["Name"] == "PhoneNumber":
-    #                 updated_mpesa_payment["phone_number"] = "+" + str(item["Value"])
-
-    #     filtered_data = get_valid_fields(MpesaPayment, updated_mpesa_payment)
-    #     MpesaPayment.objects.filter(id=mpesa_payment.id).update(**filtered_data)
-    #     logger.info(f"Received mpesa payment: {updated_mpesa_payment}")
-
-    #     phone_number = phone_field.to_internal_value(
-    #         updated_mpesa_payment["phone_number"]
-    #     )
-    #     user = User.objects.filter(phone_number=phone_number).first()
-
-    #     if user:
-    #         """Only record paybill payments by registered users."""
-    #         logger.info(
-    #             f"Creating Ksh{updated_mpesa_payment['amount']} deposit for {phone_number}."
-    #         )
-    #         transaction_serializer = TransactionCreateSerializer(
-    #             data={
-    #                 "external_transaction_id": updated_mpesa_payment["receipt_number"],
-    #                 "cash_flow": TransactionCashFlow.INWARD.value,
-    #                 "type": TransactionTypes.DEPOSIT.value,
-    #                 "status": TransactionStatuses.SUCCESSFUL.value,
-    #                 "service": TransactionServices.MPESA.value,
-    #                 "amount": updated_mpesa_payment["amount"],
-    #                 "external_response": json.dumps(mpesa_response_in.model_dump()),
-    #             }
-    #         )
-
-    #         transaction_serializer.initial_data["user"] = user.id
-    #         transaction_serializer.is_valid()
-    #         transaction_serializer.save()
-
-    # else:
-    #     logger.warning(f"Received an unknown STKPush response: {mpesa_response_in}")
-
-
-def process_mpesa_paybill_payment(
-    mpesa_response_in: MpesaDirectPaymentSerializer,
-) -> None:
-    """Process direct payments to paybill"""
-    logger.info("DEPRECATED: Processing M-Pesa paybill payment")
-    # If the input is a dictionary, serialize it
-    if isinstance(mpesa_response_in, dict):
-        logger.info(f"DEPRECATED: API will not process {mpesa_response_in}")
-        mpesa_response_in = MpesaDirectPaymentSerializer(**mpesa_response_in)
-
-    # description = PAYBILL_DEPOSIT_DESCRIPTION.format(
-    #     mpesa_response_in.TransAmount, mpesa_response_in.MSISDN
-    # )
-
-    # phone_field = UserPhoneNumberField()
-    # phone_number = phone_field.to_internal_value(mpesa_response_in.MSISDN)
-    # user = User.objects.filter(phone_number=phone_number).first()
-
-    # if user:
-    #     """Only record paybill payments by registered users."""
-
-    #     transaction_serializer = TransactionCreateSerializer(
-    #         data={
-    #             "external_transaction_id": mpesa_response_in.TransID,
-    #             "cash_flow": TransactionCashFlow.INWARD.value,
-    #             "type": TransactionTypes.DEPOSIT.value,
-    #             "status": TransactionStatuses.SUCCESSFUL.value,
-    #             "service": TransactionServices.MPESA.value,
-    #             "description": description,
-    #             "amount": float(mpesa_response_in.TransAmount),
-    #             "external_response": json.dumps(mpesa_response_in),
-    #         }
-    #     )
-
-    #     transaction_serializer.initial_data["user"] = user.id
-    #     transaction_serializer.is_valid()
-    #     transaction_serializer.save()
-
 
 def get_mpesa_certificate() -> str:
     """Load the M-Pesa certification file that will be used for encryption"""
@@ -477,30 +372,6 @@ def process_b2c_payment_result(mpesa_b2c_result: dict):
             withdrawal_request.transaction_id = mpesa_b2c_result["TransactionID"]
             withdrawal_request.external_response = json.dumps(mpesa_b2c_result)
             withdrawal_request.save()
-
-            # user = User.objects.filter(
-            #     phone_number=withdrawal_request.phone_number
-            # ).first()
-
-            # if user:
-            #     logger.info(f"Saving withdrawal instance for {user.phone_number}")
-            #     amount = withdrawal_request.transaction_amount or 0
-            #     transaction_serializer = TransactionCreateSerializer(
-            #         data={
-            #             "external_transaction_id": mpesa_b2c_result.TransactionID,
-            #             "cash_flow": TransactionCashFlow.OUTWARD.value,
-            #             "type": TransactionTypes.WITHDRAWAL.value,
-            #             "status": TransactionStatuses.SUCCESSFUL.value,
-            #             "service": TransactionServices.MPESA.value,
-            #             "amount": amount,
-            #             "fee": calculate_b2c_withdrawal_charge(amount),
-            #             "external_response": json.dumps(mpesa_b2c_result.model_dump()),
-            #         }
-            #     )
-
-            #     transaction_serializer.initial_data["user"] = user.id
-            #     transaction_serializer.is_valid()
-            #     transaction_serializer.save()
 
     except Exception as e:
         logger.warning(

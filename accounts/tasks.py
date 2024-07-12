@@ -3,7 +3,6 @@ from celery import shared_task
 from accounts.utils import (
     process_b2c_payment,
     process_b2c_payment_result,
-    process_mpesa_paybill_payment,
     process_mpesa_stk,
     trigger_mpesa_stkpush_payment,
 )
@@ -15,12 +14,6 @@ def process_b2c_payment_result_task(
 ) -> None:
     """process_b2c_payment_result background task."""
     process_b2c_payment_result(mpesa_b2c_result)
-
-
-@shared_task  # type: ignore
-def process_mpesa_paybill_payment_task(paybill_payment_result) -> None:
-    """process_mpesa_paybill_payment background task"""
-    process_mpesa_paybill_payment(paybill_payment_result)
 
 
 @shared_task  # type: ignore
