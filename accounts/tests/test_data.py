@@ -165,6 +165,8 @@ withdrawal_obj_instance = {
     "originator_conversation_id": "16740-34861180-1",
     "response_code": "0",
     "response_description": "Accept the service request successfully.",
+    "transaction_amount": 10,
+    "phone_number": "+254704845040",
 }
 
 mock_failed_b2c_result = {

@@ -58,33 +58,6 @@ class WithdrawalResultView(GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# @extend_schema(tags=["payments"], exclude=True)
-# class WithdrawalResultView(GenericAPIView):
-#     permission_classes = [IsMpesaWhiteListedIP]
-#     serializer_class = WithdrawalResultSerializer
-
-#     def post(self, request, *args, **kwargs):
-#         """
-#         Callback URL to receive a response after posting a withdrawal request to M-Pesa
-#         """
-#         try:
-#             # Parse and validate the request data using the Pydantic model
-#             withdrawal_response_in = WithdrawalResultSerializer(**request.data)
-#         except ValidationError as e:
-#             return JsonResponse(
-#                 e.errors(), status=status.HTTP_400_BAD_REQUEST, safe=False
-#             )
-
-#         logger.info(f"Received withdrawal confirmation request from {request.headers}")
-
-#         # Schedule background task
-#         process_b2c_payment_result_task.delay(
-#             withdrawal_response_in.Result.model_dump()
-#         )
-
-#         return Response(status=status.HTTP_200_OK)
-
-
 @extend_schema(tags=["payments"], exclude=True)
 class PaybillPaymentConfirmationView(GenericAPIView):
     permission_classes = [IsMpesaWhiteListedIP]

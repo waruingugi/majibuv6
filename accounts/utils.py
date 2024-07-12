@@ -399,17 +399,21 @@ def process_b2c_payment(*, user_id, amount) -> None:
     logger.info("Processing B2C payment")
 
     try:
-        # Save hashed value that expires every 2 minutes.
+        # Save hashed value that expires after a couple of seconds.
         # That effectively only limits a user to 1 successful withdrawal
-        # each 2 minutes
+        # each 2 minutes or thereabout
         user = User.objects.get(id=user_id)
         hashed_withdrawal_request = md5_hash(f"{user.phone_number}:withdraw_request")
         cache.set(
             hashed_withdrawal_request, amount, timeout=settings.WITHDRAWAL_BUFFER_PERIOD
         )
-        phone = str(user.phone_number).lstrip("+")
 
-        data = initiate_b2c_payment(amount=amount, party_b=phone.lstrip("+"))
+        data = initiate_b2c_payment(
+            amount=amount,
+            party_b=str(user.phone_number).lstrip(
+                "+"
+            ),  # M-Pesa phone number format: 254703405601
+        )
 
         if data is not None:
             logger.info(
@@ -422,12 +426,12 @@ def process_b2c_payment(*, user_id, amount) -> None:
                     "response_code": data["ResponseCode"],
                     "response_description": data["ResponseDescription"],
                     "transaction_amount": amount,
-                    "phone_number": phone,
+                    "phone_number": str(user.phone_number),
                 }
             )
 
-            withdrawal_serializer.is_valid()
-            withdrawal_serializer.save()
+            if withdrawal_serializer.is_valid():
+                withdrawal_serializer.save()
 
     except Exception as e:
         logger.error(f"An execption ocurred while processing B2C payment: {e}")
