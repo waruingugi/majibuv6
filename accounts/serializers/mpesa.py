@@ -159,6 +159,36 @@ class KeyValueSerializer(serializers.Serializer):
     Value = serializers.CharField()
 
 
+# STKPush serializers
+class NameValueSerializer(serializers.Serializer):
+    Name = serializers.CharField()
+    Value = serializers.CharField()
+
+
+class CallbackMetadataSerializer(serializers.Serializer):
+    Item = NameValueSerializer(many=True)
+
+
+class C2BSTKResultSerializer(serializers.Serializer):
+    MerchantRequestID = serializers.CharField()
+    CheckoutRequestID = serializers.CharField()
+    ResultCode = serializers.IntegerField()
+    ResultDesc = serializers.CharField()
+    CallbackMetadata = CallbackMetadataSerializer(required=False)
+
+
+class STKCallbackSerializer(serializers.Serializer):
+    stkCallback = C2BSTKResultSerializer()
+
+
+class STKPushSerializer(serializers.Serializer):
+    Body = STKCallbackSerializer()
+
+
+# End of STKPush serializers
+
+
+# M-Pesa B2C serializers
 class ReferenceItemSerializer(KeyValueSerializer):
     pass
 
@@ -188,3 +218,6 @@ class B2CResultSerializer(serializers.Serializer):
 
 class B2CResponseSerializer(serializers.Serializer):
     Result = B2CResultSerializer()
+
+
+# End of M-Pesa B2C serializers

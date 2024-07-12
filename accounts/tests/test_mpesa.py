@@ -144,6 +144,7 @@ class STKPushCallbackViewTests(APITestCase):
     def test_successful_request_triggers_background_task(self, mock_task) -> None:
         ip = MPESA_WHITE_LISTED_IPS[0]
         self.client.defaults["REMOTE_ADDR"] = ip
+
         response = self.client.post(
             self.url, data=self.mock_stk_push_result, format="json"
         )

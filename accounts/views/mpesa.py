@@ -10,7 +10,7 @@ from accounts.serializers.mpesa import (
     B2CResponseSerializer,
     DepositAmountSerializer,
     MpesaDirectPaymentSerializer,
-    MpesaPaymentResultSerializer,
+    STKPushSerializer,
     WithdrawAmountSerializer,
 )
 from accounts.tasks import (
@@ -87,25 +87,24 @@ class PaybillPaymentConfirmationView(GenericAPIView):
 @extend_schema(tags=["payments"], exclude=True)
 class STKPushCallbackView(GenericAPIView):
     permission_classes = [IsMpesaWhiteListedIP]
+    serializer_class = STKPushSerializer
 
     def post(self, request, *args, **kwargs):
         """
         CallBack URL is used to receive responses for STKPush from M-Pesa
         """
-        try:
-            # Parse and validate the request data using the Pydantic model
-            mpesa_response_in = MpesaPaymentResultSerializer(**request.data)
-        except ValidationError as e:
-            return JsonResponse(
-                e.errors(), status=status.HTTP_400_BAD_REQUEST, safe=False
-            )
-
         logger.info(f"Received STKPush callback request from {request.headers}")
 
-        # Schedule background task
-        process_mpesa_stk_task.delay(mpesa_response_in.Body.stkCallback.model_dump())
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            # Schedule background task
+            process_mpesa_stk_task.delay(
+                serializer.validated_data["Body"]["stkCallback"]
+            )
 
-        return Response(status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TriggerSTKPushView(GenericAPIView):

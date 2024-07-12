@@ -16,7 +16,7 @@ B2C_WITHDRAWAL_CHARGES = [
 
 # Withdraw amount restrictions
 MIN_WITHDRAWAL_AMOUNT = 20
-MAX_WITHDRAWAL_AMOUNT = 1000
+MAX_WITHDRAWAL_AMOUNT = 1500
 
 # You can only deposit an amount in this options
 DEPOSIT_AMOUNT_CHOICES = [50, 100, 200, 500, 1000]

@@ -11,27 +11,19 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 
-from accounts.constants import (
-    B2CMpesaCommandIDs,
-    MpesaAccountTypes,
-    TransactionCashFlow,
-    TransactionServices,
-    TransactionStatuses,
-    TransactionTypes,
-)
+from accounts.constants import B2CMpesaCommandIDs, MpesaAccountTypes
 from accounts.models import MpesaPayment, Withdrawal
 from accounts.serializers.mpesa import (
     MpesaDirectPaymentSerializer,
     MpesaPaymentCreateSerializer,
-    MpesaPaymentResultStkCallbackSerializer,
     WithdrawalCreateSerializer,
 )
-from accounts.serializers.transactions import TransactionCreateSerializer
 from commons.raw_logger import logger
 from commons.serializers import UserPhoneNumberField
-from commons.utils import get_valid_fields, md5_hash
+from commons.utils import md5_hash
 
 User = get_user_model()
+phone_field = UserPhoneNumberField()
 
 
 def format_mpesa_receiver_details(receiver_string) -> tuple[str, str]:
@@ -204,18 +196,14 @@ def trigger_mpesa_stkpush_payment(amount: int, phone_number: str) -> Optional[Di
 
 
 def process_mpesa_stk(
-    mpesa_response_in: MpesaPaymentResultStkCallbackSerializer,
+    mpesa_response_in: dict,
 ) -> None:
     """
     Process Mpesa STK payment from Callback or From Queue
     """
     logger.info("Initiating process_mpesa_stk task...")
-    # If the input is a dictionary, serialize it
-    if isinstance(mpesa_response_in, dict):
-        mpesa_response_in = MpesaPaymentResultStkCallbackSerializer(**mpesa_response_in)
-
     mpesa_payment = MpesaPayment.objects.filter(
-        checkout_request_id=mpesa_response_in.CheckoutRequestID
+        checkout_request_id=mpesa_response_in["CheckoutRequestID"]
     ).first()
 
     if mpesa_payment:
@@ -223,60 +211,88 @@ def process_mpesa_stk(
             f"Received response for previous STKPush {mpesa_payment.checkout_request_id}"
         )
 
-        updated_mpesa_payment = {
-            "result_code": mpesa_response_in.ResultCode,
-            "result_description": mpesa_response_in.ResultDesc,
-            "external_response": mpesa_response_in.json(),
-        }
+        mpesa_payment.result_code = mpesa_response_in["ResultCode"]
+        mpesa_payment.result_description = mpesa_response_in["ResultDesc"]
+        mpesa_payment.external_response = json.dumps(mpesa_response_in)
 
-        if mpesa_response_in.CallbackMetadata:
-            for item in mpesa_response_in.CallbackMetadata.Item:
-                if item.Name == "Amount":
-                    updated_mpesa_payment["amount"] = item.Value
-                if item.Name == "MpesaReceiptNumber":
-                    updated_mpesa_payment["receipt_number"] = item.Value
-                if item.Name == "Balance":
-                    updated_mpesa_payment["balance"] = item.Value
-                if item.Name == "TransactionDate":
-                    updated_mpesa_payment["transaction_date"] = datetime.strptime(
-                        str(item.Value), settings.MPESA_DATETIME_FORMAT
-                    )
-                if item.Name == "PhoneNumber":
-                    updated_mpesa_payment["phone_number"] = "+" + str(item.Value)
-
-        filtered_data = get_valid_fields(MpesaPayment, updated_mpesa_payment)
-        MpesaPayment.objects.filter(id=mpesa_payment.id).update(**filtered_data)
-        logger.info(f"Received mpesa payment: {updated_mpesa_payment}")
-
-        phone_field = UserPhoneNumberField()
-        phone_number = phone_field.to_internal_value(
-            updated_mpesa_payment["phone_number"]
-        )
-        user = User.objects.filter(phone_number=phone_number).first()
-
-        if user:
-            """Only record paybill payments by registered users."""
+        if "CallbackMetadata" in mpesa_response_in:
             logger.info(
-                f"Creating Ksh{updated_mpesa_payment['amount']} deposit for {phone_number}."
+                f"Processing successful STKPush {mpesa_payment.checkout_request_id}"
             )
-            transaction_serializer = TransactionCreateSerializer(
-                data={
-                    "external_transaction_id": updated_mpesa_payment["receipt_number"],
-                    "cash_flow": TransactionCashFlow.INWARD.value,
-                    "type": TransactionTypes.DEPOSIT.value,
-                    "status": TransactionStatuses.SUCCESSFUL.value,
-                    "service": TransactionServices.MPESA.value,
-                    "amount": updated_mpesa_payment["amount"],
-                    "external_response": json.dumps(mpesa_response_in.model_dump()),
-                }
-            )
+            metadata_items = mpesa_response_in["CallbackMetadata"]["Item"]
 
-            transaction_serializer.initial_data["user"] = user.id
-            transaction_serializer.is_valid()
-            transaction_serializer.save()
+            for item in metadata_items:
+                if item["Name"] == "Amount":
+                    mpesa_payment.amount = item["Value"]
+                if item["Name"] == "MpesaReceiptNumber":
+                    mpesa_payment.receipt_number = item["Value"]
+                if item["Name"] == "Balance":
+                    mpesa_payment.balance = item["Value"]
+                if item["Name"] == "TransactionDate":
+                    mpesa_payment.transaction_date = datetime.strptime(
+                        str(item["Value"]), settings.MPESA_DATETIME_FORMAT
+                    )
+                if item["Name"] == "PhoneNumber":
+                    phone_number = phone_field.to_internal_value(str(item["Value"]))
+                    mpesa_payment.phone_number = str(phone_number)
 
-    else:
-        logger.warning(f"Received an unknown STKPush response: {mpesa_response_in}")
+        mpesa_payment.save()
+        logger.info(f"Saved successful STKPUsh for {mpesa_payment.phone_number}")
+
+    #     updated_mpesa_payment = {
+    #         "result_code": mpesa_response_in["ResultCode"],
+    #         "result_description": mpesa_response_in["ResultDesc"],
+    #         "external_response": json.dumps(mpesa_response_in),
+    #     }
+
+    #     if "CallbackMetadata" in mpesa_response_in:
+    #         metadata_items = mpesa_response_in["CallbackMetadata"]["Item"]
+    #         for item in metadata_items:
+    #             if item["Name"] == "Amount":
+    #                 updated_mpesa_payment["amount"] = item["Value"]
+    #             if item["Name"] == "MpesaReceiptNumber":
+    #                 updated_mpesa_payment["receipt_number"] = item["Value"]
+    #             if item["Name"] == "Balance":
+    #                 updated_mpesa_payment["balance"] = item["Value"]
+    #             if item["Name"] == "TransactionDate":
+    #                 updated_mpesa_payment["transaction_date"] = datetime.strptime(
+    #                     str(item["Value"]), settings.MPESA_DATETIME_FORMAT
+    #                 )
+    #             if item["Name"] == "PhoneNumber":
+    #                 updated_mpesa_payment["phone_number"] = "+" + str(item["Value"])
+
+    #     filtered_data = get_valid_fields(MpesaPayment, updated_mpesa_payment)
+    #     MpesaPayment.objects.filter(id=mpesa_payment.id).update(**filtered_data)
+    #     logger.info(f"Received mpesa payment: {updated_mpesa_payment}")
+
+    #     phone_number = phone_field.to_internal_value(
+    #         updated_mpesa_payment["phone_number"]
+    #     )
+    #     user = User.objects.filter(phone_number=phone_number).first()
+
+    #     if user:
+    #         """Only record paybill payments by registered users."""
+    #         logger.info(
+    #             f"Creating Ksh{updated_mpesa_payment['amount']} deposit for {phone_number}."
+    #         )
+    #         transaction_serializer = TransactionCreateSerializer(
+    #             data={
+    #                 "external_transaction_id": updated_mpesa_payment["receipt_number"],
+    #                 "cash_flow": TransactionCashFlow.INWARD.value,
+    #                 "type": TransactionTypes.DEPOSIT.value,
+    #                 "status": TransactionStatuses.SUCCESSFUL.value,
+    #                 "service": TransactionServices.MPESA.value,
+    #                 "amount": updated_mpesa_payment["amount"],
+    #                 "external_response": json.dumps(mpesa_response_in.model_dump()),
+    #             }
+    #         )
+
+    #         transaction_serializer.initial_data["user"] = user.id
+    #         transaction_serializer.is_valid()
+    #         transaction_serializer.save()
+
+    # else:
+    #     logger.warning(f"Received an unknown STKPush response: {mpesa_response_in}")
 
 
 def process_mpesa_paybill_payment(
@@ -352,7 +368,7 @@ def initiate_b2c_payment(
     party_b: str,
     remarks: Optional[str] = "B2C API payment",
     occassion: Optional[str] = "B2C API payment",
-    command_id: str = B2CMpesaCommandIDs.PROMOTIONPAYMENT.value,
+    command_id: str = B2CMpesaCommandIDs.BUSINESSPAYMENT.value,
 ) -> Optional[Dict]:
     """Initiate an M-Pesa B2C payment"""
     access_token = get_mpesa_access_token(

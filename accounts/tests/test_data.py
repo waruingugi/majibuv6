@@ -12,11 +12,12 @@ from accounts.serializers.mpesa import (
 # M-Pesa Reference Number
 mpesa_reference_no = "NLJ7RT61SV"
 
+CheckoutRequestID = "ws_CO_191220191020363925"
+MerchantRequestID = "29115-34620561-1"
 # M-Pesa STKPush response
 mock_stk_push_response = {
-    "phone": "+254704845040",
-    "MerchantRequestID": "29115-34620561-1",
-    "CheckoutRequestID": "ws_CO_191220191020363925",
+    "MerchantRequestID": MerchantRequestID,
+    "CheckoutRequestID": CheckoutRequestID,
     "ResponseCode": "0",
     "ResponseDescription": "Success. Request accepted for processing",
     "CustomerMessage": "Success. Request accepted for processing",
@@ -26,8 +27,8 @@ mock_stk_push_response = {
 mock_stk_push_result = {
     "Body": {
         "stkCallback": {
-            "MerchantRequestID": "29115-34620561-1",
-            "CheckoutRequestID": "ws_CO_191220191020363925",
+            "MerchantRequestID": MerchantRequestID,
+            "CheckoutRequestID": CheckoutRequestID,
             "ResultCode": 0,
             "ResultDesc": "The service request is processed successfully.",
             "CallbackMetadata": {
@@ -38,6 +39,19 @@ mock_stk_push_result = {
                     {"Name": "PhoneNumber", "Value": 254708374149},
                 ]
             },
+        }
+    }
+}
+
+
+# Sample of failed STKPush response
+mock_failed_stk_push_response = {
+    "Body": {
+        "stkCallback": {
+            "MerchantRequestID": MerchantRequestID,
+            "CheckoutRequestID": CheckoutRequestID,
+            "ResultCode": 1032,
+            "ResultDesc": "Request canceled by user.",
         }
     }
 }
@@ -81,18 +95,6 @@ sample_negative_transaction_instance_info = {
     "external_response": json.dumps({}),
 }
 
-
-# Sample of failed STKPush response
-mock_failed_stk_push_response = {
-    "Body": {
-        "stkCallback": {
-            "MerchantRequestID": "29115-34620561-1",
-            "CheckoutRequestID": "ws_CO_191220191020363925",
-            "ResultCode": 1032,
-            "ResultDesc": "Request canceled by user.",
-        }
-    }
-}
 
 # Serialized M-Pesa STKPush result
 serialized_call_back_metadata = MpesaPaymentResultCallbackMetadataSerializer(  # type: ignore
