@@ -36,7 +36,7 @@ mock_stk_push_result = {
                     {"Name": "Amount", "Value": 1.00},
                     {"Name": "MpesaReceiptNumber", "Value": mpesa_reference_no},
                     {"Name": "TransactionDate", "Value": 20191219102115},
-                    {"Name": "PhoneNumber", "Value": 254708374149},
+                    {"Name": "PhoneNumber", "Value": 254712345678},
                 ]
             },
         }

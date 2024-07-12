@@ -185,7 +185,7 @@ class TestMpesaB2CPayment(TestCase):
 
 
 class TestProcessB2CPaymentResult(BaseUserAPITestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.user = self.create_user()
         self.user.phone_number = withdrawal_obj_instance["phone_number"]
         self.user.save()
@@ -194,7 +194,7 @@ class TestProcessB2CPaymentResult(BaseUserAPITestCase):
         self.sample_b2c_response_success = mock_successful_b2c_result["Result"]
         self.sample_b2c_response_failure = mock_failed_b2c_result["Result"]
 
-    def test_updates_model_on_successfull_response(self):
+    def test_updates_model_on_successfull_response(self) -> None:
         process_b2c_payment_result(self.sample_b2c_response_success)
         self.withdrawal.refresh_from_db()
         self.assertEqual(
@@ -212,7 +212,11 @@ class TestProcessB2CPaymentResult(BaseUserAPITestCase):
             json.loads(self.withdrawal.external_response),
             self.sample_b2c_response_success,
         )
-        # Assert signal is called and Transaction instance is created.
+
+    def test_signal_creates_withdrawal_instance(self) -> None:
+        process_b2c_payment_result(self.sample_b2c_response_success)
+        self.withdrawal.refresh_from_db()
+
         transaction_obj = Transaction.objects.get(
             external_transaction_id=self.withdrawal.transaction_id
         )
@@ -221,7 +225,7 @@ class TestProcessB2CPaymentResult(BaseUserAPITestCase):
         self.assertEqual(transaction_obj.service, TransactionServices.MPESA.value)
         self.assertEqual(transaction_obj.amount, self.withdrawal.transaction_amount)
 
-    def test_updates_model_on_failed_response(self):
+    def test_updates_model_on_failed_response(self) -> None:
         process_b2c_payment_result(self.sample_b2c_response_failure)
         self.withdrawal.refresh_from_db()
         self.assertEqual(
@@ -239,8 +243,9 @@ class TestProcessB2CPaymentResult(BaseUserAPITestCase):
             json.loads(self.withdrawal.external_response),
             self.sample_b2c_response_failure,
         )
+        self.assertEqual(0, Transaction.objects.count())
 
-    def test_no_update_if_transaction_id_exists(self):
+    def test_no_update_if_transaction_id_exists(self) -> None:
         # Set transaction_id to simulate a previously updated withdrawal
         self.withdrawal.transaction_id = "EXISTING_TRANSACTION_ID"
         self.withdrawal.save()
@@ -251,7 +256,7 @@ class TestProcessB2CPaymentResult(BaseUserAPITestCase):
 
 
 class TestProcessB2CPayment(BaseUserAPITestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.user = self.create_user()
         self.amount = 1000  # Sample amount
 
@@ -264,7 +269,7 @@ class TestProcessB2CPayment(BaseUserAPITestCase):
     @patch("accounts.utils.cache.set")
     def test_process_b2c_payment_success(
         self, mock_initiate_b2c_payment, mock_cache_set
-    ):
+    ) -> None:
         mock_initiate_b2c_payment.return_value = sample_b2c_response
 
         process_b2c_payment(user_id=self.user.id, amount=self.amount)
@@ -277,7 +282,7 @@ class TestProcessB2CPayment(BaseUserAPITestCase):
 
 
 class TestProcessMpesaStk(BaseUserAPITestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.user = self.create_user()
         self.successful_result = mock_stk_push_result["Body"]["stkCallback"]
         self.failed_result = mock_failed_stk_push_response["Body"]["stkCallback"]
@@ -291,22 +296,32 @@ class TestProcessMpesaStk(BaseUserAPITestCase):
             customer_message=mock_stk_push_response["CustomerMessage"],
         )
 
-    def test_process_successful_mpesa_stk_response(self):
+    def test_process_successful_mpesa_stk_response(self) -> None:
         process_mpesa_stk(mpesa_response_in=self.successful_result)
+        self.mpesa_payment.refresh_from_db()
 
-        mpesa_payment = MpesaPayment.objects.get(
-            checkout_request_id=self.successful_result["CheckoutRequestID"]
-        )
-        self.assertEqual(mpesa_payment.result_code, 0)
-        self.assertEqual(mpesa_payment.amount, 1.00)
-        self.assertEqual(mpesa_payment.receipt_number, mpesa_reference_no)
+        self.assertEqual(self.mpesa_payment.result_code, 0)
+        self.assertEqual(self.mpesa_payment.amount, 1.00)
+        self.assertEqual(self.mpesa_payment.receipt_number, mpesa_reference_no)
         # Ignore this test case for now. But idealy the phone numbers should be same
         # self.assertEqual(mpesa_payment.phone_number, str(self.user.phone_number))
         self.assertEqual(
-            json.loads(mpesa_payment.external_response), self.successful_result
+            json.loads(self.mpesa_payment.external_response), self.successful_result
         )
 
-    def test_process_failed_mpesa_stk_response(self):
+    def test_signal_creates_deposit_transaction_instance(self) -> None:
+        process_mpesa_stk(mpesa_response_in=self.successful_result)
+        self.mpesa_payment.refresh_from_db()
+
+        transaction_obj = Transaction.objects.get(
+            external_transaction_id=self.mpesa_payment.receipt_number
+        )
+        self.assertEqual(transaction_obj.cash_flow, TransactionCashFlow.INWARD.value)
+        self.assertEqual(transaction_obj.status, TransactionStatuses.SUCCESSFUL.value)
+        self.assertEqual(transaction_obj.service, TransactionServices.MPESA.value)
+        self.assertEqual(transaction_obj.amount, self.mpesa_payment.amount)
+
+    def test_process_failed_mpesa_stk_response(self) -> None:
         process_mpesa_stk(mpesa_response_in=self.failed_result)
 
         mpesa_payment = MpesaPayment.objects.get(
@@ -326,6 +341,7 @@ class TestProcessMpesaStk(BaseUserAPITestCase):
         self.assertEqual(
             json.loads(mpesa_payment.external_response), self.failed_result
         )
+        self.assertEqual(0, Transaction.objects.count())
 
 
 class TestCalculateB2CWithdrawalCharge(TestCase):
