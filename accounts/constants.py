@@ -6,7 +6,7 @@ MpesaB2CCharge = namedtuple("MpesaB2CCharge", ["min", "max", "charge"])
 
 B2C_WITHDRAWAL_CHARGES = [
     MpesaB2CCharge(0, 100, 2),
-    MpesaB2CCharge(101, 500, 8),
+    MpesaB2CCharge(101, 500, 9),
     MpesaB2CCharge(501, 1000, 15),
     MpesaB2CCharge(1001, 1500, 25),
     MpesaB2CCharge(1501, 2500, 35),
