@@ -20,20 +20,20 @@ User = get_user_model()
 
 @receiver(post_save, sender=Withdrawal)
 def create_withdrawal_transaction_instance(sender, instance, created, **kwargs):
-    if not created:  # Executes on model update ONLY
+    if created:  # Executes on model creation ONLY
         user = User.objects.filter(phone_number=instance.phone_number).first()
 
         # Assert user exists AND the ´result_code´ is 0.
         # Any other result_code value means the M-Pesa B2C transaction failed.
         # See documentation for more info: https://developer.safaricom.co.ke/APIs/BusinessToCustomer
-        if user and instance.result_code == 0:
+        if user and instance.response_code == 0:
             logger.info(
                 f"Creating withdrawal transaction instance for {user.phone_number}"
             )
 
             transaction_serializer = TransactionCreateSerializer(
                 data={
-                    "external_transaction_id": instance.transaction_id,
+                    "external_transaction_id": instance.conversation_id,
                     "cash_flow": TransactionCashFlow.OUTWARD.value,
                     "type": TransactionTypes.WITHDRAWAL.value,
                     "status": TransactionStatuses.SUCCESSFUL.value,
@@ -48,7 +48,7 @@ def create_withdrawal_transaction_instance(sender, instance, created, **kwargs):
             if transaction_serializer.is_valid():
                 transaction_serializer.save()
                 logger.info(
-                    f"External transaction id {instance.transaction_id} saved successfully."
+                    f"External transaction id {instance.conversation_id} saved successfully."
                 )
 
 

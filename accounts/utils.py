@@ -324,7 +324,8 @@ def process_b2c_payment(*, user_id, amount) -> None:
             ),  # M-Pesa phone number format: 254703405601
         )
 
-        if data is not None:
+        # If response data is not an error, then save to db
+        if data is not None and "ConversationID" in data:
             logger.info(
                 f"Saving B2C response conversation Id: {data['ConversationID']}"
             )
@@ -357,14 +358,13 @@ def process_b2c_payment_result(mpesa_b2c_result: dict):
             conversation_id=mpesa_b2c_result["ConversationID"]
         ).first()
 
-        # Asserts the withdrawal request exists AND
-        # the withdrawal request has not beed updated before.
-        # :withdrawal_request.transaction_id is not None for requests that have been updated."""
-        if withdrawal_request and withdrawal_request.transaction_id is None:
+        # Asserts the withdrawal request exists
+        if withdrawal_request:
             logger.info(
                 f"Previous withdrawal request id: {mpesa_b2c_result['ConversationID']} found."
             )
 
+            withdrawal_request.result_type = mpesa_b2c_result["ResultType"]
             withdrawal_request.result_code = mpesa_b2c_result["ResultCode"]
             withdrawal_request.result_description = mpesa_b2c_result["ResultDesc"]
             withdrawal_request.transaction_id = mpesa_b2c_result["TransactionID"]

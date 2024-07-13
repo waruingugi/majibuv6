@@ -209,21 +209,13 @@ class TestProcessB2CPaymentResult(BaseUserAPITestCase):
             self.sample_b2c_response_success["TransactionID"],
         )
         self.assertEqual(
+            self.withdrawal.result_type,
+            self.sample_b2c_response_success["ResultType"],
+        )
+        self.assertEqual(
             json.loads(self.withdrawal.external_response),
             self.sample_b2c_response_success,
         )
-
-    def test_signal_creates_withdrawal_instance(self) -> None:
-        process_b2c_payment_result(self.sample_b2c_response_success)
-        self.withdrawal.refresh_from_db()
-
-        transaction_obj = Transaction.objects.get(
-            external_transaction_id=self.withdrawal.transaction_id
-        )
-        self.assertEqual(transaction_obj.cash_flow, TransactionCashFlow.OUTWARD.value)
-        self.assertEqual(transaction_obj.status, TransactionStatuses.SUCCESSFUL.value)
-        self.assertEqual(transaction_obj.service, TransactionServices.MPESA.value)
-        self.assertEqual(transaction_obj.amount, self.withdrawal.transaction_amount)
 
     def test_updates_model_on_failed_response(self) -> None:
         process_b2c_payment_result(self.sample_b2c_response_failure)
@@ -236,6 +228,10 @@ class TestProcessB2CPaymentResult(BaseUserAPITestCase):
             self.sample_b2c_response_failure["ResultDesc"],
         )
         self.assertEqual(
+            self.withdrawal.result_type,
+            self.sample_b2c_response_failure["ResultType"],
+        )
+        self.assertEqual(
             self.withdrawal.transaction_id,
             self.sample_b2c_response_failure["TransactionID"],
         )
@@ -244,15 +240,6 @@ class TestProcessB2CPaymentResult(BaseUserAPITestCase):
             self.sample_b2c_response_failure,
         )
         self.assertEqual(0, Transaction.objects.count())
-
-    def test_no_update_if_transaction_id_exists(self) -> None:
-        # Set transaction_id to simulate a previously updated withdrawal
-        self.withdrawal.transaction_id = "EXISTING_TRANSACTION_ID"
-        self.withdrawal.save()
-        process_b2c_payment_result(self.sample_b2c_response_success)
-        self.withdrawal.refresh_from_db()
-        # Ensure no changes occurred
-        self.assertEqual(self.withdrawal.transaction_id, "EXISTING_TRANSACTION_ID")
 
 
 class TestProcessB2CPayment(BaseUserAPITestCase):
@@ -279,6 +266,7 @@ class TestProcessB2CPayment(BaseUserAPITestCase):
         mock_initiate_b2c_payment.assert_called_once()
 
         # TODO: Add more tests for this class
+        # A good test would be: assert func does not create obj instance if response was an error
 
 
 class TestProcessMpesaStk(BaseUserAPITestCase):

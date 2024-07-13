@@ -4,7 +4,12 @@ from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from accounts.constants import STKPUSH_DEPOSIT_DESCRPTION
+from accounts.constants import (
+    STKPUSH_DEPOSIT_DESCRPTION,
+    TransactionCashFlow,
+    TransactionServices,
+    TransactionStatuses,
+)
 from accounts.models import MpesaPayment, Transaction
 from accounts.serializers.mpesa import (
     MpesaPaymentCreateSerializer,
@@ -136,16 +141,30 @@ class MpesaPaymentTestCase(BaseUserAPITestCase):
         self.assertEqual(mpesa_payment.amount, Decimal(1.00))
 
 
-class WithdrawalTestCase(TestCase):
-    def test_create_withdrawal_instance_successfully(self):
-        serializer = WithdrawalCreateSerializer(data=withdrawal_obj_instance)
-        self.assertTrue(serializer.is_valid())
-        withdrawal = serializer.save()
+class WithdrawalTestCase(BaseUserAPITestCase):
+    def setUp(self) -> None:
+        self.user = self.create_user()
+        self.user.phone_number = withdrawal_obj_instance["phone_number"]
+        self.user.save()
 
+        self.serializer = WithdrawalCreateSerializer(data=withdrawal_obj_instance)
+        self.assertTrue(self.serializer.is_valid())
+        self.withdrawal = self.serializer.save()
+
+    def test_create_withdrawal_instance_successfully(self):
         self.assertEqual(
-            withdrawal.conversation_id, withdrawal_obj_instance["conversation_id"]
+            self.withdrawal.conversation_id, withdrawal_obj_instance["conversation_id"]
         )
         self.assertEqual(
-            withdrawal.originator_conversation_id,
+            self.withdrawal.originator_conversation_id,
             withdrawal_obj_instance["originator_conversation_id"],
         )
+
+    def test_signal_creates_transaction_instance(self) -> None:
+        transaction_obj = Transaction.objects.get(
+            external_transaction_id=self.withdrawal.conversation_id
+        )
+        self.assertEqual(transaction_obj.cash_flow, TransactionCashFlow.OUTWARD.value)
+        self.assertEqual(transaction_obj.status, TransactionStatuses.SUCCESSFUL.value)
+        self.assertEqual(transaction_obj.service, TransactionServices.MPESA.value)
+        self.assertEqual(transaction_obj.amount, self.withdrawal.transaction_amount)

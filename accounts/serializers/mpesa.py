@@ -8,6 +8,7 @@ from accounts.constants import (
     MIN_WITHDRAWAL_AMOUNT,
 )
 from accounts.models import MpesaPayment, Transaction, Withdrawal
+from commons.errors import ErrorCodes
 from commons.raw_logger import logger
 from commons.serializers import UserPhoneNumberField
 from commons.utils import calculate_b2c_withdrawal_charge, md5_hash
@@ -38,12 +39,14 @@ class WithdrawAmountSerializer(serializers.Serializer):
 
         if user_balance < total_withdrawal_charge:
             raise serializers.ValidationError(
-                f"You do not have sufficient balance to withdraw ksh {withdrawal_amount}"
+                ErrorCodes.INSUFFICIENT_BALANCE_TO_WITHDRAW.value.format(
+                    withdrawal_amount
+                )
             )
 
         if cache.get(md5_hash(f"{request.user.phone_number}:withdraw_request")):
             raise serializers.ValidationError(
-                f"A similar withdrawal request for ksh {withdrawal_amount} is currently being processed."
+                ErrorCodes.SIMILAR_WITHDRAWAL_REQUEST.value.format(withdrawal_amount)
             )
 
         return data
@@ -77,6 +80,7 @@ class WithdrawalCreateSerializer(serializers.ModelSerializer):
             "response_code",
             "response_description",
             "transaction_amount",
+            "phone_number",
         ]
         extra_kwargs = {"transaction_amount": {"required": False}}
 
@@ -110,8 +114,6 @@ class STKPushSerializer(serializers.Serializer):
 
 
 # M-Pesa B2C serializers
-
-
 class ReferenceDataSerializer(serializers.Serializer):
     ReferenceItem = serializers.DictField()
 
