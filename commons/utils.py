@@ -1,3 +1,4 @@
+import math
 from decimal import Decimal
 from hashlib import md5
 
@@ -20,20 +21,11 @@ def send_sms(phone_number: str, message: str) -> None:
 
 def calculate_b2c_withdrawal_charge(amount: int | float | Decimal) -> int:
     """Calculate B2C Withdrawal charge"""
+    amount = math.ceil(
+        amount
+    )  # If float, round up to the next integer: 100.1 becomes 101
     for charge_range in B2C_WITHDRAWAL_CHARGES:
         if charge_range.min <= amount <= charge_range.max:
             return charge_range.charge
     # Default case if amount is outside defined ranges
     return DEFAULT_B2C_CHARGE
-
-
-def get_valid_fields(model, data) -> dict:
-    """
-    Filters the given data dictionary to only include keys that are valid fields of the model.
-
-    :param model: The Django model class.
-    :param data: The dictionary to filter.
-    :return: A new dictionary with only valid field keys.
-    """
-    valid_fields = {f.name for f in model._meta.get_fields()}
-    return {k: v for k, v in data.items() if k in valid_fields}
