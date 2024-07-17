@@ -32,8 +32,7 @@ class RegisterViewTestCase(APITestCase):
         send_sms_mock.assert_called_once()  # Check if send_sms was called
 
         # Check if the correct arguments were passed to send_sms
-        call_args = send_sms_mock.call_args
-        phone_number, _ = call_args[0]
+        phone_number = send_sms_mock.call_args.kwargs["phone_number"]
 
         self.assertTrue(response.data["is_active"])
         self.assertFalse(response.data["is_verified"])
