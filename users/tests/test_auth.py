@@ -39,7 +39,11 @@ class RegisterViewTestCase(APITestCase):
         self.assertFalse(response.data["is_verified"])
         self.assertNotIn("password", response.data)
         self.assertNotIn("is_staff", response.data)
-        self.assertFalse(User.objects.get(phone_number=phone_number).is_staff)
+        user = User.objects.get(phone_number=data["phone_number"])
+
+        # Assert that the password is not stored as plain text
+        self.assertNotEqual(user.password, data["password"])
+        self.assertFalse(user.is_staff)
         self.assertEqual(phone_number, "+254701456761")
 
     @patch("users.views.auth.send_push.delay")

@@ -36,7 +36,14 @@ class RegisterView(CreateAPIView):
     permission_classes = [AllowAny]
 
     def perform_create(self, serializer):
+        validated_data = serializer.validated_data
+        password = validated_data.pop("password")
         user = serializer.save()
+
+        # Set the hashed password
+        user.set_password(password)
+        user.save()
+
         phone_number = str(user.phone_number)
         otp = create_otp(phone_number)
         # TODO: Remove

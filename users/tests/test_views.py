@@ -27,6 +27,10 @@ class UserCreateAPIViewTests(BaseUserAPITestCase):
         self.assertIn("username", response.data)
         self.assertFalse(response.data["is_verified"])
         self.assertFalse(response.data["is_active"])
+        user = User.objects.get(username=self.data["username"])
+
+        # Assert that the password is not stored as plain text
+        self.assertNotEqual(user.password, self.data["password"])
 
     def test_view_generates_default_username(self) -> None:
         """Assert a default username is generated if the field is not defined."""

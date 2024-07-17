@@ -38,7 +38,6 @@ class Notification(Base):
         User,
         on_delete=models.SET_NULL,
         null=True,
-        default=None,
         related_name="notifications",
     )
 
