@@ -1,8 +1,10 @@
 from enum import Enum
 
+from notifications.push import OneSignal
 from notifications.sms import HostPinnacleSMS
 
 SMS_PROVIDERS = [HostPinnacleSMS]
+PUSH_PROVIDERS = [OneSignal]
 
 
 class NotificationChannels(str, Enum):
@@ -10,16 +12,13 @@ class NotificationChannels(str, Enum):
     PUSH = "PUSH"
 
 
+class NotificationProviders(str, Enum):
+    HOSTPINNACLESMS = "HOSTPINNACLESMS"
+    ONESIGNAL = "ONESIGNAL"
+
+
 class NotificationTypes(str, Enum):
     OTP = "OTP"
     DEPOSIT = "DEPOSIT"
     WITHDRAW = "WITHDRAW"
     SESSION = "SESSION"
-
-
-class NotificationStatuses(str, Enum):
-    CREATED = "CREATED"
-    PENDING = "PENDING"
-    SENT = "SENT"
-    DELIVERED = "DELIVERED"
-    FAILED = "FAILED"

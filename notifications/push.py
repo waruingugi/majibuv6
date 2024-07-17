@@ -2,7 +2,7 @@ import requests
 from django.conf import settings
 
 
-class OneSignal:
+class OneSignalPush:
     def __init__(self) -> None:
         self.url = "https://api.onesignal.com/notifications"
         self.message = ""
@@ -28,4 +28,4 @@ class OneSignal:
         return response.json()
 
 
-OneSignalPush = OneSignal()
+OneSignal = OneSignalPush()
