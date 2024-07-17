@@ -28,6 +28,12 @@ class TransactionRetrieveUpdateSerializer(serializers.ModelSerializer):
         read_only_fields = ("id", "created_at", "updated_at", "user")
 
 
+class TransactionRetrieveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Transaction
+        exclude = ["id", "created_at", "updated_at", "description", "external_response"]
+
+
 class TransactionListSerializer(serializers.ModelSerializer):
     user = UserReadSerializer()
 

@@ -4,16 +4,25 @@ from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from accounts.constants import STKPUSH_DEPOSIT_DESCRPTION
+from accounts.constants import (
+    STKPUSH_DEPOSIT_DESCRPTION,
+    TransactionCashFlow,
+    TransactionServices,
+    TransactionStatuses,
+)
 from accounts.models import MpesaPayment, Transaction
 from accounts.serializers.mpesa import (
     MpesaPaymentCreateSerializer,
-    MpesaPaymentResultCallbackMetadataSerializer,
-    MpesaPaymentResultStkCallbackSerializer,
     WithdrawalCreateSerializer,
 )
 from accounts.serializers.transactions import TransactionCreateSerializer
+from accounts.tests.test_data import (
+    mock_stk_push_response,
+    mock_stk_push_result,
+    withdrawal_obj_instance,
+)
 from accounts.utils import process_mpesa_stk
+from commons.tests.base_tests import BaseUserAPITestCase
 
 User = get_user_model()
 
@@ -93,61 +102,28 @@ class TransactionTestCase(TestCase):
         self.assertEqual(transaction.final_balance, 48.00)
 
 
-class MpesaPaymentTestCase(TestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(
-            phone_number="+254701301401",
-            password="password123",
-            username="testuser",
-        )
-        self.mock_stk_push_response = {
-            "phone_number": "254701301401",
-            "merchant_request_id": "29115-34620561-1",
-            "checkout_request_id": "ws_CO_191220191020363925",
-            "response_code": "0",
-            "response_description": "Success. Request accepted for processing",
-            "customer_message": "Success. Request accepted for processing",
-        }
+class MpesaPaymentTestCase(BaseUserAPITestCase):
+    def setUp(self) -> None:
+        self.user = self.create_user()
+        self.mock_stk_push_response = mock_stk_push_response
+        self.mock_stk_push_result = mock_stk_push_result
 
-        mock_stk_push_result = {
-            "Body": {
-                "stkCallback": {
-                    "MerchantRequestID": "29115-34620561-1",
-                    "CheckoutRequestID": "ws_CO_191220191020363925",
-                    "ResultCode": 0,
-                    "ResultDesc": "The service request is processed successfully.",
-                    "CallbackMetadata": {
-                        "Item": [
-                            {"Name": "Amount", "Value": 1.00},
-                            {"Name": "MpesaReceiptNumber", "Value": "NLJ7RT61SV"},
-                            {"Name": "TransactionDate", "Value": 20191219102115},
-                            {"Name": "PhoneNumber", "Value": 254708374149},
-                        ]
-                    },
-                }
+        self.serializer = MpesaPaymentCreateSerializer(
+            data={
+                "phone_number": str(self.user.phone_number),
+                "merchant_request_id": self.mock_stk_push_response["MerchantRequestID"],
+                "checkout_request_id": self.mock_stk_push_response["CheckoutRequestID"],
+                "response_code": self.mock_stk_push_response["ResponseCode"],
+                "response_description": self.mock_stk_push_response[
+                    "ResponseDescription"
+                ],
+                "customer_message": self.mock_stk_push_response["CustomerMessage"],
             }
-        }
-
-        serialized_call_back_metadata = MpesaPaymentResultCallbackMetadataSerializer(
-            **mock_stk_push_result["Body"]["stkCallback"]["CallbackMetadata"]  # type: ignore
         )
 
-        self.serialized_call_back = MpesaPaymentResultStkCallbackSerializer(
-            CallbackMetadata=serialized_call_back_metadata,
-            MerchantRequestID=mock_stk_push_result["Body"]["stkCallback"][
-                "MerchantRequestID"
-            ],
-            CheckoutRequestID=mock_stk_push_result["Body"]["stkCallback"][
-                "CheckoutRequestID"
-            ],
-            ResultCode=mock_stk_push_result["Body"]["stkCallback"]["ResultCode"],
-            ResultDesc=mock_stk_push_result["Body"]["stkCallback"]["ResultDesc"],
-        )
-
-    def test_mpesa_payment_is_created_successfully(self):
-        serializer = MpesaPaymentCreateSerializer(data=self.mock_stk_push_response)
-        self.assertTrue(serializer.is_valid())
-        mpesa_payment = serializer.save()
+    def test_mpesa_payment_is_created_successfully(self) -> None:
+        self.assertTrue(self.serializer.is_valid())
+        mpesa_payment = self.serializer.save()
 
         self.assertIsNotNone(mpesa_payment)
         self.assertIsNone(mpesa_payment.amount)
@@ -155,36 +131,40 @@ class MpesaPaymentTestCase(TestCase):
         self.assertEqual(mpesa_payment.phone_number, str(self.user.phone_number))
 
     def test_mpesa_payment_is_updated_successfully(self):
-        serializer = MpesaPaymentCreateSerializer(data=self.mock_stk_push_response)
-        self.assertTrue(serializer.is_valid())
-        mpesa_payment = serializer.save()
+        self.assertTrue(self.serializer.is_valid())
+        mpesa_payment = self.serializer.save()
 
-        process_mpesa_stk(self.serialized_call_back)
-
+        process_mpesa_stk(self.mock_stk_push_result["Body"]["stkCallback"])
         mpesa_payment = MpesaPayment.objects.get(id=mpesa_payment.id)
 
         self.assertIsNotNone(mpesa_payment.receipt_number)
         self.assertEqual(mpesa_payment.amount, Decimal(1.00))
 
 
-class WithdrawalTestCase(TestCase):
-    def setUp(self):
-        self.sample_b2c_response = {
-            "conversation_id": "AG_20191219_00005797af5d7d75f652",
-            "originator_conversation_id": "16740-34861180-1",
-            "response_code": "0",
-            "response_description": "Accept the service request successfully.",
-        }
+class WithdrawalTestCase(BaseUserAPITestCase):
+    def setUp(self) -> None:
+        self.user = self.create_user()
+        self.user.phone_number = withdrawal_obj_instance["phone_number"]
+        self.user.save()
+
+        self.serializer = WithdrawalCreateSerializer(data=withdrawal_obj_instance)
+        self.assertTrue(self.serializer.is_valid())
+        self.withdrawal = self.serializer.save()
 
     def test_create_withdrawal_instance_successfully(self):
-        serializer = WithdrawalCreateSerializer(data=self.sample_b2c_response)
-        self.assertTrue(serializer.is_valid())
-        withdrawal = serializer.save()
+        self.assertEqual(
+            self.withdrawal.conversation_id, withdrawal_obj_instance["conversation_id"]
+        )
+        self.assertEqual(
+            self.withdrawal.originator_conversation_id,
+            withdrawal_obj_instance["originator_conversation_id"],
+        )
 
-        self.assertEqual(
-            withdrawal.conversation_id, self.sample_b2c_response["conversation_id"]
+    def test_signal_creates_transaction_instance(self) -> None:
+        transaction_obj = Transaction.objects.get(
+            external_transaction_id=self.withdrawal.conversation_id
         )
-        self.assertEqual(
-            withdrawal.originator_conversation_id,
-            self.sample_b2c_response["originator_conversation_id"],
-        )
+        self.assertEqual(transaction_obj.cash_flow, TransactionCashFlow.OUTWARD.value)
+        self.assertEqual(transaction_obj.status, TransactionStatuses.SUCCESSFUL.value)
+        self.assertEqual(transaction_obj.service, TransactionServices.MPESA.value)
+        self.assertEqual(transaction_obj.amount, self.withdrawal.transaction_amount)

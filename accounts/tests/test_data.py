@@ -2,21 +2,15 @@ import json
 
 from django.conf import settings
 
-from accounts.serializers.mpesa import (
-    MpesaDirectPaymentSerializer,
-    MpesaPaymentResultBodySerializer,
-    MpesaPaymentResultCallbackMetadataSerializer,
-    MpesaPaymentResultStkCallbackSerializer,
-)
-
 # M-Pesa Reference Number
 mpesa_reference_no = "NLJ7RT61SV"
 
+CheckoutRequestID = "ws_CO_191220191020363925"
+MerchantRequestID = "29115-34620561-1"
 # M-Pesa STKPush response
 mock_stk_push_response = {
-    "phone": "+254704845040",
-    "MerchantRequestID": "29115-34620561-1",
-    "CheckoutRequestID": "ws_CO_191220191020363925",
+    "MerchantRequestID": MerchantRequestID,
+    "CheckoutRequestID": CheckoutRequestID,
     "ResponseCode": "0",
     "ResponseDescription": "Success. Request accepted for processing",
     "CustomerMessage": "Success. Request accepted for processing",
@@ -26,8 +20,8 @@ mock_stk_push_response = {
 mock_stk_push_result = {
     "Body": {
         "stkCallback": {
-            "MerchantRequestID": "29115-34620561-1",
-            "CheckoutRequestID": "ws_CO_191220191020363925",
+            "MerchantRequestID": MerchantRequestID,
+            "CheckoutRequestID": CheckoutRequestID,
             "ResultCode": 0,
             "ResultDesc": "The service request is processed successfully.",
             "CallbackMetadata": {
@@ -35,9 +29,22 @@ mock_stk_push_result = {
                     {"Name": "Amount", "Value": 1.00},
                     {"Name": "MpesaReceiptNumber", "Value": mpesa_reference_no},
                     {"Name": "TransactionDate", "Value": 20191219102115},
-                    {"Name": "PhoneNumber", "Value": 254708374149},
+                    {"Name": "PhoneNumber", "Value": 254712345678},
                 ]
             },
+        }
+    }
+}
+
+
+# Sample of failed STKPush response
+mock_failed_stk_push_response = {
+    "Body": {
+        "stkCallback": {
+            "MerchantRequestID": MerchantRequestID,
+            "CheckoutRequestID": CheckoutRequestID,
+            "ResultCode": 1032,
+            "ResultDesc": "Request canceled by user.",
         }
     }
 }
@@ -77,51 +84,9 @@ sample_negative_transaction_instance_info = {
     "service": "MPESA",
     "description": "",
     "amount": 20.0,
-    "fee": settings.MPESA_B2C_CHARGE,
+    "fee": 1.0,
     "external_response": json.dumps({}),
 }
-
-
-# Sample of failed STKPush response
-mock_failed_stk_push_response = {
-    "Body": {
-        "stkCallback": {
-            "MerchantRequestID": "29115-34620561-1",
-            "CheckoutRequestID": "ws_CO_191220191020363925",
-            "ResultCode": 1032,
-            "ResultDesc": "Request canceled by user.",
-        }
-    }
-}
-
-# Serialized M-Pesa STKPush result
-serialized_call_back_metadata = MpesaPaymentResultCallbackMetadataSerializer(  # type: ignore
-    **mock_stk_push_result["Body"]["stkCallback"]["CallbackMetadata"]
-)
-
-serialized_call_back = MpesaPaymentResultStkCallbackSerializer(
-    CallbackMetadata=serialized_call_back_metadata,
-    MerchantRequestID=mock_stk_push_result["Body"]["stkCallback"]["MerchantRequestID"],
-    CheckoutRequestID=mock_stk_push_result["Body"]["stkCallback"]["CheckoutRequestID"],
-    ResultCode=mock_stk_push_result["Body"]["stkCallback"]["ResultCode"],
-    ResultDesc=mock_stk_push_result["Body"]["stkCallback"]["ResultDesc"],
-)
-
-serialized_result_body = MpesaPaymentResultBodySerializer(
-    stkCallback=serialized_call_back
-)
-
-serialized_failed_call_back = MpesaPaymentResultStkCallbackSerializer(
-    MerchantRequestID=mock_failed_stk_push_response["Body"]["stkCallback"][
-        "MerchantRequestID"
-    ],
-    CheckoutRequestID=mock_failed_stk_push_response["Body"]["stkCallback"][
-        "CheckoutRequestID"
-    ],
-    ResultCode=mock_failed_stk_push_response["Body"]["stkCallback"]["ResultCode"],
-    ResultDesc=mock_failed_stk_push_response["Body"]["stkCallback"]["ResultDesc"],
-)
-
 
 # M-Pesa Paybill Response
 
@@ -140,14 +105,12 @@ mock_paybill_deposit_response = {
     "MiddleName": "NGUGI",
     "LastName": "NGUGI",
 }
-serialized_paybill_deposit_response = MpesaDirectPaymentSerializer(
-    **mock_paybill_deposit_response
-)
 
 
 # M-Pesa B2C sample data
+CONVERSATION_ID = "AG_20191219_00005797af5d7d75f652"
 sample_b2c_response = {
-    "ConversationID": "AG_20191219_00005797af5d7d75f652",
+    "ConversationID": CONVERSATION_ID,
     "OriginatorConversationID": "16740-34861180-1",
     "ResponseCode": "0",
     "ResponseDescription": "Accept the service request successfully.",
@@ -158,19 +121,28 @@ sample_failed_b2c_response = {
     "errorMessage": "Error Occurred - Invalid Access Token - BJGFGOXv5aZnw90KkA4TDtu4Xdyf",
 }
 
-sample_failed_b2c_result = {
+
+withdrawal_obj_instance = {
+    "conversation_id": CONVERSATION_ID,
+    "originator_conversation_id": "16740-34861180-1",
+    "response_code": "0",
+    "response_description": "Accept the service request successfully.",
+    "transaction_amount": 10,
+    "phone_number": "+254704845040",
+}
+
+mock_failed_b2c_result = {
     "Result": {
         "ResultType": 0,
-        "ResultCode": 2,
-        "ResultDesc": "Declined due to limit rule",
-        "OriginatorConversationID": "16740-34861180-1",
-        "ConversationID": "AG_20191219_00005797af5d7d75f652",
-        "TransactionID": "REH91PXYJ7",
-        "ResultParameters": None,
+        "ResultCode": 2001,
+        "ResultDesc": "The initiator information is invalid.",
+        "OriginatorConversationID": "29112-34801843-1",
+        "ConversationID": CONVERSATION_ID,
+        "TransactionID": "NLJ0000000",
         "ReferenceData": {
             "ReferenceItem": {
                 "Key": "QueueTimeoutURL",
-                "Value": "https://internalsandbox.safaricom.co.ke/mpesa/b2cresults/v1/submit",
+                "Value": "https:\/\/internalsandbox.safaricom.co.ke\/mpesa\/b2cresults\/v1\/submit",
             }
         },
     }
@@ -181,28 +153,25 @@ mock_successful_b2c_result = {
         "ResultType": 0,
         "ResultCode": 0,
         "ResultDesc": "The service request is processed successfully.",
-        "OriginatorConversationID": "16740-34861180-1",
-        "ConversationID": "AG_20191219_00005797af5d7d75f652",
+        "OriginatorConversationID": "29112-34801843-1",
+        "ConversationID": CONVERSATION_ID,
         "TransactionID": "REH3SOIU9T",
         "ResultParameters": {
             "ResultParameter": [
-                {
-                    "Key": "ReceiverPartyPublicName",
-                    "Value": "254704845040 - WARUI NGUGI",
-                },
-                {"Key": "TransactionCompletedDateTime", "Value": "17.05.2023 22:41:32"},
-                {"Key": "B2CUtilityAccountAvailableFunds", "Value": 5970.0},
-                {"Key": "B2CWorkingAccountAvailableFunds", "Value": 312.74},
-                {"Key": "B2CRecipientIsRegisteredCustomer", "Value": "Y"},
-                {"Key": "B2CChargesPaidAccountAvailableFunds", "Value": 0.0},
                 {"Key": "TransactionAmount", "Value": 10},
                 {"Key": "TransactionReceipt", "Value": "REH3SOIU9T"},
+                {"Key": "B2CRecipientIsRegisteredCustomer", "Value": "Y"},
+                {"Key": "B2CChargesPaidAccountAvailableFunds", "Value": -451.00},
+                {"Key": "ReceiverPartyPublicName", "Value": "254708374149 - John Doe"},
+                {"Key": "TransactionCompletedDateTime", "Value": "19.12.2019 11:45:50"},
+                {"Key": "B2CUtilityAccountAvailableFunds", "Value": 101.00},
+                {"Key": "B2CWorkingAccountAvailableFunds", "Value": 900.00},
             ]
         },
         "ReferenceData": {
             "ReferenceItem": {
                 "Key": "QueueTimeoutURL",
-                "Value": "http://internalapi.safaricom.co.ke/mpesa/b2cresults/v1/submit",
+                "Value": "https:\/\/internalsandbox.safaricom.co.ke\/mpesa\/b2cresults\/v1\/submit",
             }
         },
     }

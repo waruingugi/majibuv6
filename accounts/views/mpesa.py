@@ -1,22 +1,18 @@
-from django.http import JsonResponse
 from drf_spectacular.utils import extend_schema
-from pydantic import ValidationError
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 
 from accounts.permissions import IsMpesaWhiteListedIP
 from accounts.serializers.mpesa import (
+    B2CResponseSerializer,
     DepositAmountSerializer,
-    MpesaDirectPaymentSerializer,
-    MpesaPaymentResultSerializer,
-    WithdrawalResultSerializer,
+    STKPushSerializer,
     WithdrawAmountSerializer,
 )
 from accounts.tasks import (
     process_b2c_payment_result_task,
     process_b2c_payment_task,
-    process_mpesa_paybill_payment_task,
     process_mpesa_stk_task,
     trigger_mpesa_stkpush_payment_task,
 )
@@ -33,85 +29,54 @@ class WithdrawalRequestTimeoutView(GenericAPIView):
         Callback URL to receive response after posting withdrawal
         request to M-Pesa in case of time out.
         """
-        # Do nothing for now. In future, mark withdrawal as failed.
+        # TODO: Do nothing for now. In future, mark withdrawal as failed.
         return Response(status=status.HTTP_200_OK)
 
 
 @extend_schema(tags=["payments"], exclude=True)
 class WithdrawalResultView(GenericAPIView):
     permission_classes = [IsMpesaWhiteListedIP]
-
-    def get_serializer_class(self):
-        return WithdrawalResultSerializer
+    serializer_class = B2CResponseSerializer
 
     def post(self, request, *args, **kwargs):
         """
-        Callback URL to receive response after posting withdrawal request is sent to M-Pesa
+        Callback URL to receive a response after posting a withdrawal request to M-Pesa
         """
-        try:
-            # Parse and validate the request data using the Pydantic model
-            withdrawal_response_in = WithdrawalResultSerializer(**request.data)
-        except ValidationError as e:
-            return JsonResponse(
-                e.errors(), status=status.HTTP_400_BAD_REQUEST, safe=False
-            )
-
         logger.info(f"Received withdrawal confirmation request from {request.headers}")
+        serializer = self.serializer_class(data=request.data)
 
-        # Schedule background task
-        process_b2c_payment_result_task.delay(withdrawal_response_in.Result)
+        if serializer.is_valid():
+            # Schedule background task to process the B2C payment result
+            process_b2c_payment_result_task.delay(serializer.validated_data["Result"])
 
-        return Response(status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_200_OK)
 
-
-@extend_schema(tags=["payments"], exclude=True)
-class PaybillPaymentConfirmationView(GenericAPIView):
-    permission_classes = [IsMpesaWhiteListedIP]
-
-    def post(self, request, *args, **kwargs):
-        """
-        Confirmation URL is used to receive responses for direct paybill payments from M-Pesa
-        """
-        try:
-            # Parse and validate the request data using the Pydantic model
-            paybill_response_in = MpesaDirectPaymentSerializer(**request.data)
-        except ValidationError as e:
-            return JsonResponse(
-                e.errors(), status=status.HTTP_400_BAD_REQUEST, safe=False
-            )
-
-        logger.info(
-            f"Received Paybill payment confirmation request from {request.headers}"
-        )
-
-        # Schedule background task
-        process_mpesa_paybill_payment_task.delay(paybill_response_in.model_dump())
-
-        return Response(status=status.HTTP_200_OK)
+        logger.info(f"WithdrawalResultView failed with errors: {serializer.errors}")
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @extend_schema(tags=["payments"], exclude=True)
 class STKPushCallbackView(GenericAPIView):
     permission_classes = [IsMpesaWhiteListedIP]
+    serializer_class = STKPushSerializer
 
     def post(self, request, *args, **kwargs):
         """
         CallBack URL is used to receive responses for STKPush from M-Pesa
         """
-        try:
-            # Parse and validate the request data using the Pydantic model
-            mpesa_response_in = MpesaPaymentResultSerializer(**request.data)
-        except ValidationError as e:
-            return JsonResponse(
-                e.errors(), status=status.HTTP_400_BAD_REQUEST, safe=False
-            )
-
         logger.info(f"Received STKPush callback request from {request.headers}")
 
-        # Schedule background task
-        process_mpesa_stk_task.delay(mpesa_response_in.Body.stkCallback)
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            # Schedule background task
+            process_mpesa_stk_task.delay(
+                serializer.validated_data["Body"]["stkCallback"]
+            )
 
-        return Response(status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_200_OK)
+
+        logger.info(f"STKPushCallbackView failed with errors: {serializer.errors}")
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TriggerSTKPushView(GenericAPIView):
@@ -134,6 +99,7 @@ class TriggerSTKPushView(GenericAPIView):
                 status=status.HTTP_200_OK,
             )
 
+        logger.info(f"TriggerSTKPushView failed with errors: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -146,8 +112,9 @@ class WithdrawalRequestView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             process_b2c_payment_task.delay(
-                user=request.user, amount=serializer.validated_data["amount"]
+                user_id=request.user.id, amount=serializer.validated_data["amount"]
             )
             return Response(status=status.HTTP_200_OK)
 
+        logger.info(f"WithdrawalRequestView failed with errors: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

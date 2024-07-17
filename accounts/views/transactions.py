@@ -1,15 +1,24 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters
-from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveUpdateAPIView
+from rest_framework import filters, status
+from rest_framework.generics import (
+    CreateAPIView,
+    ListAPIView,
+    RetrieveAPIView,
+    RetrieveUpdateAPIView,
+)
 from rest_framework.permissions import IsAdminUser
+from rest_framework.response import Response
 
 from accounts.models import Transaction
 from accounts.serializers.transactions import (
     TransactionCreateSerializer,
     TransactionListSerializer,
+    TransactionRetrieveSerializer,
     TransactionRetrieveUpdateSerializer,
 )
 from commons.pagination import StandardPageNumberPagination
+from commons.permissions import IsStaffOrSelfPermission
+from users.models import User
 
 
 class TransactionCreateView(CreateAPIView):
@@ -49,3 +58,18 @@ class TransactionRetrieveUpdateView(RetrieveUpdateAPIView):
     serializer_class = TransactionRetrieveUpdateSerializer
     queryset = Transaction.objects.all()
     permission_classes = [IsAdminUser]
+
+
+class TransactionRetrieveUserBalanceView(RetrieveAPIView):
+    """Retrieve user balance"""
+
+    lookup_field = "id"
+    queryset = User.objects.all()
+    permission_classes = [IsStaffOrSelfPermission]
+    serializer_class = TransactionRetrieveSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        user = self.get_object()
+        user_balance = Transaction.objects.get_user_balance(user)
+
+        return Response({"balance": user_balance}, status=status.HTTP_200_OK)

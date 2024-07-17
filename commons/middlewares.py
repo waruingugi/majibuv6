@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.auth import get_user_model
 from django.http.response import JsonResponse
 from django.utils.deprecation import MiddlewareMixin
@@ -51,21 +53,38 @@ class RequestResponseLoggerMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
         exclude_keys = ["Authorization", "Cookie"]
+        sensitive_keys_data = ["refresh", "access", "password"]
 
         # Create a new dictionary excluding the sensitive data
         headers = {k: v for k, v in request.headers.items() if k not in exclude_keys}
-        headers.update(
-            dict(
-                method=request.method,
-                path=request.get_full_path(),
-                user_id=(
-                    str(request.user.id)
-                    if request.user.is_authenticated
-                    else "Anonymous"
-                ),
-            )
+
+        # Pop sensitive key data
+        data = {}
+        if request.content_type == "application/json" and request.method in [
+            "POST",
+            "PUT",
+            "PATCH",
+        ]:
+            try:
+                data = json.loads(request.body)
+                data = {k: v for k, v in data.items() if k not in sensitive_keys_data}
+            except json.JSONDecodeError:
+                pass
+
+        log_data = {
+            "method": request.method,
+            "headers": headers,
+            "path": request.get_full_path(),
+            "user_id": (
+                str(request.user.id) if request.user.is_authenticated else "Anonymous"
+            ),
+            "ip_address": request.META.get("HTTP_FLY_CLIENT_IP")
+            or request.META.get("REMOTE_ADDR"),
+            "data": data,
+        }
+        logger.info(
+            f"Request: {local.request_id} - {log_data['ip_address']}: {log_data}"
         )
-        logger.info(f"Request: {local.request_id}: {headers}")
 
     def process_response(self, request, response):
         response_log_data = dict(

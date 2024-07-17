@@ -8,7 +8,7 @@ from rest_framework.test import APIClient, APITestCase
 from accounts.constants import DEPOSIT_AMOUNT_CHOICES, MPESA_WHITE_LISTED_IPS
 from accounts.models import Transaction
 from accounts.tests.test_data import (
-    mock_paybill_deposit_response,
+    mock_failed_b2c_result,
     mock_stk_push_result,
     mock_successful_b2c_result,
 )
@@ -71,36 +71,12 @@ class WithdrawalResultViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         mock_task.assert_called_once()
 
-
-class PaybillPaymentConfirmationViewTests(APITestCase):
-    def setUp(self):
-        self.client = APIClient()
-        self.url = reverse("mpesa:paybill-confirmation")
-        self.mock_paybill_deposit_response = mock_paybill_deposit_response
-
-    @patch("accounts.views.mpesa.process_mpesa_paybill_payment_task.delay")
-    def test_white_listed_ip_can_make_post_request(self, mock_task) -> None:
-        for ip in MPESA_WHITE_LISTED_IPS:
-            self.client.defaults["REMOTE_ADDR"] = ip
-            response = self.client.post(
-                self.url, data=self.mock_paybill_deposit_response, format="json"
-            )
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_non_white_listed_ip_cannot_make_post_request(self) -> None:
-        non_white_listed_ip = "192.0.2.1"
-        self.client.defaults["REMOTE_ADDR"] = non_white_listed_ip
-        response = self.client.post(
-            self.url, data=self.mock_paybill_deposit_response, format="json"
-        )
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-    @patch("accounts.views.mpesa.process_mpesa_paybill_payment_task.delay")
-    def test_successful_request_triggers_background_task(self, mock_task) -> None:
+    @patch("accounts.views.mpesa.process_b2c_payment_result_task.delay")
+    def test_failed_request_triggers_background_task(self, mock_task) -> None:
         ip = MPESA_WHITE_LISTED_IPS[0]
         self.client.defaults["REMOTE_ADDR"] = ip
         response = self.client.post(
-            self.url, data=self.mock_paybill_deposit_response, format="json"
+            self.url, data=mock_failed_b2c_result, format="json"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         mock_task.assert_called_once()
@@ -133,6 +109,7 @@ class STKPushCallbackViewTests(APITestCase):
     def test_successful_request_triggers_background_task(self, mock_task) -> None:
         ip = MPESA_WHITE_LISTED_IPS[0]
         self.client.defaults["REMOTE_ADDR"] = ip
+
         response = self.client.post(
             self.url, data=self.mock_stk_push_result, format="json"
         )

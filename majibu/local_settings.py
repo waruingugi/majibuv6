@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "drf_spectacular",
     "django_filters",
+    "django_celery_results",
     # Apps
     "users",
     "commons",
@@ -163,8 +164,8 @@ CACHES = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=5),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "AUTH_HEADER_TYPES": ("Bearer",),
     "AUTH_TOKEN_CLASSES": (
         "rest_framework_simplejwt.tokens.AccessToken",
@@ -188,6 +189,9 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "commons.pagination.StandardPageNumberPagination",
 }
 
+# Celery settings
+CELERY_CACHE_BACKEND = "default"
+CELERY_TASK_SOFT_TIME_LIMIT = 60 * 5  # Tasks expire after 5 minutes
 CELERY_BROKER_URL = os.environ["REDIS_URL"]
 CELERY_ACCEPT_CONTENT = {"application/json"}
 CELERY_RESULT_SERIALIZER = "json"
@@ -220,7 +224,6 @@ SPECTACULAR_SETTINGS = {
 
 
 MPESA_BUSINESS_SHORT_CODE = os.environ["MPESA_BUSINESS_SHORT_CODE"]
-MPESA_B2C_CHARGE = int(os.environ["MPESA_B2C_CHARGE"])
 MPESA_B2C_CONSUMER_KEY = os.environ["MPESA_B2C_CONSUMER_KEY"]
 MPESA_B2C_SECRET = os.environ["MPESA_B2C_SECRET"]
 MPESA_B2C_PASSWORD = os.environ["MPESA_B2C_PASSWORD"]
