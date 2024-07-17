@@ -19,6 +19,14 @@ class NotificationTypes(str, Enum):
     SESSION = "SESSION"
 
 
-class NotificationMessages(str, Enum):
+class Messages(str, Enum):
     OTP_SMS = "Your Majibu verification code is {}."
     WELCOME_MESSAGE = "Welcome to Majibu! Please top up your account to start playing."
+
+
+class PushNotifications:
+    class WELCOME_MESSAGE:
+        title = "Welcome to Majibu"
+        message = (
+            "We're excited you joined us! Please top up your account to start playing."
+        )

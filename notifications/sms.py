@@ -67,7 +67,8 @@ class HostPinnacle(SMSProvider):
                 headers=self.headers,
                 json=self.sms_payload,
             )
-            notification_obj.objects.update(external_response=response.json())
+            notification_obj.external_response = response.json()
+            notification_obj.save()
 
             if response.status_code == status.HTTP_200_OK:
                 logger.info(f"SMS to {phone_number} sent successfully.")
@@ -76,7 +77,7 @@ class HostPinnacle(SMSProvider):
             return False
 
         except Exception as e:
-            logger.error(f"Exceptioon occured while sending SMS to {phone_number}: {e}")
+            logger.error(f"Exception occured while sending SMS to {phone_number}: {e}")
             return False
 
 

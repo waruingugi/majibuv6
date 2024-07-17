@@ -2,8 +2,8 @@ from django.contrib.auth import get_user_model
 
 from commons.tests.base_tests import BaseUserAPITestCase
 from notifications.constants import (
+    Messages,
     NotificationChannels,
-    NotificationMessages,
     NotificationProviders,
     NotificationTypes,
 )
@@ -17,7 +17,7 @@ class NotificationModelTestCase(BaseUserAPITestCase):
         self.user = self.create_user()
         self.notification = Notification.objects.create(
             type=NotificationTypes.OTP.value,
-            message=NotificationMessages.OTP_SMS.value.format("4578"),
+            message=Messages.OTP_SMS.value.format("4578"),
             channel=NotificationChannels.SMS.value,
             provider=NotificationProviders.HOSTPINNACLESMS.value,
             receiving_party=str(self.user.phone_number),
@@ -31,9 +31,7 @@ class NotificationModelTestCase(BaseUserAPITestCase):
             str(notification), f"{notification.type} - {notification.message}"
         )
         self.assertEqual(notification.type, NotificationTypes.OTP.value)
-        self.assertEqual(
-            notification.message, NotificationMessages.OTP_SMS.value.format("4578")
-        )
+        self.assertEqual(notification.message, Messages.OTP_SMS.value.format("4578"))
         self.assertEqual(notification.channel, NotificationChannels.SMS.value)
         self.assertEqual(
             notification.provider, NotificationProviders.HOSTPINNACLESMS.value

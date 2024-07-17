@@ -52,7 +52,8 @@ class OneSignalPush:
             )
 
             response = requests.post(self.url, json=self.payload, headers=self.headers)
-            notification_obj.objects.update(external_response=response.json())
+            notification_obj.external_response = response.json()
+            notification_obj.save()
 
             if response.status_code == status.HTTP_200_OK:
                 logger.info(f"Push notification to {user_id} sent successfully.")
