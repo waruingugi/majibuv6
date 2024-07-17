@@ -32,6 +32,7 @@ class Notification(Base):
             "The user id, phone number or any identification of the receiving party."
         ),
     )
+    show_in_app = models.BooleanField(default=True)
     external_response = models.JSONField(null=True, blank=True)
     user = models.ForeignKey(
         User,

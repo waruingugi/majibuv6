@@ -7,10 +7,10 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from commons.raw_logger import logger
-from commons.tasks import send_sms
+from commons.tasks import send_push, send_sms
 from commons.throttles import AuthenticationThrottle
 from commons.utils import md5_hash
-from notifications.constants import Messages, NotificationTypes
+from notifications.constants import Messages, NotificationTypes, PushNotifications
 from users.models import User
 from users.otp import create_otp
 from users.serializers import (
@@ -45,6 +45,14 @@ class RegisterView(CreateAPIView):
         message = Messages.OTP_SMS.value.format(otp)
         send_sms.delay(
             phone_number=phone_number, type=NotificationTypes.OTP.value, message=message
+        )
+
+        # Send Push Notification Welcome Message
+        send_push.delay(
+            type=NotificationTypes.MARKETING.value,
+            title=PushNotifications.WELCOME_MESSAGE.title,
+            message=PushNotifications.WELCOME_MESSAGE.message,
+            user_id=user.id,
         )
 
         return user
