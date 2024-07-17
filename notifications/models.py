@@ -24,7 +24,15 @@ class Notification(Base):
         max_length=255,
         choices=[(provider, provider.value) for provider in NotificationProviders],
     )
-    phone = models.CharField(max_length=255, null=False)
+    receiving_party = models.CharField(
+        max_length=255,
+        null=False,
+        default="All users",
+        help_text=(
+            "The user id, phone number or any identification of the receiving party."
+        ),
+    )
+    external_response = models.JSONField(null=True, blank=True)
     user = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,

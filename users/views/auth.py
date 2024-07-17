@@ -10,7 +10,7 @@ from commons.raw_logger import logger
 from commons.tasks import send_sms
 from commons.throttles import AuthenticationThrottle
 from commons.utils import md5_hash
-from users.constants import OTP_SMS
+from notifications.constants import NotificationMessages
 from users.models import User
 from users.otp import create_otp
 from users.serializers import (
@@ -42,7 +42,8 @@ class RegisterView(CreateAPIView):
         # TODO: Remove
         logger.info(f"Sending {otp} to {phone_number}")
 
-        send_sms.delay(phone_number, OTP_SMS.format(otp))
+        message = NotificationMessages.OTP_SMS.value.format(otp)
+        send_sms.delay(phone_number, message)
 
         return user
 
@@ -61,7 +62,9 @@ class ResendOTPVerificationView(GenericAPIView):
 
             # TODO: Remove
             logger.info(f"Sending {otp} to {phone_number}")
-            send_sms.delay(phone_number, OTP_SMS.format(otp))
+
+            message = NotificationMessages.OTP_SMS.value.format(otp)
+            send_sms.delay(phone_number, message)
 
             return Response(
                 {"detail": "OTP sent successfully"}, status=status.HTTP_200_OK
@@ -107,7 +110,9 @@ class PasswordResetRequestView(GenericAPIView):
             otp = create_otp(phone_number)
             # TODO: Remove
             logger.info(f"Sending {otp} to {phone_number}")
-            send_sms.delay(phone_number, OTP_SMS.format(otp))
+
+            message = NotificationMessages.OTP_SMS.value.format(otp)
+            send_sms.delay(phone_number, message)
 
             return Response(
                 {"detail": "OTP has been sent to your phone number."},

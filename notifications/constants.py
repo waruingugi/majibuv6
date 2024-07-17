@@ -19,6 +19,12 @@ class NotificationProviders(str, Enum):
 
 class NotificationTypes(str, Enum):
     OTP = "OTP"
+    MARKETING = "MARKETING"
     DEPOSIT = "DEPOSIT"
     WITHDRAW = "WITHDRAW"
     SESSION = "SESSION"
+
+
+class NotificationMessages(str, Enum):
+    OTP_SMS = "Your Majibu verification code is {}."
+    WELCOME_MESSAGE = "Welcome to Majibu! Please top up your account to start playing."
