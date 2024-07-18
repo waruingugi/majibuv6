@@ -187,6 +187,20 @@ class TransactionListViewTests(BaseUserAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 2)
 
+    def test_expected_fields_are_exist_in_response(self) -> None:
+        self.force_authenticate_user()
+        response = self.client.get(self.list_url)
+        result_in = response.data["results"][0]
+        self.assertIn("created_at", result_in)
+        self.assertIn("id", result_in)
+        self.assertIn("initial_balance", result_in)
+        self.assertIn("final_balance", result_in)
+        self.assertIn("cash_flow", result_in)
+        self.assertIn("type", result_in)
+        self.assertIn("amount", result_in)
+        self.assertIn("charge", result_in)
+        self.assertIn("status", result_in)
+
 
 class TransactionRetrieveUserBalanceViewTests(BaseUserAPITestCase):
     def setUp(self):

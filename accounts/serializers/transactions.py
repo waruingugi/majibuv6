@@ -31,7 +31,7 @@ class TransactionRetrieveUpdateSerializer(serializers.ModelSerializer):
 class TransactionRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
-        exclude = ["id", "created_at", "updated_at", "description", "external_response"]
+        exclude = ["updated_at", "description", "external_response"]
 
 
 class TransactionListSerializer(serializers.ModelSerializer):
@@ -39,4 +39,4 @@ class TransactionListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Transaction
-        exclude = ["id", "created_at", "updated_at", "description", "external_response"]
+        exclude = ["updated_at", "description", "external_response"]

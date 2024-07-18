@@ -6,7 +6,6 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from commons.raw_logger import logger
 from commons.tasks import send_push, send_sms
 from commons.throttles import AuthenticationThrottle
 from commons.utils import md5_hash
@@ -46,8 +45,6 @@ class RegisterView(CreateAPIView):
 
         phone_number = str(user.phone_number)
         otp = create_otp(phone_number)
-        # TODO: Remove
-        logger.info(f"Sending {otp} to {phone_number}")
 
         message = Messages.OTP_SMS.value.format(otp)
         send_sms.delay(
@@ -76,9 +73,6 @@ class ResendOTPVerificationView(GenericAPIView):
         if serializer.is_valid():
             phone_number = serializer.validated_data["phone_number"]
             otp = create_otp(phone_number)
-
-            # TODO: Remove
-            logger.info(f"Sending {otp} to {phone_number}")
 
             message = Messages.OTP_SMS.value.format(otp)
             send_sms.delay(
@@ -127,10 +121,7 @@ class PasswordResetRequestView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             phone_number = serializer.validated_data["phone_number"]
-
             otp = create_otp(phone_number)
-            # TODO: Remove
-            logger.info(f"Sending {otp} to {phone_number}")
 
             message = Messages.OTP_SMS.value.format(otp)
             send_sms.delay(
