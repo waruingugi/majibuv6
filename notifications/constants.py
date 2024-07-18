@@ -21,12 +21,22 @@ class NotificationTypes(str, Enum):
 
 class Messages(str, Enum):
     OTP_SMS = "Your Majibu verification code is {}."
-    WELCOME_MESSAGE = "Welcome to Majibu! Please top up your account to start playing."
+    WELCOME_MESSAGE = (
+        "Hello and welcome to Majibu! Please top up your wallet to start playing."
+    )
 
 
 class PushNotifications:
     class WELCOME_MESSAGE:
         title = "Welcome to Majibu"
         message = (
-            "We're excited you joined us! Please top up your account to start playing."
+            "Hello and welcome to Majibu! Please top up your wallet to start playing."
+        )
+
+    class MPESA_DEPOSIT:
+        title = "Funds added to your wallet."
+        message = (
+            "You've successfully deposited Ksh{} for your account {}. "
+            "New balance is Ksh{}. "
+            "Thank your for choosing Majibu!"
         )

@@ -15,7 +15,7 @@ urlpatterns = [
         name="notification-list",
     ),
     path(
-        "notifications/count-unread",
+        "notifications/count-unread/",
         UnreadNotificationCountView.as_view(),
         name="count-unread",
     ),
