@@ -57,7 +57,7 @@ class HostPinnacle(SMSProvider):
                 message=message,
                 channel=NotificationChannels.SMS.value,
                 provider=NotificationProviders.HOSTPINNACLESMS.value,
-                show_in_app=False,
+                is_visible_in_app=False,
                 receiving_party=phone_number,
                 user=self.user,
             )
