@@ -36,7 +36,14 @@ class PushNotifications:
     class MPESA_DEPOSIT:
         title = "Funds added to your wallet."
         message = (
-            "You've successfully deposited Ksh{} for your account {}. "
+            "You've successfully deposited Ksh{} to your account. "
             "New balance is Ksh{}. "
-            "Thank your for choosing Majibu!"
+            "Thank you for choosing Majibu!"
+        )
+
+    class MPESA_WITHDRAW:
+        title = "Funds withdrawn from your wallet."
+        message = (
+            "You've successfully withdrawn Ksh{} from your account. "
+            "Transaction cost Ksh{}. New balance is Ksh{}."
         )

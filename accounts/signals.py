@@ -53,14 +53,14 @@ def create_withdrawal_transaction_instance(sender, instance, created, **kwargs):
                     f"External transaction id {instance.conversation_id} saved successfully."
                 )
 
-                push_message = PushNotifications.MPESA_DEPOSIT.message.format(
-                    transaction_obj.charge,
-                    transaction_obj.user.phone_number,
+                push_message = PushNotifications.MPESA_WITHDRAW.message.format(
+                    transaction_obj.amount,
+                    transaction_obj.fee,
                     transaction_obj.final_balance,
                 )
                 send_push.delay(
-                    type=NotificationTypes.DEPOSIT.value,
-                    title=PushNotifications.MPESA_DEPOSIT.title,
+                    type=NotificationTypes.WITHDRAW.value,
+                    title=PushNotifications.MPESA_WITHDRAW.title,
                     message=push_message,
                     user_id=user.id,
                 )
@@ -93,7 +93,18 @@ def create_deposit_transaction_instance(sender, instance, created, **kwargs):
 
             transaction_serializer.initial_data["user"] = user.id
             if transaction_serializer.is_valid():
-                transaction_serializer.save()
+                transaction_obj = transaction_serializer.save()
+
+                push_message = PushNotifications.MPESA_DEPOSIT.message.format(
+                    transaction_obj.amount,
+                    transaction_obj.final_balance,
+                )
+                send_push.delay(
+                    type=NotificationTypes.DEPOSIT.value,
+                    title=PushNotifications.MPESA_DEPOSIT.title,
+                    message=push_message,
+                    user_id=user.id,
+                )
                 logger.info(
                     f"External transaction id {instance.receipt_number} saved successfully."
                 )
