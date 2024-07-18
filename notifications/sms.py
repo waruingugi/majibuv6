@@ -7,8 +7,6 @@ from phonenumbers import parse
 from rest_framework import status
 
 from commons.raw_logger import logger
-from notifications.constants import NotificationChannels, NotificationProviders
-from notifications.models import Notification
 
 User = get_user_model()
 
@@ -52,22 +50,25 @@ class HostPinnacle(SMSProvider):
 
         try:
             self.user = User.objects.filter(phone_number=phone_number).first()
-            notification_obj = Notification.objects.create(
-                type=type,
-                message=message,
-                channel=NotificationChannels.SMS.value,
-                provider=NotificationProviders.HOSTPINNACLESMS.value,
-                is_visible_in_app=False,
-                receiving_party=phone_number,
-                user=self.user,
-            )
+
+            # TODO: Should SMS be saved in DB and why? What about OTPs? What about marketing messages?
+            # Right now SMS messages are so few, they would not make much of a difference
+            # notification_obj = Notification.objects.create(
+            #     type=type,
+            #     message=message,
+            #     channel=NotificationChannels.SMS.value,
+            #     provider=NotificationProviders.HOSTPINNACLESMS.value,
+            #     is_visible_in_app=False,
+            #     receiving_party=phone_number,
+            #     user=self.user,
+            # )
 
             response = requests.post(
                 self.url, headers=self.headers, data=self.sms_payload, files=self.files
             )
 
-            notification_obj.external_response = response.json()
-            notification_obj.save()
+            # notification_obj.external_response = response.json()
+            # notification_obj.save()
 
             if response.status_code == status.HTTP_200_OK:
                 logger.info(f"SMS to {phone_number} sent successfully.")

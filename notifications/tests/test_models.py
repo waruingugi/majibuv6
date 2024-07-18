@@ -38,3 +38,4 @@ class NotificationModelTestCase(BaseUserAPITestCase):
         )
         self.assertEqual(notification.receiving_party, str(self.user.phone_number))
         self.assertEqual(notification.user, self.user)
+        self.assertFalse(notification.is_read)

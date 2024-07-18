@@ -11,9 +11,9 @@ class NotificationListSerializer(serializers.ModelSerializer):
         model = Notification
         exclude = [
             "updated_at",
+            "type",
             "provider",
             "receiving_party",
-            "is_visible_in_app",
             "external_response",
             "channel",
         ]
@@ -22,3 +22,11 @@ class NotificationListSerializer(serializers.ModelSerializer):
         if obj.user is None:
             return None
         return UserReadSerializer(obj.user).data
+
+
+class UnreadNotificationCountSerializer(serializers.Serializer):
+    count = serializers.IntegerField()
+
+
+class MarkNotificationsReadSerializer(serializers.Serializer):
+    is_read = serializers.BooleanField()

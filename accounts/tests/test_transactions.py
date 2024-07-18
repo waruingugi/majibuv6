@@ -121,6 +121,7 @@ class TransactionListViewTests(BaseUserAPITestCase):
         self.foreign_user = User.objects.create_user(
             phone_number="+254713476781", password="password456", username="testuser2"
         )
+
         self.transaction1 = Transaction.objects.create(
             external_transaction_id="TX12345678",
             initial_balance=Decimal("0.0"),
@@ -164,6 +165,7 @@ class TransactionListViewTests(BaseUserAPITestCase):
             description="Test Description 2",
             user=self.user,
         )
+
         self.force_authenticate_staff_user()
         self.list_url = reverse("transactions:transaction-list")
 
