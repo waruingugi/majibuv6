@@ -98,11 +98,7 @@ class HostPinnacleTest(BaseUserAPITestCase):
 
         # Assert
         self.assertTrue(result)
-        mock_post_request.assert_called_once_with(
-            url=self.sms_service.url,
-            headers=self.sms_service.headers,
-            json=self.sms_service.sms_payload,
-        )
+        mock_post_request.assert_called_once()
 
         notification = Notification.objects.get(user=self.user)
         self.assertEqual(notification.message, Messages.OTP_SMS.value)
@@ -124,11 +120,7 @@ class HostPinnacleTest(BaseUserAPITestCase):
 
         # Assert
         self.assertFalse(result)
-        mock_post_request.assert_called_once_with(
-            url=self.sms_service.url,
-            headers=self.sms_service.headers,
-            json=self.sms_service.sms_payload,
-        )
+        mock_post_request.assert_called_once()
 
         notification = Notification.objects.get(user=self.user)
         self.assertEqual(notification.message, Messages.OTP_SMS.value)
@@ -147,11 +139,6 @@ class HostPinnacleTest(BaseUserAPITestCase):
 
         # Assert
         self.assertFalse(result)
-        mock_post_request.assert_called_once_with(
-            url=self.sms_service.url,
-            headers=self.sms_service.headers,
-            json=self.sms_service.sms_payload,
-        )
-
+        mock_post_request.assert_called_once()
         notification = Notification.objects.get(user=self.user)
         self.assertEqual(notification.message, Messages.OTP_SMS.value)

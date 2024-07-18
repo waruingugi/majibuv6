@@ -23,10 +23,8 @@ class HostPinnacle(SMSProvider):
     def __init__(self) -> None:
         self.url = "https://smsportal.hostpinnacle.co.ke/SMSApi/send"
         self.user = None
-        self.headers = {
-            "Content-Type": "application/json",
-        }
-        self.sms_payload: dict[str, str] = {
+        self.headers: dict[str, str] = {}
+        self.sms_payload = {
             "userid": settings.HOST_PINNACLE_USER_ID,
             "password": settings.HOST_PINNACLE_PASSWORD,
             "mobile": "",
@@ -37,6 +35,7 @@ class HostPinnacle(SMSProvider):
             "output": "json",
             "duplicatecheck": "true",
         }
+        self.files: list = []
 
     def format_phone_number(self, phone) -> str:
         """
@@ -64,10 +63,9 @@ class HostPinnacle(SMSProvider):
             )
 
             response = requests.post(
-                url=self.url,
-                headers=self.headers,
-                json=self.sms_payload,
+                self.url, headers=self.headers, data=self.sms_payload, files=self.files
             )
+
             notification_obj.external_response = response.json()
             notification_obj.save()
 

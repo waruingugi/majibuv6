@@ -12,7 +12,7 @@ User = get_user_model()
 
 class OneSignalPush:
     def __init__(self) -> None:
-        self.url = "https://api.onesignal.com/notifications"
+        self.url = "https://api.onesignal.com/notifications?c=push"
         self.message = ""
         self.headers = {
             "Content-Type": "application/json",
@@ -21,10 +21,12 @@ class OneSignalPush:
         self.user = None
         self.push_notification_name = "Majibu In-APP Push"
         self.payload = {
-            "app_id": f"{settings.ONESIGNAL_APP_ID}",
-            "contents": {},
+            "app_id": settings.ONESIGNAL_APP_ID,
+            "contents": {
+                "en": "",
+            },
             "headings": {"en": ""},
-            "name": self.push_notification_name,
+            "name": "Majibu In-APP Push",
             "include_external_user_ids": [],
             "target_channel": "push",
             "small_icon": "majibu_xs_logo",
@@ -35,8 +37,8 @@ class OneSignalPush:
         We then use the user_id to specify who the message is being sent to."""
         logger.info(f"Sending PUSH notification to {user_id}")
         self.payload["contents"] = {"en": message}
-        self.payload["headgins"] = {"en": title}
-        self.payload["include_external_user_ids"] = user_id
+        self.payload["headings"] = {"en": title}
+        self.payload["include_external_user_ids"] = [str(user_id)]
 
         try:
             user = User.objects.filter(id=user_id).first()
@@ -52,6 +54,7 @@ class OneSignalPush:
             )
 
             response = requests.post(self.url, json=self.payload, headers=self.headers)
+
             notification_obj.external_response = response.json()
             notification_obj.save()
 

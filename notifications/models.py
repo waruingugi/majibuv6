@@ -41,5 +41,8 @@ class Notification(Base):
         related_name="notifications",
     )
 
+    class Meta:
+        ordering = ("-created_at",)
+
     def __str__(self) -> str:
         return f"{self.type} - {self.message}"
