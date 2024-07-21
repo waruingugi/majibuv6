@@ -47,7 +47,7 @@ class TOTP:
         return pyotp.random_base32()
 
 
-def create_otp(phone_number: str):
+def create_otp(phone_number: str) -> str:
     """Create One Time Password for user"""
     totp_data: Dict[str, str] = {
         "totp_id": str(uuid4()),
@@ -59,7 +59,7 @@ def create_otp(phone_number: str):
     return TOTP.create(totp_data["secret"], TOTP_LENGTH, TOTP_EXPIRY_TIME)
 
 
-def validate_otp(otp: str, phone_number: str):
+def validate_otp(otp: str, phone_number: str) -> bool:
     """Validate OTP submitted by user"""
     user_otp_data = cache.get(md5_hash(phone_number))
 

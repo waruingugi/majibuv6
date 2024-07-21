@@ -11,8 +11,9 @@ from users.otp import create_otp
 
 
 class RegisterViewTestCase(APITestCase):
+    @patch("users.views.auth.send_push.delay")
     @patch("users.views.auth.send_sms.delay")
-    def test_view_creates_user(self, send_sms_mock) -> None:
+    def test_view_creates_user(self, send_sms_mock, _) -> None:
         """Assert registration view creates user."""
         data = {
             "phone_number": "+254701456761",
@@ -32,18 +33,24 @@ class RegisterViewTestCase(APITestCase):
         send_sms_mock.assert_called_once()  # Check if send_sms was called
 
         # Check if the correct arguments were passed to send_sms
-        call_args = send_sms_mock.call_args
-        phone_number, _ = call_args[0]
+        phone_number = send_sms_mock.call_args.kwargs["phone_number"]
 
         self.assertTrue(response.data["is_active"])
         self.assertFalse(response.data["is_verified"])
         self.assertNotIn("password", response.data)
         self.assertNotIn("is_staff", response.data)
-        self.assertFalse(User.objects.get(phone_number=phone_number).is_staff)
+        user = User.objects.get(phone_number=data["phone_number"])
+
+        # Assert that the password is not stored as plain text
+        self.assertNotEqual(user.password, data["password"])
+        self.assertFalse(user.is_staff)
         self.assertEqual(phone_number, "+254701456761")
 
+    @patch("users.views.auth.send_push.delay")
     @patch("users.views.auth.send_sms.delay")
-    def test_view_creates_user_with_national_phone_number(self, send_sms_mock) -> None:
+    def test_view_creates_user_with_national_phone_number(
+        self, send_sms_mock, _
+    ) -> None:
         """Assert registration view creates user with national number."""
         data = {"phone_number": "0701686761", "password": "passwordAl123"}
 
@@ -51,8 +58,9 @@ class RegisterViewTestCase(APITestCase):
         self.assertEqual(response.status_code, 201)
         self.assertTrue(User.objects.filter(phone_number="+254701686761").exists())
 
+    @patch("users.views.auth.send_push.delay")
     @patch("users.views.auth.send_sms.delay")
-    def test_view_throttles_requests(self, send_sms_mock):
+    def test_view_throttles_requests(self, send_sms_mock, _):
         """Assert the view throttles requests."""
         data = {"phone_number": "+254701451731", "password": "passwordAl123"}
         for _ in range(10):
@@ -157,27 +165,30 @@ class ResendOTPVerificationTestCase(BaseUserAPITestCase):
         self.url = reverse("auth:resend-otp")
         self.data = {"phone_number": str(self.user.phone_number)}
 
+    @patch("users.views.auth.send_push.delay")
     @patch("users.views.auth.create_otp")
     @patch("users.views.auth.send_sms.delay")
-    def test_throttling(self, mock_send_sms, mock_create_otp) -> None:
+    def test_throttling(self, mock_send_sms, mock_create_otp, _) -> None:
         for _ in range(20):  # Assuming throttle limit is 5 requests per hour
             response = self.client.post(self.url, self.data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
         AuthenticationThrottle.cache.clear()
 
+    @patch("users.views.auth.send_push.delay")
     @patch("users.views.auth.create_otp")
     @patch("users.views.auth.send_sms.delay")
-    def test_user_is_already_verified(self, mock_send_sms, mock_create_otp) -> None:
+    def test_user_is_already_verified(self, mock_send_sms, mock_create_otp, _) -> None:
         self.user.is_verified = True
         self.user.save()
 
         response = self.client.post(self.url, self.data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    @patch("users.views.auth.send_push.delay")
     @patch("users.views.auth.create_otp")
     @patch("users.views.auth.send_sms.delay")
-    def test_user_does_not_exist(self, mock_send_sms, mock_create_otp):
+    def test_user_does_not_exist(self, mock_send_sms, mock_create_otp, _):
         data = {"phone_number": "+254711111111"}
         response = self.client.post(self.url, data, format="json")
 
@@ -193,8 +204,9 @@ class PasswordResetTestCase(APITestCase):
         self.password_reset_url = reverse("auth:password-reset-request")
         self.password_reset_confirm_url = reverse("auth:password-reset-confirm")
 
+    @patch("users.views.auth.send_push.delay")
     @patch("users.views.auth.send_sms.delay")
-    def test_view_sends_otp(self, send_sms_mock):
+    def test_view_sends_otp(self, send_sms_mock, _):
         """Assert view sends OTP to validate user"""
         response = self.client.post(
             self.password_reset_url, {"phone_number": self.user.phone_number}

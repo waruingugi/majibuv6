@@ -13,7 +13,9 @@ from accounts.constants import (
 from accounts.models import MpesaPayment, Withdrawal
 from accounts.serializers.transactions import TransactionCreateSerializer
 from commons.raw_logger import logger
+from commons.tasks import send_push
 from commons.utils import calculate_b2c_withdrawal_charge
+from notifications.constants import NotificationTypes, PushNotifications
 
 User = get_user_model()
 
@@ -46,9 +48,21 @@ def create_withdrawal_transaction_instance(sender, instance, created, **kwargs):
 
             transaction_serializer.initial_data["user"] = user.id
             if transaction_serializer.is_valid():
-                transaction_serializer.save()
+                transaction_obj = transaction_serializer.save()
                 logger.info(
                     f"External transaction id {instance.conversation_id} saved successfully."
+                )
+
+                push_message = PushNotifications.MPESA_WITHDRAW.message.format(
+                    transaction_obj.amount,
+                    transaction_obj.fee,
+                    transaction_obj.final_balance,
+                )
+                send_push.delay(
+                    type=NotificationTypes.WITHDRAW.value,
+                    title=PushNotifications.MPESA_WITHDRAW.title,
+                    message=push_message,
+                    user_id=user.id,
                 )
 
 
@@ -79,7 +93,18 @@ def create_deposit_transaction_instance(sender, instance, created, **kwargs):
 
             transaction_serializer.initial_data["user"] = user.id
             if transaction_serializer.is_valid():
-                transaction_serializer.save()
+                transaction_obj = transaction_serializer.save()
+
+                push_message = PushNotifications.MPESA_DEPOSIT.message.format(
+                    transaction_obj.amount,
+                    transaction_obj.final_balance,
+                )
+                send_push.delay(
+                    type=NotificationTypes.DEPOSIT.value,
+                    title=PushNotifications.MPESA_DEPOSIT.title,
+                    message=push_message,
+                    user_id=user.id,
+                )
                 logger.info(
                     f"External transaction id {instance.receipt_number} saved successfully."
                 )
