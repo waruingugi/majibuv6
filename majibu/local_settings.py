@@ -198,8 +198,8 @@ BUSINESS_IS_OPEN = bool(int(os.environ.get("BUSINESS_IS_OPEN", 1)))
 # SESSION DETAILS
 QUESTIONS_IN_SESSION: int = 5
 SESSION_DURATION: int = 30  # In seconds
-SESSION_PAYOUT_RATIO: float = 1.8  # Ratio of what user will win
-SESSION_STAKE: int = 100  # In KES
+SESSION_PAYOUT_RATIO: float = 1.74  # Ratio of what user will win
+SESSION_STAKE: int = 50  # In KES
 
 # Celery settings
 CELERY_CACHE_BACKEND = "default"

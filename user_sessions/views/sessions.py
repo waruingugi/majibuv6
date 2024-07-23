@@ -50,8 +50,8 @@ class BusinessHoursView(GenericAPIView):
 
         data = {
             "is_open": is_open,
-            "opens_at": business_opens_at.strftime("%I:%M %p"),
-            "closes_at": business_closes_at.strftime("%I:%M %p"),
+            "opens_at": business_opens_at.strftime("%I:%M%p"),
+            "closes_at": business_closes_at.strftime("%I:%M%p"),
         }
 
         return Response(data, status=status.HTTP_200_OK)
