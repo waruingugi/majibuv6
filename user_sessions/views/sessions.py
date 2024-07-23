@@ -2,12 +2,14 @@
 from datetime import datetime
 
 from django.conf import settings
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
+from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 
-class BusinessHoursView(APIView):
+@extend_schema(tags=["sessions"])
+class BusinessHoursView(GenericAPIView):
     def get(self, request):
         eat_now = datetime.now()
         is_open = False
@@ -55,7 +57,8 @@ class BusinessHoursView(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
 
-class SessionDetailsView(APIView):
+@extend_schema(tags=["sessions"])
+class SessionDetailsView(GenericAPIView):
     def get(self, request):
         data = {
             "questions": settings.QUESTIONS_IN_SESSION,

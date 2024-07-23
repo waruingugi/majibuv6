@@ -5,7 +5,7 @@ from users.views.users import UserCreateView, UserListView, UserRetrieveUpdateVi
 app_name = "users"
 
 urlpatterns = [
-    path("users/create/", UserCreateView.as_view(), name="user-create"),
-    path("users/", UserListView.as_view(), name="user-list"),
-    path("users/<str:id>/", UserRetrieveUpdateView.as_view(), name="user-detail"),
+    path("create/", UserCreateView.as_view(), name="user-create"),
+    path("", UserListView.as_view(), name="user-list"),
+    path("<str:id>/", UserRetrieveUpdateView.as_view(), name="user-detail"),
 ]
