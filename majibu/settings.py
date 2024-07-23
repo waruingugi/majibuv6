@@ -205,6 +205,12 @@ BUSINESS_OPENS_AT = os.environ.get("BUSINESS_OPENS_AT", "8:00")
 BUSINESS_CLOSES_AT = os.environ.get("BUSINESS_OPENS_AT", "16:00")
 BUSINESS_IS_OPEN = bool(int(os.environ.get("BUSINESS_IS_OPEN", 1)))
 
+# SESSION DETAILS
+QUESTIONS_IN_SESSION: int = 5
+SESSION_DURATION: int = 30  # In seconds
+SESSION_PAYOUT_RATIO: float = 1.8  # Ratio of what user will win
+SESSION_STAKE: int = 100  # In KES
+
 # Celery settings
 CELERY_CACHE_BACKEND = "default"
 CELERY_TASK_SOFT_TIME_LIMIT = 60 * 5  # Tasks expire after 5 minutes

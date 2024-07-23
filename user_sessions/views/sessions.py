@@ -53,3 +53,15 @@ class BusinessHoursView(APIView):
         }
 
         return Response(data, status=status.HTTP_200_OK)
+
+
+class SessionDetailsView(APIView):
+    def get(self, request):
+        data = {
+            "questions": settings.QUESTIONS_IN_SESSION,
+            "seconds": settings.SESSION_DURATION,
+            "stake": settings.SESSION_STAKE,
+            "payout": (settings.SESSION_PAYOUT_RATIO * settings.SESSION_STAKE),
+        }
+
+        return Response(data, status=status.HTTP_200_OK)
