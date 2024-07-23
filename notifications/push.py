@@ -29,7 +29,7 @@ class OneSignalPush:
             "name": "Majibu In-APP Push",
             "include_external_user_ids": [],
             "target_channel": "push",
-            "small_icon": "majibu_xs_logo",
+            "small_icon": "ic_launcher",
         }
 
     def send_push(self, *, type: str, title: str, message: str, user_id: str) -> bool:

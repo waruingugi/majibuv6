@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "commons",
     "notifications",
     "accounts",
+    "user_sessions",
 ]
 
 MIDDLEWARE = [
@@ -188,6 +189,11 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_PAGINATION_CLASS": "commons.pagination.StandardPageNumberPagination",
 }
+
+# BUSINESS HOURS
+BUSINESS_OPENS_AT = os.environ.get("BUSINESS_OPENS_AT", "8:00")
+BUSINESS_CLOSES_AT = os.environ.get("BUSINESS_OPENS_AT", "16:00")
+BUSINESS_IS_OPEN = bool(int(os.environ.get("BUSINESS_IS_OPEN", 1)))
 
 # Celery settings
 CELERY_CACHE_BACKEND = "default"
