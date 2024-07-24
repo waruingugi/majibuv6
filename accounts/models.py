@@ -10,6 +10,7 @@ from accounts.constants import (
     TransactionStatuses,
     TransactionTypes,
 )
+from commons.constants import MONETARY_DECIMAL_PLACES
 from commons.models import Base
 
 User = get_user_model()
@@ -27,10 +28,10 @@ class TransactionManager(models.Manager):
 class Transaction(Base):
     external_transaction_id = models.CharField(max_length=255, unique=True)
     initial_balance = models.DecimalField(
-        max_digits=10, decimal_places=2, default=Decimal("0.0")
+        max_digits=10, decimal_places=MONETARY_DECIMAL_PLACES, default=Decimal("0.0")
     )
     final_balance = models.DecimalField(
-        max_digits=10, decimal_places=2, default=Decimal("0.0")
+        max_digits=10, decimal_places=MONETARY_DECIMAL_PLACES, default=Decimal("0.0")
     )
     cash_flow = models.CharField(
         max_length=255, choices=[(tag, tag.value) for tag in TransactionCashFlow]
@@ -39,7 +40,7 @@ class Transaction(Base):
         max_length=255, choices=[(tag, tag.value) for tag in TransactionTypes]
     )
     amount = models.DecimalField(
-        max_digits=10, decimal_places=2, default=Decimal("0.0")
+        max_digits=10, decimal_places=MONETARY_DECIMAL_PLACES, default=Decimal("0.0")
     )
     fee = models.DecimalField(
         help_text="Services fees",
@@ -47,11 +48,13 @@ class Transaction(Base):
         decimal_places=2,
         default=Decimal("0.0"),
     )
-    tax = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.0"))
+    tax = models.DecimalField(
+        max_digits=10, decimal_places=MONETARY_DECIMAL_PLACES, default=Decimal("0.0")
+    )
     charge = models.DecimalField(
         help_text="Total amount after deducting fees and tax.",
         max_digits=10,
-        decimal_places=2,
+        decimal_places=MONETARY_DECIMAL_PLACES,
         default=Decimal("0.0"),
     )
     status = models.CharField(max_length=255, default=TransactionStatuses.PENDING.value)
@@ -171,7 +174,7 @@ class MpesaPayment(Base):
     """
     amount = models.DecimalField(
         max_digits=10,
-        decimal_places=2,
+        decimal_places=MONETARY_DECIMAL_PLACES,
         null=True,
         blank=True,
         help_text="This is the amount that was transacted.",
@@ -260,21 +263,21 @@ class Withdrawal(Base):
     transaction_id = models.CharField(max_length=255, null=True, blank=True)
     transaction_amount = models.DecimalField(
         max_digits=10,
-        decimal_places=2,
+        decimal_places=MONETARY_DECIMAL_PLACES,
         null=True,
         blank=True,
         help_text="This is the Amount that was transacted.",
     )
     working_account_available_funds = models.DecimalField(
         max_digits=10,
-        decimal_places=2,
+        decimal_places=MONETARY_DECIMAL_PLACES,
         null=True,
         blank=True,
         help_text="Available balance of the Working account under the B2C shortcode used in the transaction.",
     )
     utility_account_available_funds = models.DecimalField(
         max_digits=10,
-        decimal_places=2,
+        decimal_places=MONETARY_DECIMAL_PLACES,
         null=True,
         blank=True,
         help_text="Available balance of the Utility account under the B2C shortcode used in the transaction.",
@@ -301,7 +304,7 @@ class Withdrawal(Base):
     )
     charges_paid_account_available_funds = models.DecimalField(
         max_digits=10,
-        decimal_places=2,
+        decimal_places=MONETARY_DECIMAL_PLACES,
         null=True,
         blank=True,
         help_text="Available balance of the Charges Paid account under the B2C shortcode.",
