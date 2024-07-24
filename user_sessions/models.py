@@ -3,8 +3,9 @@ import json
 from django.contrib.auth import get_user_model
 from django.db import models
 
-from commons.constants import MONETARY_DECIMAL_PLACES
+from commons.constants import MONETARY_DECIMAL_PLACES, SessionCategories
 from commons.models import Base
+from user_sessions.constants import DuoSessionStatuses
 
 User = get_user_model()
 
@@ -41,12 +42,18 @@ class PoolSessionStats(models.Model):
 class Sessions(models.Model):
     """Session model"""
 
-    category = models.CharField(max_length=255, null=False)
+    category = models.CharField(
+        max_length=255,
+        choices=[(category, category.value) for category in SessionCategories],
+    )
     _questions = models.TextField(db_column="questions")
 
     @property
     def questions(self) -> list[str]:
         return self._questions.replace(" ", "").split(",")
+
+    def __str__(self) -> str:
+        return self.category
 
 
 class DuoSession(models.Model):
@@ -63,7 +70,11 @@ class DuoSession(models.Model):
         null=True,
         help_text="This is the Amount that was transacted.",
     )
-    status = models.CharField(max_length=255, null=True)
+    status = models.CharField(
+        max_length=255,
+        null=True,
+        choices=[(status, status.value) for status in DuoSessionStatuses],
+    )
     winner_id = models.CharField(max_length=255, null=True)
 
     @property
