@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.db import models
 
-from commons.constants import SESSION_RESULT_DECIMAL_PLACES
+from commons.constants import SESSION_RESULT_DECIMAL_PLACES, SessionCategories
 from commons.models import Base
 from user_sessions.models import Sessions
 
@@ -13,7 +13,10 @@ User = get_user_model()
 class Questions(Base):
     """Questions Model"""
 
-    category = models.CharField(max_length=255, null=False)
+    category = models.CharField(
+        max_length=255,
+        choices=[(category, category.value) for category in SessionCategories],
+    )
     question_text = models.TextField(null=False)
 
     def __str__(self):

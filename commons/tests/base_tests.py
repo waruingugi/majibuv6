@@ -1,6 +1,12 @@
+from datetime import datetime
+
+from django.test import TestCase
 from rest_framework.test import APIClient, APITestCase
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from commons.constants import SessionCategories
+from quiz.models import Answers, Choices, Questions, Results, UserAnswers
+from user_sessions.models import Sessions
 from users.models import User
 
 
@@ -47,3 +53,32 @@ class BaseUserAPITestCase(APITestCase):
     def create_access_token(self, user) -> str:
         refresh = RefreshToken.for_user(user)
         return str(refresh.access_token)  # type: ignore
+
+
+class BaseQuizTestCase(TestCase):
+    def setUp(self) -> None:
+        self.user = BaseUserAPITestCase().create_user()
+
+        self.question_text = "What is the chemical symbol for water?"
+        self.category = SessionCategories.FOOTBALL.value
+        self.question = Questions.objects.create(
+            category=self.category, question_text=self.question_text
+        )
+
+        self.choice_text = "H2O"
+        self.choice = Choices.objects.create(
+            question=self.question, choice_text=self.choice_text
+        )
+        self.answer = Answers.objects.create(question=self.question, choice=self.choice)
+
+        self.session = Sessions.objects.create(category=self.category)
+        self.user_answer = UserAnswers.objects.create(
+            user=self.user,
+            question=self.question,
+            choice=self.choice,
+            session=self.session,
+        )
+
+        self.result = Results.objects.create(
+            user=self.user, session=self.session, expires_at=datetime.now()
+        )
