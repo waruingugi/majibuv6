@@ -1,15 +1,13 @@
 import json
 
-from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from commons.constants import User
 from commons.middlewares import UserIsActiveMiddleware
-
-User = get_user_model()
 
 
 class UserIsActiveMiddlewareTestCase(TestCase):

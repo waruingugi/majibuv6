@@ -8,7 +8,6 @@ import requests
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.x509 import Certificate, load_pem_x509_certificate
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.core.cache import cache
 
 from accounts.constants import B2CMpesaCommandIDs, MpesaAccountTypes
@@ -17,11 +16,11 @@ from accounts.serializers.mpesa import (
     MpesaPaymentCreateSerializer,
     WithdrawalCreateSerializer,
 )
+from commons.constants import User
 from commons.raw_logger import logger
 from commons.serializers import UserPhoneNumberField
 from commons.utils import md5_hash
 
-User = get_user_model()
 phone_field = UserPhoneNumberField()
 
 

@@ -1,6 +1,5 @@
 from decimal import Decimal
 
-from django.contrib.auth import get_user_model
 from django.db import models
 
 from accounts.constants import (
@@ -10,10 +9,8 @@ from accounts.constants import (
     TransactionStatuses,
     TransactionTypes,
 )
-from commons.constants import MONETARY_DECIMAL_PLACES
+from commons.constants import MONETARY_DECIMAL_PLACES, User
 from commons.models import Base
-
-User = get_user_model()
 
 
 class TransactionManager(models.Manager):

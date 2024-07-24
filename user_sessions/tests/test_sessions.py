@@ -14,7 +14,7 @@ class BusinessHoursViewTests(BaseUserAPITestCase):
         self.force_authenticate_user()
         self.url = reverse("sessions:business-hours")
 
-    @patch("user_sessions.views.sessions.datetime")
+    @patch("commons.utils.datetime")
     @override_settings(BUSINESS_IS_OPEN=True)
     def test_business_is_open(self, mock_datetime) -> None:
         """Assert that if setting is True, business opens automatically."""
@@ -29,7 +29,7 @@ class BusinessHoursViewTests(BaseUserAPITestCase):
     @override_settings(BUSINESS_IS_OPEN=False)
     def test_business_is_closed(self) -> None:
         """Assert that if setting is False, business is closed throughout the day.."""
-        with patch("user_sessions.views.sessions.datetime") as mock_datetime:
+        with patch("commons.utils.datetime") as mock_datetime:
             # Mock the current time to be within business hours
             mock_datetime.now.return_value = datetime(2024, 7, 22, 11, 0)
             mock_datetime.side_effect = lambda *args, **kw: datetime(*args, **kw)
@@ -38,7 +38,7 @@ class BusinessHoursViewTests(BaseUserAPITestCase):
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertFalse(response.data["is_open"])
 
-    @patch("user_sessions.views.sessions.datetime")
+    @patch("commons.utils.datetime")
     def test_business_closed_before_opening_time(self, mock_datetime) -> None:
         # Mock the current time to be before business hours
         mock_datetime.now.return_value = datetime(2024, 7, 22, 7, 0)
@@ -48,7 +48,7 @@ class BusinessHoursViewTests(BaseUserAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data["is_open"])
 
-    @patch("user_sessions.views.sessions.datetime")
+    @patch("commons.utils.datetime")
     def test_business_closed_after_closing_time(self, mock_datetime) -> None:
         # Mock the current time to be after business hours
         mock_datetime.now.return_value = datetime(2024, 7, 22, 18, 0)

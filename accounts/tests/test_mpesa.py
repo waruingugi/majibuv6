@@ -1,6 +1,5 @@
 from unittest.mock import patch
 
-from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
@@ -14,8 +13,6 @@ from accounts.tests.test_data import (
 )
 from commons.tests.base_tests import BaseUserAPITestCase
 from commons.throttles import MpesaSTKPushThrottle, MpesaWithdrawalThrottle
-
-User = get_user_model()
 
 
 class WithdrawalRequestTimeoutViewTests(APITestCase):

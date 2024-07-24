@@ -1,6 +1,5 @@
 import json
 
-from django.contrib.auth import get_user_model
 from django.http.response import JsonResponse
 from django.utils.deprecation import MiddlewareMixin
 from log_request_id import local
@@ -8,9 +7,8 @@ from rest_framework import status
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
+from commons.constants import User
 from commons.logger import logger
-
-User = get_user_model()
 
 
 class UserIsActiveMiddleware(MiddlewareMixin):

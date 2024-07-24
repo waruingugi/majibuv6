@@ -1,4 +1,3 @@
-from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from commons.constants import SessionCategories
@@ -10,8 +9,6 @@ from user_sessions.models import (
     Sessions,
     UserSessionStats,
 )
-
-User = get_user_model()
 
 
 class UserSessionStatsModelTest(BaseUserAPITestCase):

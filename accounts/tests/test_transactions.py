@@ -1,6 +1,5 @@
 from decimal import Decimal
 
-from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
 
@@ -11,9 +10,8 @@ from accounts.constants import (
     TransactionTypes,
 )
 from accounts.models import Transaction
+from commons.constants import User
 from commons.tests.base_tests import BaseUserAPITestCase
-
-User = get_user_model()
 
 
 class TransactionCreateViewTests(BaseUserAPITestCase):

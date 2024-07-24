@@ -1,5 +1,3 @@
-from django.contrib.auth import get_user_model
-
 from commons.tests.base_tests import BaseUserAPITestCase
 from notifications.constants import (
     Messages,
@@ -8,8 +6,6 @@ from notifications.constants import (
     NotificationTypes,
 )
 from notifications.models import Notification
-
-User = get_user_model()
 
 
 class NotificationModelTestCase(BaseUserAPITestCase):

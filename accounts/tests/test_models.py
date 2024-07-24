@@ -1,7 +1,6 @@
 import json
 from decimal import Decimal
 
-from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from accounts.constants import (
@@ -22,9 +21,8 @@ from accounts.tests.test_data import (
     withdrawal_obj_instance,
 )
 from accounts.utils import process_mpesa_stk
+from commons.constants import User
 from commons.tests.base_tests import BaseUserAPITestCase
-
-User = get_user_model()
 
 
 class TransactionTestCase(TestCase):

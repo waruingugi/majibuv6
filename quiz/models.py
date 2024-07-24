@@ -1,13 +1,10 @@
 from decimal import Decimal
 
-from django.contrib.auth import get_user_model
 from django.db import models
 
-from commons.constants import SESSION_RESULT_DECIMAL_PLACES, SessionCategories
+from commons.constants import SESSION_RESULT_DECIMAL_PLACES, SessionCategories, User
 from commons.models import Base
 from user_sessions.models import Sessions
-
-User = get_user_model()
 
 
 class Questions(Base):
