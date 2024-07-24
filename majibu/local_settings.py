@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     "notifications",
     "accounts",
     "user_sessions",
+    "quiz",
 ]
 
 MIDDLEWARE = [
