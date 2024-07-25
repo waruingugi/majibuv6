@@ -1,12 +1,15 @@
 # views.py
+
 from django.conf import settings
 from drf_spectacular.utils import extend_schema
-from rest_framework import status
+from rest_framework import serializers, status
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 
+from commons.errors import ErrorCodes
 from commons.utils import is_business_open
 from user_sessions.serializers import AvialableSessionSerializer
+from user_sessions.utils import get_available_session
 
 
 @extend_schema(tags=["sessions"])
@@ -40,4 +43,15 @@ class AvailableSessionView(GenericAPIView):
         """
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            pass
+            user = request.user
+            category = serializer.validated_data["category"]
+            available_session_id = get_available_session(user=user, category=category)
+
+            if not available_session_id:
+                raise serializers.ValidationError(
+                    {"detail": ErrorCodes.NO_AVAILABLE_SESSION.value}
+                )
+
+            return Response({"id": available_session_id}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

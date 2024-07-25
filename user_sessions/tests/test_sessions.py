@@ -6,6 +6,8 @@ from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 
+from commons.constants import SessionCategories
+from commons.errors import ErrorCodes
 from commons.tests.base_tests import BaseUserAPITestCase
 
 
@@ -70,3 +72,40 @@ class SessionDetailsViewTest(BaseUserAPITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, expected_data)
+
+
+class AvailableSessionViewTests(BaseUserAPITestCase):
+    def setUp(self) -> None:
+        self.force_authenticate_user()
+        self.url = reverse(
+            "sessions:available-session"
+        )  # Adjust the URL name as needed
+        self.valid_payload = {"category": SessionCategories.FOOTBALL.value}
+        self.invalid_payload = {"category": "INVALID_CATEGORY"}
+
+    @patch("user_sessions.views.sessions.get_available_session")
+    def test_view_returns_id_when_session_available(self, mock_get_available_session):
+        mock_get_available_session.return_value = "some_session_id"
+
+        response = self.client.post(self.url, self.valid_payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("id", response.data)
+        self.assertEqual(response.data["id"], "some_session_id")
+
+    @patch("user_sessions.views.sessions.get_available_session")
+    def test_view_raises_error_when_no_session_available(
+        self, mock_get_available_session
+    ):
+        mock_get_available_session.return_value = None
+        response = self.client.post(self.url, self.valid_payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("detail", response.data)
+        self.assertEqual(response.data["detail"], ErrorCodes.NO_AVAILABLE_SESSION.value)
+
+    def test_view_raises_error_with_invalid_category(self):
+        response = self.client.post(self.url, self.invalid_payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("category", response.data)
