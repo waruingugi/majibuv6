@@ -6,6 +6,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 
 from commons.utils import is_business_open
+from user_sessions.serializers import AvialableSessionSerializer
 
 
 @extend_schema(tags=["sessions"])
@@ -30,5 +31,13 @@ class SessionDetailsView(GenericAPIView):
 
 @extend_schema(tags=["sessions"])
 class AvailableSessionView(GenericAPIView):
-    def get(self, request):
-        pass
+    serializer_class = AvialableSessionSerializer
+
+    def post(self, request, *args, **kwargs):
+        """
+        Users post to this endpoint to receive a session id that they will
+        play.
+        """
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            pass

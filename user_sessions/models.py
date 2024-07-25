@@ -7,7 +7,7 @@ from commons.models import Base
 from user_sessions.constants import DuoSessionStatuses
 
 
-class UserSessionStats(Base):
+class UserSessionStat(Base):
     """User Session Stats model"""
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -22,7 +22,7 @@ class UserSessionStats(Base):
         return self.total_wins / self.sessions_played
 
 
-class PoolSessionStats(models.Model):
+class PoolSessionStat(models.Model):
     """Pool Session Statistics model"""
 
     total_players = models.IntegerField(null=True, default=0)
@@ -36,7 +36,7 @@ class PoolSessionStats(models.Model):
         return stats_dict
 
 
-class Sessions(models.Model):
+class Session(models.Model):
     """Session model"""
 
     category = models.CharField(
@@ -59,7 +59,7 @@ class DuoSession(models.Model):
     party_a = models.CharField(max_length=255, null=False)
     party_b = models.CharField(max_length=255, null=True)
     session = models.ForeignKey(
-        Sessions, on_delete=models.SET_NULL, null=True, default=None
+        Session, on_delete=models.SET_NULL, null=True, default=None
     )
     amount = models.DecimalField(
         max_digits=10,

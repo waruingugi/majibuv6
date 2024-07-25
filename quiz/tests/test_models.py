@@ -2,10 +2,10 @@ from datetime import datetime
 from decimal import Decimal
 
 from commons.tests.base_tests import BaseQuizTestCase
-from quiz.models import Answers, Choices, Questions, UserAnswers
+from quiz.models import Answer, Choice, Question, UserAnswer
 
 
-class QuestionsModelTest(BaseQuizTestCase):
+class QuestionModelTest(BaseQuizTestCase):
     def test_question_creation(self):
         """Test if a question is created correctly."""
         self.assertEqual(self.question.category, self.category)
@@ -16,7 +16,7 @@ class QuestionsModelTest(BaseQuizTestCase):
         self.assertEqual(str(self.question), self.question_text)
 
 
-class ChoicesModelTest(BaseQuizTestCase):
+class ChoiceModelTest(BaseQuizTestCase):
     def test_choice_creation(self):
         """Test if a choice is created correctly."""
         self.assertEqual(self.choice.question, self.question)
@@ -31,7 +31,7 @@ class ChoicesModelTest(BaseQuizTestCase):
         self.assertEqual(self.choice.question.question_text, self.question_text)
 
 
-class AnswersModelTest(BaseQuizTestCase):
+class AnswerModelTest(BaseQuizTestCase):
     def test_answer_creation(self):
         """Test if an answer is created correctly."""
         self.assertEqual(self.answer.question, self.question)
@@ -52,10 +52,10 @@ class AnswersModelTest(BaseQuizTestCase):
     def test_unique_question_answer(self):
         """Test that the same question cannot have more than one answer."""
         with self.assertRaises(Exception):
-            Answers.objects.create(question=self.question, choice=self.choice)
+            Answer.objects.create(question=self.question, choice=self.choice)
 
 
-class UserAnswersModelTest(BaseQuizTestCase):
+class UserAnswerModelTest(BaseQuizTestCase):
     def test_user_answer_creation(self):
         """Test if a UserAnswer is created correctly."""
         self.assertEqual(self.user_answer.user, self.user)
@@ -71,11 +71,11 @@ class UserAnswersModelTest(BaseQuizTestCase):
 
     def test_user_can_answer_different_questions_in_same_session(self):
         """Test that a user can answer different questions in the same session."""
-        new_question = Questions.objects.create(
+        new_question = Question.objects.create(
             category="Math", question_text="What is 2 + 2?"
         )
-        new_choice = Choices.objects.create(question=new_question, choice_text="4")
-        user_answer = UserAnswers.objects.create(
+        new_choice = Choice.objects.create(question=new_question, choice_text="4")
+        user_answer = UserAnswer.objects.create(
             user=self.user,
             question=new_question,
             choice=new_choice,

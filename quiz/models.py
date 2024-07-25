@@ -4,10 +4,10 @@ from django.db import models
 
 from commons.constants import SESSION_RESULT_DECIMAL_PLACES, SessionCategories, User
 from commons.models import Base
-from user_sessions.models import Sessions
+from user_sessions.models import Session
 
 
-class Questions(Base):
+class Question(Base):
     """Questions Model"""
 
     category = models.CharField(
@@ -20,37 +20,37 @@ class Questions(Base):
         return self.question_text
 
 
-class Choices(Base):
+class Choice(Base):
     """Choices Model"""
 
-    question = models.ForeignKey(Questions, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
     choice_text = models.TextField(null=False)
 
     def __str__(self):
         return self.choice_text
 
 
-class Answers(Base):
+class Answer(Base):
     """Answers Model"""
 
-    question = models.OneToOneField(Questions, on_delete=models.CASCADE)
-    choice = models.ForeignKey(Choices, on_delete=models.CASCADE)
+    question = models.OneToOneField(Question, on_delete=models.CASCADE)
+    choice = models.ForeignKey(Choice, on_delete=models.CASCADE)
 
 
-class UserAnswers(Base):
+class UserAnswer(Base):
     """UserAnswers Model: Save user answers"""
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    question = models.ForeignKey(Questions, on_delete=models.CASCADE)
-    choice = models.ForeignKey(Choices, on_delete=models.CASCADE)
-    session = models.ForeignKey(Sessions, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    choice = models.ForeignKey(Choice, on_delete=models.CASCADE)
+    session = models.ForeignKey(Session, on_delete=models.CASCADE)
 
 
-class Results(Base):
+class Result(Base):
     """Results Model"""
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    session = models.ForeignKey(Sessions, on_delete=models.CASCADE)
+    session = models.ForeignKey(Session, on_delete=models.CASCADE)
     total_answered = models.IntegerField(
         null=True, default=0, help_text="Number of total questions answered"
     )

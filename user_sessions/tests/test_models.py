@@ -3,23 +3,18 @@ from django.test import TestCase
 from commons.constants import SessionCategories
 from commons.tests.base_tests import BaseUserAPITestCase
 from user_sessions.constants import DuoSessionStatuses
-from user_sessions.models import (
-    DuoSession,
-    PoolSessionStats,
-    Sessions,
-    UserSessionStats,
-)
+from user_sessions.models import DuoSession, PoolSessionStat, Session, UserSessionStat
 
 
-class UserSessionStatsModelTest(BaseUserAPITestCase):
+class UserSessionStatModelTest(BaseUserAPITestCase):
     def setUp(self):
         self.user = self.create_user()
-        self.stats = UserSessionStats.objects.create(
+        self.stats = UserSessionStat.objects.create(
             user=self.user, total_wins=5, total_losses=3, sessions_played=8
         )
 
     def test_user_session_stats_creation(self):
-        """Test if a UserSessionStats instance is created correctly."""
+        """Test if a UserSessionStat instance is created correctly."""
         self.assertEqual(self.stats.user, self.user)
         self.assertEqual(self.stats.total_wins, 5)
         self.assertEqual(self.stats.total_losses, 3)
@@ -33,7 +28,7 @@ class UserSessionStatsModelTest(BaseUserAPITestCase):
         """Test the win_ratio property when sessions_played is zero."""
         self.stats.sessions_played = 0
         self.stats.save()
-        updated_stats = UserSessionStats.objects.get(id=self.stats.id)
+        updated_stats = UserSessionStat.objects.get(id=self.stats.id)
         self.assertEqual(updated_stats.win_ratio, 0.0)
 
     def test_update_user_session_stats(self):
@@ -42,7 +37,7 @@ class UserSessionStatsModelTest(BaseUserAPITestCase):
         self.stats.total_losses = 5
         self.stats.sessions_played = 15
         self.stats.save()
-        updated_stats = UserSessionStats.objects.get(id=self.stats.id)
+        updated_stats = UserSessionStat.objects.get(id=self.stats.id)
         self.assertEqual(updated_stats.total_wins, 10)
         self.assertEqual(updated_stats.total_losses, 5)
         self.assertEqual(updated_stats.sessions_played, 15)
@@ -52,17 +47,17 @@ class UserSessionStatsModelTest(BaseUserAPITestCase):
         """Test that the win_ratio property does not raise a division by zero error."""
         self.stats.sessions_played = 0
         self.stats.save()
-        updated_stats = UserSessionStats.objects.get(id=self.stats.id)
+        updated_stats = UserSessionStat.objects.get(id=self.stats.id)
         try:
             _ = updated_stats.win_ratio
         except ZeroDivisionError:
             self.fail("win_ratio() raised ZeroDivisionError unexpectedly!")
 
 
-class SessionsModelTest(TestCase):
+class SessionModelTest(TestCase):
     def setUp(self):
         self.category = SessionCategories.FOOTBALL.value
-        self.session = Sessions.objects.create(
+        self.session = Session.objects.create(
             category=self.category, _questions="question1, question2, question3"
         )
 
@@ -78,7 +73,7 @@ class SessionsModelTest(TestCase):
 
     def test_sessions_questions_property_with_spaces(self):
         """Test the questions property with spaces in the _questions field."""
-        session_with_spaces = Sessions.objects.create(
+        session_with_spaces = Session.objects.create(
             category=self.category, _questions=" question1 , question2 , question3 "
         )
         expected_questions_with_spaces = ["question1", "question2", "question3"]
@@ -91,7 +86,7 @@ class SessionsModelTest(TestCase):
 
 class DuoSessionModelTest(TestCase):
     def setUp(self):
-        self.session = Sessions.objects.create(
+        self.session = Session.objects.create(
             category=SessionCategories.FOOTBALL.value,
             _questions="question1, question2, question3",
         )
@@ -116,9 +111,9 @@ class DuoSessionModelTest(TestCase):
         self.assertEqual(self.duo_session.category, SessionCategories.FOOTBALL.value)
 
 
-class PoolSessionStatsModelTest(TestCase):
+class PoolSessionStatModelTest(TestCase):
     def setUp(self):
-        self.pool_session_stats = PoolSessionStats.objects.create(
+        self.pool_session_stats = PoolSessionStat.objects.create(
             total_players=10, _statistics='{"average_score": 75.5}'
         )
 
