@@ -22,7 +22,7 @@ class UserSessionStat(Base):
         return self.total_wins / self.sessions_played
 
 
-class PoolSessionStat(models.Model):
+class PoolSessionStat(Base):
     """Pool Session Statistics model"""
 
     total_players = models.IntegerField(null=True, default=0)
@@ -36,7 +36,7 @@ class PoolSessionStat(models.Model):
         return stats_dict
 
 
-class Session(models.Model):
+class Session(Base):
     """Session model"""
 
     category = models.CharField(
@@ -53,7 +53,7 @@ class Session(models.Model):
         return self.category
 
 
-class DuoSession(models.Model):
+class DuoSession(Base):
     """DuoSession model"""
 
     party_a = models.CharField(max_length=255, null=False)

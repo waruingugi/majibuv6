@@ -3,7 +3,7 @@ import random
 from django.contrib.auth import get_user_model
 from django.db.models import Subquery
 
-from quiz.models import Result
+from quiz.models import Choice, Question, Result
 from user_sessions.models import Session
 
 User = get_user_model()
@@ -63,3 +63,31 @@ def get_available_session(*, user, category) -> str | None:
         )
 
     return random.choice(available_session_ids) if available_session_ids else None
+
+
+def compose_quiz(session_id: str) -> list:
+    """Compile questions and choices to create a quiz.
+    Returned object should follow QuizObjectSerializer format"""
+    quiz = []
+
+    session = Session.objects.get(id=session_id)
+    questions = Question.objects.filter(id__in=session.questions)
+    choices = Choice.objects.filter(question__in=questions)
+
+    for question in questions:
+        quiz_object = {
+            "id": str(question.id),
+            "question_text": question.question_text,
+            "choices": [
+                {
+                    "id": str(choice.id),
+                    "question_id": str(choice.question_id),
+                    "choice_text": choice.choice_text,
+                }
+                for choice in choices
+                if choice.question_id == question.id
+            ],
+        }
+        quiz.append(quiz_object)
+
+    return quiz

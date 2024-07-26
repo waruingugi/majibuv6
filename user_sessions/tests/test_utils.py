@@ -2,12 +2,14 @@ from datetime import datetime
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.test import TestCase
 
 from commons.constants import SessionCategories
 from commons.tests.base_tests import BaseUserAPITestCase
-from quiz.models import Result
+from quiz.models import Choice, Question, Result
 from user_sessions.models import Session
 from user_sessions.utils import (
+    compose_quiz,
     get_available_session,
     query_available_active_sessions,
     query_sessions_not_played_by_user_in_category,
@@ -257,3 +259,51 @@ class GetAvailableSessionTestCase(BaseUserAPITestCase):
 
         # Ensure query_sessions_not_played_by_user_in_category is not called
         mock_query_sessions_not_played.assert_not_called()
+
+
+class ComposeQuizTestCase(TestCase):
+    def setUp(self) -> None:
+        self.category = SessionCategories.FOOTBALL.value
+        self.question1 = Question.objects.create(
+            category=self.category, question_text="What is 2+2?"
+        )
+        self.question2 = Question.objects.create(
+            category=self.category, question_text="What is the capital of France?"
+        )
+        self.session = Session.objects.create(
+            category=self.category,
+            _questions=f"{self.question1.id}, {self.question2.id}",
+        )
+
+        Choice.objects.create(question=self.question1, choice_text="4")
+        Choice.objects.create(question=self.question1, choice_text="22")
+        Choice.objects.create(question=self.question2, choice_text="Paris")
+        Choice.objects.create(question=self.question2, choice_text="London")
+
+    def test_compose_quiz_structure(self) -> None:
+        result = compose_quiz(session_id=str(self.session.id))
+        self.assertIsInstance(result, list)
+        self.assertGreater(len(result), 0)
+
+        question = result[0]
+        self.assertIn("id", question)
+        self.assertIn("question_text", question)
+        self.assertIn("choices", question)
+
+        choice = question["choices"][0]
+        self.assertIn("id", choice)
+        self.assertIn("question_id", choice)
+        self.assertIn("choice_text", choice)
+
+    def test_compose_quiz_data(self) -> None:
+        result = compose_quiz(session_id=str(self.session.id))
+
+        self.assertEqual(len(result), 2)
+
+        question1 = result[1]
+        self.assertEqual(question1["question_text"], "What is 2+2?")
+        self.assertEqual(len(question1["choices"]), 2)
+
+        question2 = result[0]
+        self.assertEqual(question2["question_text"], "What is the capital of France?")
+        self.assertEqual(len(question2["choices"]), 2)
