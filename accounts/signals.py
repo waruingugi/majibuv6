@@ -19,7 +19,7 @@ from notifications.constants import NotificationTypes, PushNotifications
 
 
 @receiver(post_save, sender=Withdrawal)
-def create_withdrawal_transaction_instance(sender, instance, created, **kwargs):
+def create_withdrawal_transaction_instance(sender, instance, created, **kwargs) -> None:
     if created:  # Executes on model creation ONLY
         user = User.objects.filter(phone_number=instance.phone_number).first()
 

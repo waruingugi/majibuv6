@@ -1,5 +1,6 @@
 # tests/test_views.py
 from datetime import datetime
+from decimal import Decimal
 from unittest.mock import patch
 
 from django.conf import settings
@@ -8,6 +9,13 @@ from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 
+from accounts.constants import (
+    TransactionCashFlow,
+    TransactionServices,
+    TransactionStatuses,
+    TransactionTypes,
+)
+from accounts.models import Transaction
 from commons.constants import SessionCategories
 from commons.errors import ErrorCodes
 from commons.tests.base_tests import BaseUserAPITestCase
@@ -165,6 +173,38 @@ class QuizViewTests(BaseUserAPITestCase):
         self.assertEqual(response.data["user_id"], str(self.user.id))
         self.assertEqual(response.data["count"], settings.QUESTIONS_IN_SESSION)
         self.assertIn("result", response.data)
+
+    @patch("user_sessions.serializers.is_business_open", return_value=True)
+    @patch(
+        "user_sessions.views.sessions.compose_quiz",
+        return_value=mock_compoze_quiz_return_data,
+    )
+    def test_view_deducts_session_amount_from_wallet(
+        self, mock_compose_quiz, mock_is_business_open
+    ):
+        cache.set(
+            f"{self.user.id}:available_session_id",
+            str(self.session.id),
+            timeout=AVAILABLE_SESSION_EXPIRY_TIME,
+        )
+        self.transaction = Transaction.objects.create(
+            external_transaction_id="TX12345678",
+            initial_balance=Decimal("0.0"),
+            final_balance=Decimal("100.0"),
+            cash_flow=TransactionCashFlow.INWARD.value,
+            type=TransactionTypes.DEPOSIT.value,
+            amount=Decimal("100.00"),
+            fee=Decimal("0.00"),
+            tax=Decimal("0.00"),
+            charge=Decimal("00.00"),
+            status=TransactionStatuses.SUCCESSFUL.value,
+            service=TransactionServices.MPESA.value,
+            description="Test Description",
+            user=self.user,
+        )
+
+        self.client.post(self.url, data={"session_id": self.session.id})
+        self.assertEqual(50.0, float(Transaction.objects.get_user_balance(self.user)))
 
     @patch("user_sessions.serializers.is_business_open", return_value=True)
     @patch(
