@@ -18,7 +18,7 @@ class NotificationListSerializer(serializers.ModelSerializer):
             "channel",
         ]
 
-    def get_user(self, obj):
+    def get_user(self, obj) -> None | dict:
         if obj.user is None:
             return None
         return UserReadSerializer(obj.user).data

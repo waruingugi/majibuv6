@@ -15,6 +15,17 @@ class AvialableSessionSerializer(serializers.Serializer):
     )
 
 
+class BusinessHoursSerializer(serializers.Serializer):
+    is_open = serializers.BooleanField()
+
+
+class SessionDetailsSerializer(serializers.Serializer):
+    questions = serializers.IntegerField()
+    seconds = serializers.IntegerField()
+    stake = serializers.FloatField()
+    payout = serializers.FloatField()
+
+
 class QuizRequestSerializer(serializers.Serializer):
     session_id = serializers.CharField()
 
@@ -30,16 +41,16 @@ class QuizRequestSerializer(serializers.Serializer):
         user = request.user
         available_session_id = cache.get(f"{user.id}:available_session_id")
 
-        # 1. Assert session id exists in cache
-        if (not available_session_id) or (available_session_id != session_id):
-            raise serializers.ValidationError(
-                {"detail": ErrorCodes.INVALID_SESSION_ID.value}
-            )
-
-        # 2. Assert business in open
+        # 1. Assert business in open
         if not is_business_open():
             raise serializers.ValidationError(
                 {"detail": ErrorCodes.BUSINESS_IS_CLOSED.value}
+            )
+
+        # 2. Assert session id exists in cache
+        if (not available_session_id) or (available_session_id != session_id):
+            raise serializers.ValidationError(
+                {"detail": ErrorCodes.INVALID_SESSION_ID.value}
             )
 
         # 3. Assert no withdrawal requests are being processed
@@ -91,4 +102,14 @@ class QuizResponseSerializer(serializers.Serializer):
     session_id = serializers.CharField()
     duration = serializers.IntegerField()
     result_id = serializers.CharField()
-    result = QuestionSerializer(many=True)
+    result = QuestionSerializer(many=True)  # A list of questions and their choices.
+
+
+class ChoiceSubmissionSerializer(serializers.Serializer):
+    question_id = serializers.CharField()
+    choice = serializers.CharField()
+
+
+class QuizSubmissionSerializer(serializers.Serializer):
+    result_id = serializers.CharField()
+    choices = serializers.ListSerializer(child=ChoiceSerializer())  # type: ignore

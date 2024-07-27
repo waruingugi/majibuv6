@@ -143,7 +143,7 @@ class QuizViewTests(BaseUserAPITestCase):
         self.session = Session.objects.create(
             category=SessionCategories.FOOTBALL.value, _questions="q1,q2,q3,q4,q5"
         )
-        self.url = reverse("sessions:quiz")
+        self.url = reverse("sessions:request-session")
 
     def tearDown(self):
         cache.clear()  # Clear cache after each test to ensure isolation

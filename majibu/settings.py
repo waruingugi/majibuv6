@@ -212,6 +212,13 @@ SESSION_DURATION: int = 30  # In seconds
 SESSION_PAYOUT_RATIO: float = 1.74  # Ratio of what user will win
 SESSION_STAKE: int = 50  # In KES
 
+SESSION_BUFFER_TIME = 5  # In seconds
+SESSION_CORRECT_ANSWERED_WEIGHT = 0.8
+SESSION_TOTAL_ANSWERED_WEIGHT = 0.2
+
+MODERATED_LOWEST_SCORE: float = 70.0
+MODERATED_HIGHEST_SCORE: float = 85.0
+
 # Celery settings
 CELERY_CACHE_BACKEND = "default"
 CELERY_TASK_SOFT_TIME_LIMIT = 60 * 5  # Tasks expire after 5 minutes
