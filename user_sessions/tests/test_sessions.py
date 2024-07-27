@@ -311,3 +311,69 @@ class QuizViewTests(BaseUserAPITestCase):
         self.assertEqual(
             str(response.data["detail"][0]), ErrorCodes.SESSION_IN_QUEUE.value
         )
+
+
+class QuizSubmissionViewTests(BaseUserAPITestCase):
+    def setUp(self):
+        self.force_authenticate_user()
+        self.url = reverse("sessions:submit-session")
+        self.valid_payload = {
+            "result_id": "result123",
+            "choices": [
+                {"question_id": "11", "choice": "A"},
+                {"question_id": "22", "choice": "B"},
+                {"question_id": "33", "choice": "C"},
+            ],
+        }
+        self.payload_with_missing_choices = {
+            "result_id": "result123",
+            "choices": [
+                {"question_id": "11", "choice": "A"},
+                {"question_id": "22", "choice": ""},
+                {"question_id": "33", "choice": ""},
+            ],
+        }
+        self.invalid_payload = {
+            "result_id": "",
+            "choices": [
+                {"question_id": "1", "choice": "A"},
+                {"question_id": "2", "choice": "B"},
+                {"question_id": "3", "choice": ""},
+            ],
+        }
+
+    @patch("user_sessions.views.sessions.CalculateUserScore.calculate_score")
+    def test_quiz_submission_with_all_choices_is_successfull(
+        self, mock_calculate_score
+    ):
+        mock_calculate_score.return_value = None  # Mock the return value if necessary
+        response = self.client.post(self.url, self.valid_payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["message"], "Choices submitted successfully")
+        mock_calculate_score.assert_called_once_with(
+            user=self.user,
+            result_id=self.valid_payload["result_id"],
+            choices=self.valid_payload["choices"],
+        )
+
+    @patch("user_sessions.views.sessions.CalculateUserScore.calculate_score")
+    def test_quiz_submission_with_missing_choices_is_successfull(
+        self, mock_calculate_score
+    ):
+        mock_calculate_score.return_value = None  # Mock the return value if necessary
+        response = self.client.post(self.url, self.valid_payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["message"], "Choices submitted successfully")
+        mock_calculate_score.assert_called_once_with(
+            user=self.user,
+            result_id=self.valid_payload["result_id"],
+            choices=self.valid_payload["choices"],
+        )
+
+    @patch("user_sessions.views.sessions.CalculateUserScore.calculate_score")
+    def test_quiz_submission_invalid_data(self, mock_calculate_score):
+        response = self.client.post(self.url, self.invalid_payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        mock_calculate_score.assert_not_called()

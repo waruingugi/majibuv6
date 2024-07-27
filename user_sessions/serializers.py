@@ -107,9 +107,9 @@ class QuizResponseSerializer(serializers.Serializer):
 
 class ChoiceSubmissionSerializer(serializers.Serializer):
     question_id = serializers.CharField()
-    choice = serializers.CharField()
+    choice = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
 
 class QuizSubmissionSerializer(serializers.Serializer):
     result_id = serializers.CharField()
-    choices = serializers.ListSerializer(child=ChoiceSerializer())  # type: ignore
+    choices = serializers.ListSerializer(child=ChoiceSubmissionSerializer())  # type: ignore
