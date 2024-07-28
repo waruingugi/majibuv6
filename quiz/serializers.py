@@ -95,3 +95,9 @@ class ChoiceSubmissionSerializer(serializers.Serializer):
 class QuizSubmissionSerializer(serializers.Serializer):
     result_id = serializers.CharField()
     choices = serializers.ListSerializer(child=ChoiceSubmissionSerializer())  # type: ignore
+
+
+class ResultRetrieveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Result
+        exclude = ["updated_at", "user", "session", "total", "expires_at"]

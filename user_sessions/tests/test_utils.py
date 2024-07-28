@@ -20,9 +20,8 @@ class QueryAvailableActiveSessionsTests(BaseUserAPITestCase):
     def setUp(self) -> None:
         # Create test users
         self.user = self.create_user()
-        self.foreign_user = User.objects.create_user(
-            phone_number="+254713476781", password="password456", username="testuser2"
-        )
+        self.foreign_user = self.create_foreign_user()
+
         self.bible_category = SessionCategories.BIBLE.value
         self.football_category = SessionCategories.FOOTBALL.value
 
@@ -102,9 +101,8 @@ class QueryAvailableActiveSessionsTests(BaseUserAPITestCase):
 class QuerySessionsTestCase(BaseUserAPITestCase):
     def setUp(self) -> None:
         self.user = self.create_user()
-        self.foreign_user = User.objects.create_user(
-            phone_number="+254713476781", password="password456", username="testuser2"
-        )
+        self.foreign_user = self.create_foreign_user()
+
         self.category = SessionCategories.BIBLE.value
 
         # Create sessions in the specified category

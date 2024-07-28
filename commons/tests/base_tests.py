@@ -52,6 +52,12 @@ class BaseUserAPITestCase(APITestCase):
         )
         return self.user
 
+    def create_foreign_user(self) -> User:
+        self.foreign_user = User.objects.create_user(
+            phone_number="+254713476781", password="password456", username="testuser2"
+        )
+        return self.foreign_user
+
     def create_staff_user(self) -> User:
         self.staff_user = User.objects.create_user(
             phone_number=self.staff_phone_number,

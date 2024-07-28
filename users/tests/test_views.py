@@ -98,10 +98,8 @@ class UserCreateAPIViewTests(BaseUserAPITestCase):
 class UserRetrieveUpdateAPIViewTests(BaseUserAPITestCase):
     def setUp(self) -> None:
         self.user = self.create_user()
+        self.foreign_user = self.create_foreign_user()
 
-        self.foreign_user = User.objects.create_user(
-            phone_number="+254713476781", password="password456", username="testuser2"
-        )
         self.force_authenticate_user()
         self.detail_url = reverse("users:user-detail", kwargs={"id": self.user.id})
 

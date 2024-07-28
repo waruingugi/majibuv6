@@ -19,4 +19,8 @@ class IsStaffOrSelfPermission(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         # Check if the user is staff or if the user is the object's owner
-        return request.user.is_staff or obj == request.user
+        return (
+            request.user.is_staff
+            or obj == request.user
+            or (hasattr(obj, "user") and obj.user == request.user)
+        )

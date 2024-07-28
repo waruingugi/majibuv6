@@ -1,21 +1,26 @@
 from datetime import datetime, timedelta
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, RetrieveAPIView
 from rest_framework.response import Response
 
+from commons.permissions import IsStaffOrSelfPermission
 from quiz.models import Result
 from quiz.serializers import (
     QuizRequestSerializer,
     QuizResponseSerializer,
     QuizSubmissionSerializer,
+    ResultRetrieveSerializer,
 )
 from quiz.utils import CalculateUserScore, compose_quiz
 from user_sessions.constants import SESSION_BUFFER_TIME
 from user_sessions.models import Session
+
+User = get_user_model()
 
 
 @extend_schema(tags=["sessions"])
@@ -115,3 +120,12 @@ class QuizSubmissionView(GenericAPIView):
                 {"message": "Choices submitted successfully"}, status=status.HTTP_200_OK
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ResultRetrieveView(RetrieveAPIView):
+    """Retrieve user balance"""
+
+    lookup_field = "id"
+    queryset = Result.objects.all()
+    permission_classes = [IsStaffOrSelfPermission]
+    serializer_class = ResultRetrieveSerializer

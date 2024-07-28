@@ -118,9 +118,7 @@ class TransactionRetrieveUpdateViewTests(BaseUserAPITestCase):
 class TransactionListViewTests(BaseUserAPITestCase):
     def setUp(self) -> None:
         self.user = self.create_user()
-        self.foreign_user = User.objects.create_user(
-            phone_number="+254713476781", password="password456", username="testuser2"
-        )
+        self.foreign_user = self.create_foreign_user()
 
         self.transaction1 = Transaction.objects.create(
             external_transaction_id="TX12345678",
