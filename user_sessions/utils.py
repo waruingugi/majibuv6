@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404
 
 from commons.raw_logger import logger
 from quiz.models import Answer, Choice, Question, Result, UserAnswer
+from user_sessions.constants import SESSION_BUFFER_TIME
 from user_sessions.models import Session
 
 User = get_user_model()
@@ -148,9 +149,7 @@ class CalculateScore:
     def session_is_submitted_in_time(self) -> bool:
         """Assert the session answers were submitted in time"""
         logger.info(f"Assert result_id: {self.result.id} was submitted in time")
-        buffer_time = self.result.expires_at + timedelta(
-            seconds=settings.SESSION_BUFFER_TIME
-        )
+        buffer_time = self.result.expires_at + timedelta(seconds=SESSION_BUFFER_TIME)
         if datetime.now() > buffer_time:
             logger.info(f"Result ID: {self.result.id} was NOT submitted in time")
             return False

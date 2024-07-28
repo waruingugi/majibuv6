@@ -1,14 +1,17 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from unittest.mock import patch
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from commons.constants import SessionCategories
 from commons.tests.base_tests import BaseUserAPITestCase
-from quiz.models import Choice, Question, Result
+from quiz.models import Answer, Choice, Question, Result, UserAnswer
+from user_sessions.constants import SESSION_BUFFER_TIME
 from user_sessions.models import Session
 from user_sessions.utils import (
+    CalculateUserScore,
     compose_quiz,
     get_available_session,
     query_available_active_sessions,
@@ -307,3 +310,67 @@ class ComposeQuizTestCase(TestCase):
         question2 = result[0]
         self.assertEqual(question2["question_text"], "What is the capital of France?")
         self.assertEqual(len(question2["choices"]), 2)
+
+
+class CalculateScoreTestCase(TestCase):
+    def setUp(self) -> None:
+        self.user = User.objects.create(
+            username="testuser", phone_number="+254708231101"
+        )
+        self.category = SessionCategories.BIBLE.value
+
+        self.category = SessionCategories.FOOTBALL.value
+        self.question1 = Question.objects.create(
+            category=self.category, question_text="What is 2+2?"
+        )
+        self.question2 = Question.objects.create(
+            category=self.category, question_text="What is the capital of France?"
+        )
+        self.session = Session.objects.create(
+            category=self.category,
+            _questions=f"{self.question1.id}, {self.question2.id}",
+        )
+
+        self.choice1 = Choice.objects.create(question=self.question1, choice_text="4")
+        Choice.objects.create(question=self.question1, choice_text="22")
+        Choice.objects.create(question=self.question2, choice_text="Paris")
+        Choice.objects.create(question=self.question2, choice_text="London")
+
+        self.result = Result.objects.create(
+            user=self.user,
+            expires_at=datetime.now()
+            + timedelta(seconds=(SESSION_BUFFER_TIME + settings.SESSION_DURATION)),
+            session=self.session,
+        )
+        self.choices = [
+            {"question_id": self.question1.id, "choice": self.choice1.choice_text},
+        ]
+        Answer.objects.create(question=self.question1, choice=self.choice1)
+
+    @patch("user_sessions.views.sessions.datetime")
+    def test_session_not_submitted_in_time_does_not_update_result(
+        self, mock_datetime
+    ) -> None:
+        mock_datetime.now.return_value = self.result.expires_at + timedelta(
+            seconds=SESSION_BUFFER_TIME + 1
+        )
+        initial_total = self.result.total
+        initial_score = self.result.score
+        CalculateUserScore.calculate_score(
+            choices=[], result_id=str(self.result.id), user=self.user
+        )
+        self.assertEqual(self.result.total, initial_total)
+        self.assertEqual(self.result.score, initial_score)
+        self.assertEqual(self.result.total_answered, 0)
+
+    def test_create_user_answers_creates_model_instances(self) -> None:
+        CalculateUserScore.calculate_score(
+            choices=self.choices, result_id=str(self.result.id), user=self.user
+        )
+        user_answers = UserAnswer.objects.filter(user=self.user, session=self.session)
+        self.result.refresh_from_db()
+        total_answered: int = self.result.total_answered or 0
+        self.assertTrue(user_answers.exists())
+        self.assertGreater(
+            total_answered, 0, "Answered questions should be more than 0"
+        )
