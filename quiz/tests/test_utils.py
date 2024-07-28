@@ -98,7 +98,7 @@ class CalculateScoreTestCase(TestCase):
         ]
         Answer.objects.create(question=self.question1, choice=self.choice1)
 
-    @patch("user_sessions.views.sessions.datetime")
+    @patch("quiz.utils.datetime")
     def test_session_not_submitted_in_time_does_not_update_result(
         self, mock_datetime
     ) -> None:
@@ -108,7 +108,7 @@ class CalculateScoreTestCase(TestCase):
         initial_total = self.result.total
         initial_score = self.result.score
         CalculateUserScore.calculate_score(
-            choices=[], result_id=str(self.result.id), user=self.user
+            choices=self.choices, result_id=str(self.result.id), user=self.user
         )
         self.assertEqual(self.result.total, initial_total)
         self.assertEqual(self.result.score, initial_score)
