@@ -369,8 +369,57 @@ class CalculateScoreTestCase(TestCase):
         )
         user_answers = UserAnswer.objects.filter(user=self.user, session=self.session)
         self.result.refresh_from_db()
+
+        total_score = self.result.score or 0.0
         total_answered: int = self.result.total_answered or 0
+        total_correct_answers = CalculateUserScore.get_total_correct_questions(
+            choices=self.choices
+        )
+
         self.assertTrue(user_answers.exists())
         self.assertGreater(
             total_answered, 0, "Answered questions should be more than 0"
         )
+        self.assertEqual(1, total_correct_answers)
+        self.assertGreater(
+            total_score,
+            settings.MODERATED_LOWEST_SCORE,
+            "Score can not be lower than moderated score.",
+        )
+
+    def test_calculate_total_answered_score_returns_correct_value(self) -> None:
+        total_answered_score = CalculateUserScore.calculate_total_answered_score(
+            settings.QUESTIONS_IN_SESSION
+        )
+
+        self.assertEqual(total_answered_score, settings.SESSION_TOTAL_ANSWERED_WEIGHT)
+
+    def test_calculate_correct_answered_score_returns_correct_value(self) -> None:
+        total_correct_score = CalculateUserScore.calculate_correct_answered_score(
+            settings.QUESTIONS_IN_SESSION
+        )
+        assert total_correct_score == settings.SESSION_CORRECT_ANSWERED_WEIGHT
+
+    def test_calculate_final_score_returns_correct_value(self) -> None:
+        final_score = CalculateUserScore.calculate_final_score(
+            settings.SESSION_TOTAL_ANSWERED_WEIGHT,
+            settings.SESSION_CORRECT_ANSWERED_WEIGHT,
+        )
+
+        self.assertEqual(
+            final_score,
+            (
+                settings.SESSION_TOTAL_ANSWERED_WEIGHT
+                + settings.SESSION_CORRECT_ANSWERED_WEIGHT
+            )
+            * 100,
+        )
+
+    def test_moderate_score_returns_correct_value(self) -> None:
+        zero_moderated_score = CalculateUserScore.moderate_score(0)
+        fifty_moderated_score = CalculateUserScore.moderate_score(50)
+        hundred_moderated_score = CalculateUserScore.moderate_score(100)
+
+        self.assertEqual(zero_moderated_score, settings.MODERATED_LOWEST_SCORE)
+        self.assertEqual(fifty_moderated_score, 77.5)
+        self.assertEqual(hundred_moderated_score, settings.MODERATED_HIGHEST_SCORE)
