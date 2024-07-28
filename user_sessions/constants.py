@@ -1,7 +1,7 @@
 from enum import Enum
 
 AVAILABLE_SESSION_EXPIRY_TIME = 10  # In seconds
-SESSION_BUFFER_TIME = 5  # In seconds
+SESSION_BUFFER_TIME = 7  # In seconds
 
 
 class DuoSessionStatuses(str, Enum):
