@@ -25,6 +25,8 @@ User = get_user_model()
 
 @extend_schema(tags=["sessions"])
 class QuizRequestView(GenericAPIView):
+    """Request quiz questions."""
+
     serializer_class = QuizRequestSerializer
 
     def post(self, request, *args, **kwargs):
@@ -105,6 +107,8 @@ class QuizRequestView(GenericAPIView):
 
 @extend_schema(tags=["sessions"])
 class QuizSubmissionView(GenericAPIView):
+    """Submit quiz answers"""
+
     serializer_class = QuizSubmissionSerializer
 
     def post(self, request, *args, **kwargs):
@@ -123,7 +127,7 @@ class QuizSubmissionView(GenericAPIView):
 
 
 class ResultRetrieveView(RetrieveAPIView):
-    """Retrieve user balance"""
+    """Retrieve Result"""
 
     lookup_field = "id"
     queryset = Result.objects.all()

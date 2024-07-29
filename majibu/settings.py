@@ -208,6 +208,7 @@ BUSINESS_IS_OPEN = bool(int(os.environ.get("BUSINESS_IS_OPEN", 1)))
 
 # SESSION DETAILS
 QUESTIONS_IN_SESSION: int = 5
+SESSION_EXITS_AT: int = 30 * 60  # In seconds
 SESSION_DURATION: int = 30  # In seconds
 SESSION_PAYOUT_RATIO: float = 1.74  # Ratio of what user will win
 SESSION_STAKE: int = 50  # In KES

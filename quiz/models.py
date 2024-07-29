@@ -1,5 +1,7 @@
+from datetime import datetime, timedelta
 from decimal import Decimal
 
+from django.conf import settings
 from django.db import models
 
 from commons.constants import SESSION_RESULT_DECIMAL_PLACES, SessionCategories, User
@@ -86,6 +88,10 @@ class Result(Base):
     is_active = models.BooleanField(
         default=True,
         help_text="If these results can be used to create pair with another user",
+    )
+    exits_at = models.DateTimeField(
+        default=datetime.now() + timedelta(seconds=settings.SESSION_EXITS_AT),
+        help_text="Time after which the session should be paired or refunded.",
     )
 
     @property
