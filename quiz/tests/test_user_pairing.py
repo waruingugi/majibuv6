@@ -31,6 +31,10 @@ class PairUsersTestCase(BaseQuizTestCase):
                 session=self.session,
             )
 
+    def tearDown(self) -> None:
+        """Run after each test."""
+        Result.objects.all().delete()
+
     def test_get_exclusions_excludes_results(self) -> None:
         """Test the get_exclusions method"""
         results = Result.objects.filter(session__category=self.category).order_by(
@@ -181,3 +185,104 @@ class PairUsersTestCase(BaseQuizTestCase):
         user_result = Result.objects.get(user=self.user)
         # Check if results are ordered by exits_at
         self.assertEqual(results_list[0], user_result)
+
+    def test_is_ready_for_pairing_passed_exits_at(self):
+        """
+        Test if is_ready_for_pairing returns True when exits_at is in the past.
+        """
+        past_time = datetime.now() - timedelta(minutes=1)
+        result = Result.objects.create(
+            user=self.user,
+            exits_at=past_time,
+            session=self.session,
+            expires_at=datetime.now(),
+        )
+        self.assertTrue(self.pair_users.is_ready_for_pairing(result))
+
+    def test_is_ready_for_pairing_within_five_minutes(self):
+        """
+        Test if is_ready_for_pairing returns True when exits_at is within the next 5 minutes.
+        """
+        future_time_within_5_minutes = datetime.now() - timedelta(minutes=4)
+        result = Result.objects.create(
+            user=self.user,
+            exits_at=future_time_within_5_minutes,
+            session=self.session,
+            expires_at=datetime.now(),
+        )
+        self.assertTrue(self.pair_users.is_ready_for_pairing(result))
+
+    def test_is_ready_for_pairing_outside_five_minutes(self):
+        """
+        Test if is_ready_for_pairing returns False when exits_at is more than 5 minutes in the future.
+        """
+        future_time_outside_5_minutes = datetime.now() + timedelta(minutes=10)
+        result = Result.objects.create(
+            user=self.user,
+            exits_at=future_time_outside_5_minutes,
+            session=self.session,
+            expires_at=datetime.now(),
+        )
+        self.assertFalse(self.pair_users.is_ready_for_pairing(result))
+
+    def test_is_ready_for_pairing_just_now(self):
+        """
+        Test if is_ready_for_pairing returns True when exits_at is exactly now.
+        """
+        now = datetime.now()
+        result = Result.objects.create(
+            user=self.user,
+            exits_at=now,
+            session=self.session,
+            expires_at=datetime.now(),
+        )
+        self.assertTrue(self.pair_users.is_ready_for_pairing(result))
+
+    def test_is_ready_for_pairing_edge_case_5_minutes(self):
+        """
+        Test if is_ready_for_pairing returns True when exits_at is exactly 5 minutes from now.
+        """
+        future_time_exact_5_minutes = datetime.now() + timedelta(minutes=5)
+        result = Result.objects.create(
+            user=self.user,
+            exits_at=future_time_exact_5_minutes,
+            session=self.session,
+            expires_at=datetime.now(),
+        )
+        self.assertTrue(self.pair_users.is_ready_for_pairing(result))
+
+    def test_is_partial_refund_no_answers(self):
+        """
+        Test if is_partial_refund returns True when total_answered is 0.
+        """
+        result = Result.objects.create(
+            user=self.user,
+            total_answered=0,
+            session=self.session,
+            expires_at=datetime.now(),
+        )
+        self.assertTrue(self.pair_users.is_partial_refund(result))
+
+    def test_is_partial_refund_some_answers(self):
+        """
+        Test if is_partial_refund returns True even when total_answered is greater than 0.
+        """
+        result = Result.objects.create(
+            user=self.user,
+            session=self.session,
+            expires_at=datetime.now(),
+            total_answered=1,
+        )
+        self.assertFalse(self.pair_users.is_partial_refund(result))
+
+    def test_is_partial_refund_multiple_answers(self):
+        """
+        Test if is_partial_refund returns True even when total_answered is greater than 1.
+        """
+        result = Result.objects.create(
+            user=self.user,
+            session=self.session,
+            expires_at=datetime.now(),
+            total_answered=5,
+        )
+        self.assertFalse(self.pair_users.is_partial_refund(result))

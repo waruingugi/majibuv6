@@ -140,15 +140,15 @@ class PairUsers:
         if result.total_answered == 0:  # User did not answer atleast one question
             return True
 
-        return True
+        return False
 
     def is_full_refund(self, result) -> bool:
         """If the exit_at field is past the current time, simply refund the user
         and do not search for an instance to pair with."""
         if (
-            result.exits_at < datetime.now()
-            or result in self.to_exclude  # If exit_at field is past current time
-        ):  # Or if result does not meet pairing threshold
+            result.exits_at < datetime.now()  # If exit_at field is past current time
+            or result in self.to_exclude  # Or if result does not meet pairing threshold
+        ):
             return True
         return False
 
