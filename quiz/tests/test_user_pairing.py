@@ -186,7 +186,7 @@ class PairUsersTestCase(BaseQuizTestCase):
         # Check if results are ordered by exits_at
         self.assertEqual(results_list[0], user_result)
 
-    def test_is_ready_for_pairing_passed_exits_at(self):
+    def test_is_ready_for_pairing_passed_exits_at(self) -> None:
         """
         Test if is_ready_for_pairing returns True when exits_at is in the past.
         """
@@ -199,7 +199,7 @@ class PairUsersTestCase(BaseQuizTestCase):
         )
         self.assertTrue(self.pair_users.is_ready_for_pairing(result))
 
-    def test_is_ready_for_pairing_within_five_minutes(self):
+    def test_is_ready_for_pairing_within_five_minutes(self) -> None:
         """
         Test if is_ready_for_pairing returns True when exits_at is within the next 5 minutes.
         """
@@ -212,7 +212,7 @@ class PairUsersTestCase(BaseQuizTestCase):
         )
         self.assertTrue(self.pair_users.is_ready_for_pairing(result))
 
-    def test_is_ready_for_pairing_outside_five_minutes(self):
+    def test_is_ready_for_pairing_outside_five_minutes(self) -> None:
         """
         Test if is_ready_for_pairing returns False when exits_at is more than 5 minutes in the future.
         """
@@ -225,7 +225,7 @@ class PairUsersTestCase(BaseQuizTestCase):
         )
         self.assertFalse(self.pair_users.is_ready_for_pairing(result))
 
-    def test_is_ready_for_pairing_just_now(self):
+    def test_is_ready_for_pairing_just_now(self) -> None:
         """
         Test if is_ready_for_pairing returns True when exits_at is exactly now.
         """
@@ -238,7 +238,7 @@ class PairUsersTestCase(BaseQuizTestCase):
         )
         self.assertTrue(self.pair_users.is_ready_for_pairing(result))
 
-    def test_is_ready_for_pairing_edge_case_5_minutes(self):
+    def test_is_ready_for_pairing_edge_case_5_minutes(self) -> None:
         """
         Test if is_ready_for_pairing returns True when exits_at is exactly 5 minutes from now.
         """
@@ -251,7 +251,7 @@ class PairUsersTestCase(BaseQuizTestCase):
         )
         self.assertTrue(self.pair_users.is_ready_for_pairing(result))
 
-    def test_is_partial_refund_no_answers(self):
+    def test_is_partial_refund_no_answers(self) -> None:
         """
         Test if is_partial_refund returns True when total_answered is 0.
         """
@@ -263,7 +263,7 @@ class PairUsersTestCase(BaseQuizTestCase):
         )
         self.assertTrue(self.pair_users.is_partial_refund(result))
 
-    def test_is_partial_refund_some_answers(self):
+    def test_is_partial_refund_some_answers(self) -> None:
         """
         Test if is_partial_refund returns True even when total_answered is greater than 0.
         """
@@ -275,7 +275,7 @@ class PairUsersTestCase(BaseQuizTestCase):
         )
         self.assertFalse(self.pair_users.is_partial_refund(result))
 
-    def test_is_partial_refund_multiple_answers(self):
+    def test_is_partial_refund_multiple_answers(self) -> None:
         """
         Test if is_partial_refund returns True even when total_answered is greater than 1.
         """
@@ -286,3 +286,45 @@ class PairUsersTestCase(BaseQuizTestCase):
             total_answered=5,
         )
         self.assertFalse(self.pair_users.is_partial_refund(result))
+
+    def test_is_full_refund_past_exits_at(self) -> None:
+        """
+        Test if is_full_refund returns True when exits_at is in the past.
+        """
+        past_time = datetime.now() - timedelta(minutes=1)
+        result = Result.objects.create(
+            user=self.user,
+            session=self.session,
+            expires_at=datetime.now(),
+            exits_at=past_time,
+        )
+        self.pair_users.to_exclude = []
+        self.assertTrue(self.pair_users.is_full_refund(result))
+
+    def test_is_full_refund_in_to_exclude(self) -> None:
+        """
+        Test if is_full_refund returns True when result is in to_exclude.
+        """
+        future_time = datetime.now() + timedelta(minutes=5)
+        result = Result.objects.create(
+            user=self.user,
+            session=self.session,
+            expires_at=datetime.now(),
+            exits_at=future_time,
+        )
+        self.pair_users.to_exclude = [result]
+        self.assertTrue(self.pair_users.is_full_refund(result))
+
+    def test_is_full_refund_not_in_to_exclude_and_future_exits_at(self) -> None:
+        """
+        Test if is_full_refund returns False when result is not in to_exclude and exits_at is in the future.
+        """
+        future_time = datetime.now() + timedelta(minutes=5)
+        result = Result.objects.create(
+            user=self.user,
+            session=self.session,
+            expires_at=datetime.now(),
+            exits_at=future_time,
+        )
+        self.pair_users.to_exclude = []
+        self.assertFalse(self.pair_users.is_full_refund(result))
