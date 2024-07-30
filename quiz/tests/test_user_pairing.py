@@ -541,3 +541,61 @@ class TestPairInstancesTestCase(BaseQuizTestCase):
             duo_session_status=DuoSessionStatuses.PAIRED.value,
             winner=self.result4.user,
         )
+
+    def test_get_winner_party_a_wins(self):
+        winner = self.pair_users.get_winner(self.result1, self.result2)
+        self.assertEqual(winner, self.result1)
+
+    def test_get_winner_party_b_wins(self):
+        winner = self.pair_users.get_winner(self.result1, self.result4)
+        self.assertEqual(winner, self.result4)
+
+
+class DeactivateInstancesTestCase(BaseQuizTestCase):
+    def setUp(self):
+        """Set up the test environment with mock data."""
+        super().setUp()
+        # Create some Result instances
+        self.result1 = Result.objects.create(
+            is_active=True,
+            user=self.user,
+            session=self.session,
+            expires_at=datetime.now(),
+        )
+        self.result2 = Result.objects.create(
+            is_active=True,
+            user=self.user,
+            session=self.session,
+            expires_at=datetime.now(),
+        )
+
+        # Instantiate the service that contains deactivate_instances
+        self.pairing_service = PairingService
+
+    def test_deactivate_instances(self) -> None:
+        """Test that deactivate_instances sets is_active to False for the specified instances."""
+        # Call the deactivate_instances method
+        self.pairing_service.deactivate_instances([self.result1])
+
+        # Refresh the instances from the database
+        self.result1.refresh_from_db()
+        self.result2.refresh_from_db()
+
+        # Assert that the is_active field has been updated correctly
+        self.assertFalse(self.result1.is_active)
+        self.assertTrue(
+            self.result2.is_active
+        )  # Should remain True since it was not deactivated
+
+    def test_deactivate_instances_empty_list(self) -> None:
+        """Test that deactivate_instances does nothing when an empty list is passed."""
+        # Call the deactivate_instances method with an empty list
+        self.pairing_service.deactivate_instances([])
+
+        # Refresh the instances from the database
+        self.result1.refresh_from_db()
+        self.result2.refresh_from_db()
+
+        # Assert that the is_active field remains unchanged
+        self.assertTrue(self.result1.is_active)
+        self.assertTrue(self.result2.is_active)
