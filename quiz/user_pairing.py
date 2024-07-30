@@ -178,10 +178,20 @@ class PairUsers:
                 or
                 # If closest_instance has the same score, fully refund the target_instance
                 closest_instance.score == target_instance.score
+                or
+                # If closest_instance has not answered any question. That is, closest instance
+                # should be partially refunded.
+                closest_instance.total_answered == 0
             ):
                 closest_instance = None
 
         return closest_instance
+
+    def deactivate_instances(self, instances) -> None:
+        """Deactivate instances so that they're not used in the pairing process again."""
+        result_ids = [result.id for result in instances]
+        # Bulk update is_active to False
+        Result.objects.filter(id__in=result_ids).update(is_active=False)
 
     def pair_instances(
         self, *, queue_ordered_by_exits_at, queue_ordered_by_score
@@ -194,7 +204,7 @@ class PairUsers:
 
             # Note that the queue_ordered_by_score is modified inside the loop
             # The if statement below prevents errors
-            if result in queue_ordered_by_score:
+            if result in queue_ordered_by_score and self.is_ready_for_pairing(result):
                 party_a = result
                 # Remove the instance from the score-ordered queue
                 queue_ordered_by_score = queue_ordered_by_score.exclude(id=result.id)
@@ -210,7 +220,7 @@ class PairUsers:
                 else:
                     # Find the next instance with the closest score
                     closest_instance = self.find_closest_instance(
-                        result, self.queue_ordered_by_score
+                        result, queue_ordered_by_score
                     )
 
                     if closest_instance:
@@ -241,12 +251,6 @@ class PairUsers:
             return party_a
         else:
             return party_b
-
-    def deactivate_instances(self, instances: list) -> None:
-        """Deactivate instances so that they're not used in the pairing process again."""
-        result_ids = [result.id for result in instances]
-        # Bulk update is_active to False
-        Result.objects.filter(id__in=result_ids).update(is_active=False)
 
     def create_duo_session(
         self,

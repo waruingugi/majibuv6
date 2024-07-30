@@ -270,7 +270,6 @@ class ResultRetrieveViewTests(BaseQuizTestCase, BaseUserAPITestCase):
     def setUp(self) -> None:
         super().setUp()
         self.force_authenticate_user()
-        self.foreign_user = self.create_foreign_user()
         self.url = reverse("quiz:result-retrieve", kwargs={"id": self.result.id})
 
     def test_user_can_only_view_own_result(self) -> None:

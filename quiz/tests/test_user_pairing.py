@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 from django.conf import settings
 
-from commons.constants import SessionCategories
+from commons.constants import DuoSessionStatuses, SessionCategories
 from commons.tests.base_tests import BaseQuizTestCase
 from quiz.models import Result
 from quiz.user_pairing import PairingService
@@ -410,3 +410,134 @@ class PairUsersTestCase(BaseQuizTestCase):
             target_instance, instances
         )
         self.assertIsNone(closest_instance)  # Same user should result in exclusion
+
+    def test_find_closest_instance_no_question_answered(self) -> None:
+        """Assert closest instance is None if closest instance did not answere any questions."""
+        target_instance, instance1 = (MagicMock(Result), MagicMock(Result))
+
+        target_instance.score = 10
+        instance1.score = 8
+        instance1.total_answered = 0
+
+        self.pair_users.to_exclude = []  # Set instance2 to be excluded
+
+        instances = [instance1, instance1]
+
+        closest_instance = self.pair_users.find_closest_instance(
+            target_instance, instances
+        )
+        self.assertIsNone(closest_instance)
+
+
+class TestPairInstancesTestCase(BaseQuizTestCase):
+    def setUp(self) -> None:
+        """Set up the test environment with mock data."""
+        super().setUp()
+        self.pair_users = PairingService
+
+        # Create mock instances of Result
+        self.result1 = Result.objects.create(
+            user=self.user,
+            score=80,
+            session=self.session,
+            exits_at=datetime.now() + timedelta(minutes=3),
+            total_answered=0,
+            expires_at=datetime.now(),
+        )
+        self.result2 = Result.objects.create(
+            score=75,
+            user=self.foreign_user,
+            session=self.session,
+            exits_at=datetime.now() + timedelta(minutes=15),
+            total_answered=3,
+            expires_at=datetime.now(),
+        )
+        self.result3 = Result.objects.create(
+            user=self.user,
+            score=85,
+            session=self.session,
+            exits_at=datetime.now() + timedelta(minutes=-10),  # Past exit time
+            total_answered=0,
+            expires_at=datetime.now(),
+        )
+        self.result4 = Result.objects.create(
+            user=self.foreign_user,
+            score=90,
+            session=self.session,
+            exits_at=datetime.now() + timedelta(minutes=5),  # Near exit time
+            total_answered=3,
+            expires_at=datetime.now(),
+        )
+
+        # Mock the methods used inside pair_instances
+        self.pair_users.is_partial_refund = MagicMock()  # type: ignore
+        self.pair_users.is_full_refund = MagicMock()  # type: ignore
+        self.pair_users.create_duo_session = MagicMock()  # type: ignore
+
+    def tearDown(self) -> None:
+        """Run after each test."""
+        Result.objects.all().delete()
+
+    def test_pair_instances_with_partial_refund(self) -> None:
+        """Test that an instance with no questions answered results in a partial refund."""
+        self.pair_users.is_partial_refund.return_value = True  # type: ignore
+        self.pair_users.is_full_refund.return_value = False  # type: ignore
+        self.pair_users.to_exclude = []
+        self.pair_users.pair_instances(
+            queue_ordered_by_exits_at=Result.objects.all().order_by("exits_at"),
+            queue_ordered_by_score=Result.objects.all().order_by("score"),
+        )
+
+        self.pair_users.create_duo_session.assert_any_call(  # type: ignore
+            party_a=self.result1.user,
+            party_b=None,
+            session=self.result1.session,
+            duo_session_status=DuoSessionStatuses.PARTIALLY_REFUNDED.value,
+            winner=None,
+        )
+
+        self.result1.refresh_from_db()
+        self.assertFalse(self.result1.is_active)
+
+    def test_pair_instances_with_full_refund(self) -> None:
+        """Assert result instance with some questions answered receives a full refund."""
+        self.pair_users.is_partial_refund.return_value = False  # type: ignore
+        self.pair_users.is_full_refund.return_value = True  # type: ignore
+        self.pair_users.to_exclude = []
+
+        self.pair_users.pair_instances(
+            queue_ordered_by_exits_at=Result.objects.all().order_by("exits_at"),
+            queue_ordered_by_score=Result.objects.all().order_by("score"),
+        )
+
+        self.pair_users.create_duo_session.assert_any_call(  # type: ignore
+            party_a=self.result4.user,
+            party_b=None,
+            session=self.result4.session,
+            duo_session_status=DuoSessionStatuses.REFUNDED.value,
+            winner=None,
+        )
+
+        self.result4.refresh_from_db()
+        self.assertFalse(self.result4.is_active)
+
+    def test_pair_instances_and_get_winner(self) -> None:
+        """Assert paired duo session is created when an instance has a valid close instance."""
+        self.pair_users.is_partial_refund.return_value = False  # type: ignore
+        self.pair_users.is_full_refund.return_value = False  # type: ignore
+
+        self.pair_users.find_closest_instance = MagicMock()  # type: ignore
+        self.pair_users.find_closest_instance.return_value = self.result4
+
+        self.pair_users.pair_instances(
+            queue_ordered_by_exits_at=Result.objects.all().order_by("exits_at"),
+            queue_ordered_by_score=Result.objects.all().order_by("score"),
+        )
+
+        self.pair_users.create_duo_session.assert_any_call(  # type: ignore
+            party_a=self.result1.user,
+            party_b=self.result4.user,
+            session=self.result1.session,
+            duo_session_status=DuoSessionStatuses.PAIRED.value,
+            winner=self.result4.user,
+        )
