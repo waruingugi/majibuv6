@@ -328,3 +328,85 @@ class PairUsersTestCase(BaseQuizTestCase):
         )
         self.pair_users.to_exclude = []
         self.assertFalse(self.pair_users.is_full_refund(result))
+
+    def test_find_closest_instance_normal_case(self) -> None:
+        """Test returns closest instance on normal cases"""
+        self.pair_users.to_exclude = []
+        target_instance, instance1, instance2 = (
+            MagicMock(Result),
+            MagicMock(Result),
+            MagicMock(Result),
+        )
+
+        target_instance.score = 10
+        instance1.score = 8
+        instance2.score = 12
+
+        instances = [instance1, instance2]
+
+        # Test method
+        closest_instance = self.pair_users.find_closest_instance(
+            target_instance, instances
+        )
+        self.assertEqual(closest_instance, instance1)  # instance1 is closer to score 10
+
+    def test_find_closest_instance_no_instances(self) -> None:
+        """Assert None is returned when no other close instances are available."""
+        target_instance = MagicMock(Result)
+        target_instance.score = 10
+        instances: list = []
+
+        closest_instance = self.pair_users.find_closest_instance(
+            target_instance, instances
+        )
+        self.assertIsNone(closest_instance)
+
+    def test_find_closest_instance_same_score(self) -> None:
+        """Assert closest instance returns None when closest instance has same score."""
+        target_instance, instance1 = MagicMock(Result), MagicMock(Result)
+
+        target_instance.score = 10
+        instance1.score = 10
+        instances = [instance1]
+
+        closest_instance = self.pair_users.find_closest_instance(
+            target_instance, instances
+        )
+        self.assertIsNone(closest_instance)  # The same score should result in exclusion
+
+    def test_find_closest_instance_exclusion(self) -> None:
+        """Assert closest instance is None if it is in to_exclude."""
+        target_instance, instance1, instance2 = (
+            MagicMock(Result),
+            MagicMock(Result),
+            MagicMock(Result),
+        )
+
+        target_instance.score = 10
+        instance1.score = 8
+        instance2.score = 11
+
+        self.pair_users.to_exclude = [instance2]  # Set instance2 to be excluded
+
+        instances = [instance1, instance2]
+
+        closest_instance = self.pair_users.find_closest_instance(
+            target_instance, instances
+        )
+        self.assertIsNone(closest_instance)
+
+    def test_find_closest_instance_same_user(self) -> None:
+        """Assert if closest instance is the same user, then closest instance becomes None."""
+        target_instance, instance1 = MagicMock(Result), MagicMock(Result)
+
+        target_instance.score = 10
+        instance1.score = 8
+        target_instance.user = self.user
+        instance1.user = target_instance.user  # Same user as target_instance
+
+        instances = [instance1]
+
+        closest_instance = self.pair_users.find_closest_instance(
+            target_instance, instances
+        )
+        self.assertIsNone(closest_instance)  # Same user should result in exclusion

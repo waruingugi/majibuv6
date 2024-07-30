@@ -214,8 +214,11 @@ class PairUsers:
                     )
 
                     if closest_instance:
+                        # Pop closest instance from queue
+                        queue_ordered_by_score.exclude(id=closest_instance.id)
                         winner = self.get_winner(result, closest_instance)
                         party_b = closest_instance
+
                         duo_session_status = DuoSessionStatuses.PAIRED.value
                         instances_to_deactivate = [party_a, party_b]
 
