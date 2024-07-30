@@ -1,10 +1,16 @@
 import json
 
+from django.contrib.auth import get_user_model
 from django.db import models
 
-from commons.constants import MONETARY_DECIMAL_PLACES, SessionCategories, User
+from commons.constants import (
+    MONETARY_DECIMAL_PLACES,
+    DuoSessionStatuses,
+    SessionCategories,
+)
 from commons.models import Base
-from user_sessions.constants import DuoSessionStatuses
+
+User = get_user_model()
 
 
 class UserSessionStat(Base):
@@ -56,8 +62,12 @@ class Session(Base):
 class DuoSession(Base):
     """DuoSession model"""
 
-    party_a = models.CharField(max_length=255, null=False)
-    party_b = models.CharField(max_length=255, null=True)
+    party_a = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="party_a"
+    )
+    party_b = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="party_b"
+    )
     session = models.ForeignKey(
         Session, on_delete=models.SET_NULL, null=True, default=None
     )
@@ -72,7 +82,9 @@ class DuoSession(Base):
         null=True,
         choices=[(status, status.value) for status in DuoSessionStatuses],
     )
-    winner_id = models.CharField(max_length=255, null=True)
+    winner = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="winner"
+    )
 
     @property
     def category(self):

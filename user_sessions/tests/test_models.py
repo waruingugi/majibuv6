@@ -1,8 +1,8 @@
+from django.conf import settings
 from django.test import TestCase
 
-from commons.constants import SessionCategories
+from commons.constants import DuoSessionStatuses, SessionCategories
 from commons.tests.base_tests import BaseUserAPITestCase
-from user_sessions.constants import DuoSessionStatuses
 from user_sessions.models import DuoSession, PoolSessionStat, Session, UserSessionStat
 
 
@@ -84,31 +84,51 @@ class SessionModelTest(TestCase):
         self.assertEqual(str(self.session), self.category)
 
 
-class DuoSessionModelTest(TestCase):
+class DuoSessionModelTest(BaseUserAPITestCase):
     def setUp(self):
+        self.user = self.create_user()
+        self.foreign_user = self.create_foreign_user()
+
         self.session = Session.objects.create(
             category=SessionCategories.FOOTBALL.value,
             _questions="question1, question2, question3",
         )
-        self.duo_session = DuoSession.objects.create(
-            party_a="someUserID",
+        self.refunded_duo_session = DuoSession.objects.create(
+            party_a=self.user,
             session=self.session,
-            amount=100.00,
+            amount=settings.SESSION_STAKE,
             status=DuoSessionStatuses.REFUNDED.value,
-            winner_id="someForeignUserID",
         )
 
-    def test_duo_session_creation(self):
-        """Test if a DuoSession instance is created correctly."""
-        self.assertEqual(self.duo_session.party_a, "someUserID")
-        self.assertEqual(self.duo_session.session, self.session)
-        self.assertEqual(self.duo_session.amount, 100.00)
-        self.assertEqual(self.duo_session.status, DuoSessionStatuses.REFUNDED.value)
-        self.assertEqual(self.duo_session.winner_id, "someForeignUserID")
+    def test_duo_session_creates_a_refunded_sesssion(self):
+        """Test if a refunded DuoSession instance is created correctly."""
+        self.assertEqual(self.refunded_duo_session.party_a, self.user)
+        self.assertEqual(self.refunded_duo_session.session, self.session)
+        self.assertEqual(self.refunded_duo_session.amount, settings.SESSION_STAKE)
+        self.assertEqual(
+            self.refunded_duo_session.status, DuoSessionStatuses.REFUNDED.value
+        )
+        self.assertEqual(
+            self.refunded_duo_session.category, SessionCategories.FOOTBALL.value
+        )
 
-    def test_duo_session_category_property(self):
-        """Test the category property."""
-        self.assertEqual(self.duo_session.category, SessionCategories.FOOTBALL.value)
+    def test_duo_session_creates_a_paired_sesssion(self):
+        """Test if a paired DuoSession instance is created correctly."""
+        session = Session.objects.create(
+            category=SessionCategories.FOOTBALL.value,
+            _questions="q6, q7, q8, q9",
+        )
+        paired_duo_session = DuoSession.objects.create(
+            party_a=self.foreign_user,
+            party_b=self.user,
+            session=session,
+            amount=settings.SESSION_STAKE,
+            status=DuoSessionStatuses.PAIRED.value,
+            winner=self.user,
+        )
+        self.assertEqual(paired_duo_session.party_a, self.foreign_user)
+        self.assertEqual(paired_duo_session.winner, self.user)
+        self.assertEqual(paired_duo_session.status, DuoSessionStatuses.PAIRED.value)
 
 
 class PoolSessionStatModelTest(TestCase):

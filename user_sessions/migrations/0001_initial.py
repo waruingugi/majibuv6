@@ -2,7 +2,7 @@
 
 import commons.constants
 import django.db.models.deletion
-import user_sessions.constants
+import commons.constants
 import uuid
 from django.conf import settings
 from django.db import migrations, models
@@ -102,15 +102,15 @@ class Migration(migrations.Migration):
                     models.CharField(
                         choices=[
                             (
-                                user_sessions.constants.DuoSessionStatuses["PAIRED"],
+                                commons.constants.DuoSessionStatuses["PAIRED"],
                                 "PAIRED",
                             ),
                             (
-                                user_sessions.constants.DuoSessionStatuses["REFUNDED"],
+                                commons.constants.DuoSessionStatuses["REFUNDED"],
                                 "REFUNDED",
                             ),
                             (
-                                user_sessions.constants.DuoSessionStatuses[
+                                commons.constants.DuoSessionStatuses[
                                     "PARTIALLY_REFUNDED"
                                 ],
                                 "PARTIALLY_REFUNDED",

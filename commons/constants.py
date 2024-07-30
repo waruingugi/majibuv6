@@ -21,3 +21,9 @@ MONETARY_DECIMAL_PLACES: int = 2
 class SessionCategories(str, Enum):
     FOOTBALL = "FOOTBALL"
     BIBLE = "BIBLE"
+
+
+class DuoSessionStatuses(str, Enum):
+    PAIRED = "PAIRED"
+    REFUNDED = "REFUNDED"
+    PARTIALLY_REFUNDED = "PARTIALLY_REFUNDED"
