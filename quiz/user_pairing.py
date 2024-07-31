@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from scipy.stats import skew
 
 from commons.constants import DuoSessionStatuses
+from commons.raw_logger import logger
 from quiz.models import Result
 from user_sessions.models import DuoSession
 
@@ -19,6 +20,7 @@ class PairUsers:
 
     def execute_pairing(self, category: str) -> None:
         """Orchestrate the pairing process."""
+        logger.info("Executing pairing process...")
         self.category = category
 
         self.queue_ordered_by_exits_at = self.get_category_queue(category=self.category)
@@ -50,6 +52,7 @@ class PairUsers:
         """
         Get results for a given category, ordered by `exits_at`.
         """
+        logger.info(f"Creating queue for {category}")
         return Result.objects.filter(
             is_active=True, session__category=category
         ).order_by("exits_at")
@@ -58,12 +61,14 @@ class PairUsers:
         """
         Reorder results by score.
         """
+        logger.info("Re-ordering queue by score.")
         return results.order_by("score")
 
     def calculate_skewness(self, results) -> float:
         """
         Calculate skewness for a list of results based on their scores.
         """
+        logger.info("Calculating skewness")
         scores = results.values_list("score", flat=True)
         return skew(scores)
 
@@ -74,12 +79,19 @@ class PairUsers:
         Determine the number of results to exclude from bottom and top based on skewness.
         """
         if skewness_value > 0:  # Right skewed, more high scores
+            logger.info(
+                f"Scores are right-skewed (have more high scores): {skewness_value}"
+            )
             bottom_exclusion_percentage = max(0, 0.10 - 0.05 * skewness_value)
             top_exclusion_percentage = min(0.20, 0.10 + 0.05 * skewness_value)
         elif skewness_value < 0:  # Left skewed, more low scores
+            logger.info(
+                f"Scores are left-skewed (have more low scores): {skewness_value}"
+            )
             bottom_exclusion_percentage = min(0.20, 0.10 + 0.05 * abs(skewness_value))
             top_exclusion_percentage = max(0, 0.10 - 0.05 * abs(skewness_value))
         else:  # No skew, balanced performance
+            logger.info(f"Scores are balanced: {skewness_value}")
             bottom_exclusion_percentage = 0.10
             top_exclusion_percentage = 0.10
 
@@ -89,6 +101,7 @@ class PairUsers:
         )
 
         if total_exclusion_percentage != 0.20:
+            logger.info("Adjusting exclusion percentages.")
             adjustment_factor = 0.20 / total_exclusion_percentage
             bottom_exclusion_percentage *= adjustment_factor
             top_exclusion_percentage *= adjustment_factor
@@ -105,6 +118,9 @@ class PairUsers:
         """
         Determine which results to exclude from the bottom and top.
         """
+        logger.info(
+            f"Bottom exclusion count: {bottom_exclusion_count}. Top exclusion count: {top_exclusion_count}"
+        )
         # Convert results to list for negative indexing
         results_list = list(results)
         to_exclude_bottom = results_list[:bottom_exclusion_count]
@@ -119,6 +135,7 @@ class PairUsers:
         """
         Check if the result instance meets the criteria to search for another instance to pair with.
         """
+        logger.info(f"Checking if result id: {result.id} is ready for pairing.")
         current_time = datetime.now()
         time_5_minutes_later = current_time + timedelta(minutes=5)
 
@@ -137,6 +154,7 @@ class PairUsers:
         """If a user played a session, but did not answer at least one question, we do a partial refund.
         To receive a full refund, attempt to answer atleast one question, no matter if it is correct or wrong.
         """
+        logger.info(f"Checking if result id: {result.id} is a partial refund.")
         if result.total_answered == 0:  # User did not answer atleast one question
             return True
 
@@ -145,6 +163,7 @@ class PairUsers:
     def is_full_refund(self, result) -> bool:
         """If the exit_at field is past the current time, simply refund the user
         and do not search for an instance to pair with."""
+        logger.info(f"Checking if result id: {result.id} is a full refund.")
         if (
             result.exits_at < datetime.now()  # If exit_at field is past current time
             or result in self.to_exclude  # Or if result does not meet pairing threshold
@@ -156,6 +175,7 @@ class PairUsers:
         """
         Find the instance with the closest score to the target_instance from the given instances.
         """
+        logger.info(f"Searching for the closest instance to {target_instance.id}")
         target_score = target_instance.score
         closest_instance = None
         closest_score_diff = float("inf")
@@ -183,12 +203,14 @@ class PairUsers:
                 # should be partially refunded.
                 closest_instance.total_answered == 0
             ):
+                logger.info(f"No close instance found for {target_instance.id}")
                 closest_instance = None
 
         return closest_instance
 
     def deactivate_instances(self, instances) -> None:
         """Deactivate instances so that they're not used in the pairing process again."""
+        logger.info("Deactivating result instances...")
         result_ids = [result.id for result in instances]
         # Bulk update is_active to False
         Result.objects.filter(id__in=result_ids).update(is_active=False)
@@ -196,6 +218,7 @@ class PairUsers:
     def pair_instances(
         self, *, queue_ordered_by_exits_at, queue_ordered_by_score
     ) -> None:
+        logger.info("Starting pair instances service...")
         for result in queue_ordered_by_exits_at:
             # Re-set default values:
             winner, party_a, party_b = None, None, None
@@ -247,6 +270,7 @@ class PairUsers:
 
     def get_winner(self, party_a, party_b) -> Result:
         """Return the winner between two result instances"""
+        logger.info(f"Getting winner between results {party_a.id} and {party_b.id}")
         if party_a.score > party_b.score:
             return party_a
         else:
@@ -263,6 +287,7 @@ class PairUsers:
     ) -> None:
         """Create a DuoSession instance.
         This is the final step before funding wallets."""
+        logger.info(f"Creating duo session with status: {duo_session_status}")
         DuoSession.objects.create(
             party_a=party_a,
             party_b=party_b,

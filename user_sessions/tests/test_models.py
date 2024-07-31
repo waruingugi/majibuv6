@@ -1,6 +1,10 @@
+from decimal import Decimal
+
 from django.conf import settings
 from django.test import TestCase
 
+from accounts.constants import TransactionTypes
+from accounts.models import Transaction
 from commons.constants import DuoSessionStatuses, SessionCategories
 from commons.tests.base_tests import BaseUserAPITestCase
 from user_sessions.models import DuoSession, PoolSessionStat, Session, UserSessionStat
@@ -85,7 +89,7 @@ class SessionModelTest(TestCase):
 
 
 class DuoSessionModelTest(BaseUserAPITestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.user = self.create_user()
         self.foreign_user = self.create_foreign_user()
 
@@ -100,7 +104,43 @@ class DuoSessionModelTest(BaseUserAPITestCase):
             status=DuoSessionStatuses.REFUNDED.value,
         )
 
-    def test_duo_session_creates_a_refunded_sesssion(self):
+        self.partially_refunded_duo_session = DuoSession.objects.create(
+            party_a=self.user,
+            session=self.session,
+            amount=settings.SESSION_STAKE,
+            status=DuoSessionStatuses.PARTIALLY_REFUNDED.value,
+        )
+
+    def tearDown(self) -> None:
+        """Run after each test"""
+        Transaction.objects.all().delete()
+
+    def test_duo_session_creates_a_partially_refunded_sesssion(self) -> None:
+        """Test if a partially refunded DuoSession instance is created correctly."""
+        self.assertEqual(self.partially_refunded_duo_session.party_a, self.user)
+        self.assertEqual(self.partially_refunded_duo_session.session, self.session)
+        self.assertEqual(
+            self.partially_refunded_duo_session.amount, settings.SESSION_STAKE
+        )
+        self.assertEqual(
+            self.partially_refunded_duo_session.status,
+            DuoSessionStatuses.PARTIALLY_REFUNDED.value,
+        )
+        self.assertEqual(
+            self.partially_refunded_duo_session.category,
+            SessionCategories.FOOTBALL.value,
+        )
+
+        self.assertTrue(
+            Transaction.objects.filter(
+                type=TransactionTypes.REFUND.value,
+                amount=Decimal(
+                    settings.SESSION_PARTIAL_REFUND_RATIO * settings.SESSION_STAKE
+                ),
+            ).exists()
+        )
+
+    def test_duo_session_creates_a_refunded_sesssion(self) -> None:
         """Test if a refunded DuoSession instance is created correctly."""
         self.assertEqual(self.refunded_duo_session.party_a, self.user)
         self.assertEqual(self.refunded_duo_session.session, self.session)
@@ -112,7 +152,14 @@ class DuoSessionModelTest(BaseUserAPITestCase):
             self.refunded_duo_session.category, SessionCategories.FOOTBALL.value
         )
 
-    def test_duo_session_creates_a_paired_sesssion(self):
+        self.assertTrue(
+            Transaction.objects.filter(
+                type=TransactionTypes.REFUND.value,
+                amount=Decimal(settings.SESSION_REFUND_RATIO * settings.SESSION_STAKE),
+            ).exists()
+        )
+
+    def test_duo_session_creates_a_paired_sesssion(self) -> None:
         """Test if a paired DuoSession instance is created correctly."""
         session = Session.objects.create(
             category=SessionCategories.FOOTBALL.value,
@@ -129,6 +176,13 @@ class DuoSessionModelTest(BaseUserAPITestCase):
         self.assertEqual(paired_duo_session.party_a, self.foreign_user)
         self.assertEqual(paired_duo_session.winner, self.user)
         self.assertEqual(paired_duo_session.status, DuoSessionStatuses.PAIRED.value)
+
+        self.assertTrue(
+            Transaction.objects.filter(
+                type=TransactionTypes.REWARD.value,
+                amount=Decimal(settings.SESSION_WIN_RATIO * settings.SESSION_STAKE),
+            ).exists()
+        )
 
 
 class PoolSessionStatModelTest(TestCase):
