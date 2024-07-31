@@ -3,18 +3,25 @@
 
 from django.conf import settings
 from django.core.cache import cache
+from django.db.models import Q
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
-from rest_framework import serializers, status
-from rest_framework.generics import GenericAPIView
+from rest_framework import filters, serializers, status
+from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.response import Response
 
 from commons.errors import ErrorCodes
+from commons.pagination import StandardPageNumberPagination
+from commons.permissions import IsStaffOrSelfPermission
 from commons.utils import is_business_open
 from user_sessions.constants import AVAILABLE_SESSION_EXPIRY_TIME
+from user_sessions.models import DuoSession
 from user_sessions.serializers import (
     AvialableSessionSerializer,
     BusinessHoursSerializer,
     SessionDetailsSerializer,
+    StaffDuoSessionListSerializer,
+    UserDuoSessionListSerializer,
 )
 from user_sessions.utils import get_available_session
 
@@ -75,3 +82,37 @@ class AvailableSessionView(GenericAPIView):
             return Response({"id": available_session_id}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DuoSessionListView(ListAPIView):
+    """Retrieve a user."""
+
+    queryset = DuoSession.objects.all()
+    permission_classes = [IsStaffOrSelfPermission]
+    pagination_class = StandardPageNumberPagination
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.OrderingFilter,
+        filters.SearchFilter,
+    ]
+    search_fields = [
+        "id",
+        "party_a__phone_number",
+        "party_b__phone_number",
+        "winner__phone_number",
+    ]
+    filterset_fields = ["status"]
+    ordering_fields = ["created_at"]
+
+    def get_serializer_class(self):
+        if self.request.user.is_staff:
+            return StaffDuoSessionListSerializer
+        return UserDuoSessionListSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return DuoSession.objects.all()
+        return DuoSession.objects.filter(
+            Q(party_a=user) | Q(party_b=user) | Q(winner=user)
+        )

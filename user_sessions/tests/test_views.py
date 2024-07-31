@@ -2,14 +2,16 @@
 from datetime import datetime
 from unittest.mock import patch
 
+from django.conf import settings
 from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 
-from commons.constants import SessionCategories
+from commons.constants import DuoSessionStatuses, SessionCategories
 from commons.errors import ErrorCodes
 from commons.tests.base_tests import BaseUserAPITestCase
+from user_sessions.models import DuoSession, Session
 
 
 class BusinessHoursViewTests(BaseUserAPITestCase):
@@ -121,3 +123,75 @@ class AvailableSessionViewTests(BaseUserAPITestCase):
 
         cached_value = cache.get(self.cache_key)
         self.assertIsNone(cached_value)
+
+
+class DuoSessionRetrieveViewTestCase(BaseUserAPITestCase):
+    def setUp(self) -> None:
+        self.user = self.create_user()
+        self.foreign_user = self.create_foreign_user()
+
+        self.session = Session.objects.create(category=SessionCategories.BIBLE.value)
+        self.refunded_duo_session = DuoSession.objects.create(
+            party_a=self.user,
+            session=self.session,
+            amount=settings.SESSION_STAKE,
+            status=DuoSessionStatuses.REFUNDED.value,
+        )
+        self.partially_refunded_duo_session = DuoSession.objects.create(
+            party_a=self.foreign_user,
+            session=self.session,
+            amount=settings.SESSION_STAKE,
+            status=DuoSessionStatuses.PARTIALLY_REFUNDED.value,
+        )
+        self.paired_duo_session = DuoSession.objects.create(
+            party_a=self.foreign_user,
+            party_b=self.user,
+            session=self.session,
+            amount=settings.SESSION_STAKE,
+            status=DuoSessionStatuses.PAIRED.value,
+            winner=self.user,
+        )
+
+        self.force_authenticate_staff_user()
+        self.list_url = reverse("sessions:duo-session-list")
+
+    def test_staff_can_list_duo_sessions(self) -> None:
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["results"]), 3)
+
+    def test_staff_can_search_duo_sessions(self) -> None:
+        response = self.client.get(
+            self.list_url, {"search": str(self.foreign_user.phone_number)}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["results"]), 2)
+
+    def test_user_can_list_their_own_duo_sessions(self) -> None:
+        self.force_authenticate_user()
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["results"]), 2)
+        self.assertEqual(
+            response.data["results"][0]["id"],
+            str(self.paired_duo_session.id),
+        )
+
+    def test_staff_fields_do_not_exist_in_response(self) -> None:
+        self.force_authenticate_user()
+        response = self.client.get(self.list_url)
+        result_in = response.data["results"][0]
+        self.assertNotIn("party_a", result_in)
+        self.assertNotIn("party_b", result_in)
+        self.assertNotIn("winner", result_in)
+
+    def test_user_can_search_duo_sessions(self) -> None:
+        response = self.client.get(
+            self.list_url, {"search": str(self.paired_duo_session.id)}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertEqual(
+            response.data["results"][0]["id"],
+            str(self.paired_duo_session.id),
+        )
