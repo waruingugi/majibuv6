@@ -5,7 +5,7 @@ from django.conf import settings
 
 class ErrorCodes(str, Enum):
     BUSINESS_IS_CLOSED = (
-        "You just missed us! "
+        "Oh, you just missed the party!"
         "Please check in again between "
         f"{settings.BUSINESS_OPENS_AT}a.m. "
         "and "

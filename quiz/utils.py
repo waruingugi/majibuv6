@@ -97,7 +97,9 @@ class CalculateScore:
         logger.info(f"Saving answers for Result ID: {self.result.id} to db")
         total_answered = 0
         for item in choices:
-            if (item["choice"] is None) or (item["choice"].strip() == ""):
+            if (item["choice"] is None) or (
+                item["choice"].strip() == "" or item["choice"] == "null"
+            ):
                 continue
 
             question_obj = Question.objects.get(id=item["question_id"])

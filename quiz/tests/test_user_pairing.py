@@ -112,59 +112,46 @@ class PairUsersTestCase(BaseQuizTestCase):
         self.assertAlmostEqual(top_exclusion_count, 0, places=1)
 
     def test_calculate_skewness_positive(self) -> None:
-        results = MagicMock()
-        results.values_list.return_value = [
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            100,
-        ]  # Right skewed
+        values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 100]  # Right skewed
+        results = []
+        for value in values:
+            result = MagicMock()
+            result.score = value
+            results.append(result)
+
         skewness = self.pair_users.calculate_skewness(results)
         self.assertGreater(skewness, 0)  # Expect a positive skew
 
     def test_calculate_skewness_negative(self) -> None:
-        results = MagicMock()
-        results.values_list.return_value = [
-            100,
-            90,
-            80,
-            70,
-            60,
-            50,
-            40,
-            30,
-            20,
-            1,
-        ]  # Left skewed
+        values = [100, 90, 80, 70, 60, 50, 40, 30, 20, 1]  # Left skewed
+        results = []
+        for value in values:
+            result = MagicMock()
+            result.score = value
+            results.append(result)
+
         skewness = self.pair_users.calculate_skewness(results)
         self.assertLess(skewness, 0)  # Expect a negative skew
 
     def test_calculate_skewness_no_skew(self) -> None:
-        results = MagicMock()
-        results.values_list.return_value = [
-            50,
-            51,
-            49,
-            50,
-            50,
-            51,
-            49,
-            50,
-            50,
-            50,
-        ]  # No skew
+        values = [50, 51, 49, 50, 50, 51, 49, 50, 50, 50]  # No skew
+        results = []
+        for value in values:
+            result = MagicMock()
+            result.score = value
+            results.append(result)
+
         skewness = self.pair_users.calculate_skewness(results)
         self.assertAlmostEqual(skewness, 0, places=1)  # Expect skewness close to zero
 
     def test_calculate_skewness_uniform(self) -> None:
-        results = MagicMock()
-        results.values_list.return_value = list(range(1, 101))  # Uniform distribution
+        values = list(range(1, 101))  # Uniform distribution
+        results = []
+        for value in values:
+            result = MagicMock()
+            result.score = value
+            results.append(result)
+
         skewness = self.pair_users.calculate_skewness(results)
         self.assertAlmostEqual(
             skewness, 0, places=1

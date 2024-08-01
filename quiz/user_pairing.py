@@ -71,7 +71,8 @@ class PairUsers:
         Calculate skewness for a list of results based on their scores.
         """
         logger.info("Calculating skewness")
-        scores = results.values_list("score", flat=True)
+        # Iterate through the QuerySet and add scores to the list
+        scores = [float(result.score) for result in results]
         return skew(scores)
 
     def dynamic_exclusion_percentages(
