@@ -24,29 +24,31 @@ class PairUsers:
         self.category = category
 
         self.queue_ordered_by_exits_at = self.get_category_queue(category=self.category)
-        self.queue_ordered_by_score = self.reorder_by_score(
-            self.queue_ordered_by_exits_at
-        )
 
-        self.skewness = self.calculate_skewness(self.queue_ordered_by_score)
-        (
-            self.top_exclusion_count,
-            self.bottom_exclusion_count,
-        ) = self.dynamic_exclusion_percentages(
-            self.skewness,
-            self.queue_ordered_by_score.count(),  # type: ignore
-        )
+        if self.queue_ordered_by_exits_at.exists():  # type: ignore
+            self.queue_ordered_by_score = self.reorder_by_score(
+                self.queue_ordered_by_exits_at
+            )
 
-        self.to_pair, self.to_exclude = self.get_exclusions(
-            self.queue_ordered_by_score,
-            self.bottom_exclusion_count,
-            self.top_exclusion_count,
-        )
+            self.skewness = self.calculate_skewness(self.queue_ordered_by_score)
+            (
+                self.top_exclusion_count,
+                self.bottom_exclusion_count,
+            ) = self.dynamic_exclusion_percentages(
+                self.skewness,
+                self.queue_ordered_by_score.count(),  # type: ignore
+            )
 
-        self.pair_instances(
-            queue_ordered_by_exits_at=self.queue_ordered_by_exits_at,
-            queue_ordered_by_score=self.queue_ordered_by_score,
-        )
+            self.to_pair, self.to_exclude = self.get_exclusions(
+                self.queue_ordered_by_score,
+                self.bottom_exclusion_count,
+                self.top_exclusion_count,
+            )
+
+            self.pair_instances(
+                queue_ordered_by_exits_at=self.queue_ordered_by_exits_at,
+                queue_ordered_by_score=self.queue_ordered_by_score,
+            )
 
     def get_category_queue(self, category: str) -> Iterable[Result]:
         """
