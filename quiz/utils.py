@@ -121,7 +121,11 @@ class CalculateScore:
         total_correct = 0
 
         for item in choices:
-            if (item["choice"] is None) or (item["choice"].strip() == ""):
+            if (
+                (item["choice"] is None)
+                or (item["choice"].strip() == "")
+                or (item["choice"] == "null")
+            ):
                 continue
             question_obj = Question.objects.get(id=item["question_id"])
             choice_obj = get_object_or_404(

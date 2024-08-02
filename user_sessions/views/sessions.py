@@ -28,6 +28,8 @@ from user_sessions.utils import get_available_session
 
 @extend_schema(tags=["sessions"])
 class BusinessHoursView(GenericAPIView):
+    "Is Business Open? endpoint"
+
     serializer_class = BusinessHoursSerializer
 
     def get(self, request):
@@ -38,6 +40,8 @@ class BusinessHoursView(GenericAPIView):
 
 @extend_schema(tags=["sessions"])
 class SessionDetailsView(GenericAPIView):
+    "Session details (questions, stake, e.t.c)"
+
     serializer_class = SessionDetailsSerializer
 
     def get(self, request):
@@ -85,7 +89,7 @@ class AvailableSessionView(GenericAPIView):
 
 
 class DuoSessionListView(ListAPIView):
-    """Retrieve a user."""
+    """List DuoSessions"""
 
     queryset = DuoSession.objects.all()
     permission_classes = [IsStaffOrSelfPermission]

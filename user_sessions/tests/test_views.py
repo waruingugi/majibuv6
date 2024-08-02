@@ -125,7 +125,7 @@ class AvailableSessionViewTests(BaseUserAPITestCase):
         self.assertIsNone(cached_value)
 
 
-class DuoSessionRetrieveViewTestCase(BaseUserAPITestCase):
+class DuoSessionListViewTestCase(BaseUserAPITestCase):
     def setUp(self) -> None:
         self.user = self.create_user()
         self.foreign_user = self.create_foreign_user()

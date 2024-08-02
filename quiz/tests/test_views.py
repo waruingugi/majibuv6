@@ -216,7 +216,7 @@ class QuizSubmissionViewTests(BaseUserAPITestCase):
             "result_id": "result123",
             "choices": [
                 {"question_id": "11", "choice": "A"},
-                {"question_id": "22", "choice": ""},
+                {"question_id": "22", "choice": "null"},
                 {"question_id": "33", "choice": ""},
             ],
         }

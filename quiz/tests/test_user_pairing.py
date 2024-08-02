@@ -122,6 +122,19 @@ class PairUsersTestCase(BaseQuizTestCase):
         skewness = self.pair_users.calculate_skewness(results)
         self.assertGreater(skewness, 0)  # Expect a positive skew
 
+    def test_calculate_skewness_no_results(self) -> None:
+        Result.objects.all().delete()
+        Result.objects.create(
+            user=self.user,
+            expires_at=datetime.now()
+            + timedelta(seconds=(SESSION_BUFFER_TIME + settings.SESSION_DURATION)),
+            session=self.session,
+        )
+        results = Result.objects.all().order_by("score")
+
+        skewness = self.pair_users.calculate_skewness(results)
+        self.assertEqual(skewness, 0)
+
     def test_calculate_skewness_negative(self) -> None:
         values = [100, 90, 80, 70, 60, 50, 40, 30, 20, 1]  # Left skewed
         results = []

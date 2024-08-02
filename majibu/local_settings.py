@@ -110,6 +110,9 @@ DATABASES = {
         "HOST": os.environ["POSTGRES_HOST"],
         "PASSWORD": os.environ["POSTGRES_PASSWORD"],
         "CONN_MAX_AGE": 300,  # 5 minutes
+        "OPTIONS": {
+            "options": "-c timezone=Africa/Nairobi",
+        },
     }
 }
 

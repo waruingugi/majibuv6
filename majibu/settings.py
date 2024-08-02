@@ -296,6 +296,9 @@ else:
     import dj_database_url  # noqa
 
     prod_db = dj_database_url.config(conn_max_age=500)
+    prod_db["OPTIONS"] = {
+        "options": "-c timezone=Africa/Nairobi"
+    }  # Set the timezone to Nairobi, Kenya
     DATABASES["default"].update(prod_db)
 
     # Honor the 'X-Forwarded-Proto' header for request.is_secure()

@@ -72,8 +72,17 @@ class PairUsers:
         """
         logger.info("Calculating skewness")
         # Iterate through the QuerySet and add scores to the list
-        scores = [float(result.score) for result in results]
-        return skew(scores)
+        scores = []
+        for result in results:
+            # Skew does not work if scores have 0.0 values
+            if float(result.score) == 0.0:
+                continue
+            scores.append(float(result.score))
+
+        # Skew only works when len of scores is 2 or more.
+        if len(scores) > 1:
+            return float(skew(scores))
+        return 0.0  # Return no skew if scores list is empty
 
     def dynamic_exclusion_percentages(
         self, skewness_value, total_results
