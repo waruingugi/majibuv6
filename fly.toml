@@ -13,6 +13,7 @@ kill_timeout = '10s'
 
 [env]
   DJANGO_SETTINGS_MODULE = 'majibu.settings'
+  TZ = "Africa/Nairobi"
 
 [[services]]
   protocol = 'tcp'

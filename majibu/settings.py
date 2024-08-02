@@ -209,7 +209,7 @@ BUSINESS_IS_OPEN = bool(int(os.environ.get("BUSINESS_IS_OPEN", 1)))
 # SESSION DETAILS
 QUESTIONS_IN_SESSION: int = 5
 SESSION_EXITS_AT: int = 30 * 60  # In seconds
-SESSION_DURATION: int = 30  # In seconds
+SESSION_DURATION: int = 20  # In seconds
 SESSION_PAYOUT_RATIO: float = 1.74  # Ratio of what user will win
 SESSION_STAKE: int = 50  # In KES
 
@@ -296,9 +296,6 @@ else:
     import dj_database_url  # noqa
 
     prod_db = dj_database_url.config(conn_max_age=500)
-    prod_db["OPTIONS"] = {
-        "options": "-c timezone=Africa/Nairobi"
-    }  # Set the timezone to Nairobi, Kenya
     DATABASES["default"].update(prod_db)
 
     # Honor the 'X-Forwarded-Proto' header for request.is_secure()

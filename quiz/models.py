@@ -9,6 +9,10 @@ from commons.models import Base
 from user_sessions.models import Session
 
 
+def get_default_result_exits_at() -> datetime:
+    return datetime.now() + timedelta(seconds=settings.SESSION_EXITS_AT)
+
+
 class Question(Base):
     """Questions Model"""
 
@@ -90,7 +94,7 @@ class Result(Base):
         help_text="If these results can be used to create pair with another user",
     )
     exits_at = models.DateTimeField(
-        default=datetime.now() + timedelta(seconds=settings.SESSION_EXITS_AT),
+        default=get_default_result_exits_at,
         help_text="Time after which the session should be paired or refunded.",
     )
 
