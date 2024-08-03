@@ -32,3 +32,60 @@ mock_compoze_quiz_return_data = [
         ],
     },
 ]
+
+
+mock_paired_duo_session_details = {
+    "id": "21162f8c-92be-4f13-be92-fded525f63ed",
+    "category": "FOOTBALL",
+    "status": "PAIRED",
+    "party_a": {
+        "username": "testuser2",
+        "phone_number": "+25471****781",
+        "score": 75.0,
+        "total_answered": 4,
+        "total_correct": 2,
+        "questions": [
+            {
+                "question": "What is the chemical symbol for water?",
+                "choice": "HVO",
+                "is_correct": False,
+            }
+        ],
+    },
+    "party_b": {
+        "username": "testuser",
+        "phone_number": "+25471****678",
+        "score": 0.0,
+        "total_answered": 0,
+        "total_correct": 0,
+        "questions": [
+            {
+                "question": "What is the chemical symbol for water?",
+                "choice": "H2O",
+                "is_correct": True,
+            }
+        ],
+    },
+}
+
+
+mock_refunded_duo_session_details = {
+    "id": "21162f8c-92be-4f13-be92-fded525f63ed",
+    "category": "FOOTBALL",
+    "status": "PAIRED",
+    "party_a": {
+        "username": "testuser2",
+        "phone_number": "+25471****781",
+        "score": 75.0,
+        "total_answered": 4,
+        "total_correct": 2,
+        "questions": [
+            {
+                "question": "What is the chemical symbol for water?",
+                "choice": "HVO",
+                "is_correct": False,
+            }
+        ],
+    },
+    "party_b": {},
+}

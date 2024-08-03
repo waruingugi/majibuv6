@@ -263,7 +263,7 @@ class GetAvailableSessionTestCase(BaseUserAPITestCase):
 
 
 class GetDuoSessionDetailsTestCase(BaseQuizTestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
 
         self.duo_session = DuoSession.objects.create(
@@ -295,7 +295,11 @@ class GetDuoSessionDetailsTestCase(BaseQuizTestCase):
             choice=self.wrong_choice,
         )
 
-    def test_get_duo_session_details_contains_session_details(self):
+    def tearDown(self) -> None:
+        """Run after each test."""
+        DuoSession.objects.all().delete()
+
+    def test_get_paired_duo_session_details_details(self) -> None:
         data = get_duo_session_details(
             user=self.user, duo_session_id=self.duo_session.id
         )
@@ -313,11 +317,20 @@ class GetDuoSessionDetailsTestCase(BaseQuizTestCase):
         self.assertIn("total_correct", data["party_a"])
         self.assertIn("questions", data["party_a"])
 
-    def test_mask_phone_number(self):
+    def test_get_refunded_duo_session_details_details(self) -> None:
+        self.duo_session.party_b = None
+        self.duo_session.save()
+
+        data = get_duo_session_details(
+            user=self.foreign_user, duo_session_id=self.duo_session.id
+        )
+        self.assertEqual({}, data["party_b"])
+
+    def test_mask_phone_number(self) -> None:
         masked_number = mask_phone_number(str(self.user.phone_number))
         self.assertEqual(masked_number, "+25471****678")
 
-    def test_get_result_answers(self):
+    def test_get_result_answers(self) -> None:
         result_data = get_result_answers(user=self.user, session=self.session)
         self.assertEqual(result_data["username"], self.user.username)
         self.assertEqual(

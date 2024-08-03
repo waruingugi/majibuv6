@@ -7,12 +7,13 @@ from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
 from rest_framework import filters, serializers, status
-from rest_framework.generics import GenericAPIView, ListAPIView
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.generics import GenericAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.response import Response
 
 from commons.errors import ErrorCodes
 from commons.pagination import StandardPageNumberPagination
-from commons.permissions import IsStaffOrSelfPermission
+from commons.permissions import IsDuoSessionPlayer, IsStaffOrSelfPermission
 from commons.utils import is_business_open
 from user_sessions.constants import AVAILABLE_SESSION_EXPIRY_TIME
 from user_sessions.models import DuoSession
@@ -124,18 +125,26 @@ class DuoSessionListView(ListAPIView):
 
 
 @extend_schema(tags=["sessions"])
-class DuoSessionDetailsView(GenericAPIView):
-    "DuoSession details (results for party_a and party_b)"
+class DuoSessionDetailsView(RetrieveAPIView):
+    """DuoSession details (results for party_a and party_b)"""
 
+    lookup_field = "id"
     serializer_class = DuoSessionDetailsSerializer
+    permission_classes = [IsDuoSessionPlayer]
 
-    def get(self, request):
-        """Users use this endpoint to see how they played against their opponent."""
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            data = get_duo_session_details(
-                user=request.user, duo_session_id=serializer.validated_data["id"]
+    def get_object(self):
+        user = self.request.user
+        duo_session_id = self.kwargs.get("id")
+
+        try:
+            DuoSession.objects.get(
+                Q(id=duo_session_id) & (Q(party_a=user) | Q(party_b=user))
             )
-            return Response(data, status=status.HTTP_200_OK)
+        except DuoSession.DoesNotExist:
+            raise PermissionDenied(ErrorCodes.INVALID_DUOSESSION.value)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return get_duo_session_details(user=user, duo_session_id=duo_session_id)
+
+    def retrieve(self, request, *args, **kwargs):
+        duo_session_details = self.get_object()  # type: ignore
+        return Response(duo_session_details, status=status.HTTP_200_OK)

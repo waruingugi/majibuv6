@@ -12,6 +12,10 @@ from commons.constants import DuoSessionStatuses, SessionCategories
 from commons.errors import ErrorCodes
 from commons.tests.base_tests import BaseUserAPITestCase
 from user_sessions.models import DuoSession, Session
+from user_sessions.tests.test_data import (
+    mock_paired_duo_session_details,
+    mock_refunded_duo_session_details,
+)
 
 
 class BusinessHoursViewTests(BaseUserAPITestCase):
@@ -195,3 +199,62 @@ class DuoSessionListViewTestCase(BaseUserAPITestCase):
             response.data["results"][0]["id"],
             str(self.paired_duo_session.id),
         )
+
+
+class DuoSessionDetailsViewTestCase(BaseUserAPITestCase):
+    def setUp(self) -> None:
+        self.session = Session.objects.create(category=SessionCategories.BIBLE.value)
+        self.user = self.create_user()
+        self.foreign_user = self.create_foreign_user()
+
+        self.user_refunded_duo_session = DuoSession.objects.create(
+            party_a=self.user,
+            session=self.session,
+            amount=settings.SESSION_STAKE,
+            status=DuoSessionStatuses.REFUNDED.value,
+        )
+        self.foreign_user_refunded_duo_session = DuoSession.objects.create(
+            party_a=self.foreign_user,
+            session=self.session,
+            amount=settings.SESSION_STAKE,
+            status=DuoSessionStatuses.REFUNDED.value,
+        )
+        self.url = reverse(
+            "sessions:duo-session-details",
+            kwargs={"id": self.user_refunded_duo_session.id},
+        )
+        self.force_authenticate_user()
+
+    @patch("user_sessions.views.sessions.get_duo_session_details")
+    def test_paired_duo_session_details_success(
+        self, mock_get_duo_session_details
+    ) -> None:
+        mock_get_duo_session_details.return_value = mock_paired_duo_session_details
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, mock_paired_duo_session_details)
+
+    @patch("user_sessions.views.sessions.get_duo_session_details")
+    def test_refunded_duo_session_details_success(
+        self, mock_get_duo_session_details
+    ) -> None:
+        mock_get_duo_session_details.return_value = mock_refunded_duo_session_details
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, mock_refunded_duo_session_details)
+
+    @patch("user_sessions.views.sessions.get_duo_session_details")
+    def test_foreign_user_can_not_view_duo_session_details(
+        self, mock_get_duo_session_details
+    ) -> None:
+        mock_get_duo_session_details.return_value = mock_refunded_duo_session_details
+        response = self.client.get(
+            reverse(
+                "sessions:duo-session-details",
+                kwargs={"id": self.foreign_user_refunded_duo_session.id},
+            )
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

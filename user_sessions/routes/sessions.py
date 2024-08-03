@@ -20,7 +20,7 @@ urlpatterns = [
     ),
     path("duo-session/", DuoSessionListView.as_view(), name="duo-session-list"),
     path(
-        "duo-session/detail/",
+        "duo-session/<str:id>/detail/",
         DuoSessionDetailsView.as_view(),
         name="duo-session-details",
     ),

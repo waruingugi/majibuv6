@@ -13,7 +13,7 @@ class ErrorCodes(str, Enum):
         "to play a session."
     )
     CONTEXT_IS_REQUIRED = "Request context is required for validation."
-    INVALID_DUOSESSION = "The requested duosession does not exist."
+    INVALID_DUOSESSION = "The requested duo session does not exist."
     INCORRECT_USERNAME_OR_PASSWORD = (
         "The phone number or password is incorrect. Please try again."
     )
