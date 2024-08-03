@@ -4,6 +4,7 @@ from django.urls import path
 from user_sessions.views.sessions import (
     AvailableSessionView,
     BusinessHoursView,
+    DuoSessionDetailsView,
     DuoSessionListView,
     SessionDetailsView,
 )
@@ -18,4 +19,9 @@ urlpatterns = [
         "avialable-session/", AvailableSessionView.as_view(), name="available-session"
     ),
     path("duo-session/", DuoSessionListView.as_view(), name="duo-session-list"),
+    path(
+        "duo-session/detail/",
+        DuoSessionDetailsView.as_view(),
+        name="duo-session-details",
+    ),
 ]

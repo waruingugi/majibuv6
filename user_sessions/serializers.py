@@ -1,6 +1,8 @@
+from django.db.models import Q
 from rest_framework import serializers
 
 from commons.constants import SessionCategories
+from commons.errors import ErrorCodes
 from user_sessions.models import DuoSession, Session
 from users.serializers import UserReadSerializer
 
@@ -13,6 +15,29 @@ class AvialableSessionSerializer(serializers.Serializer):
 
 class BusinessHoursSerializer(serializers.Serializer):
     is_open = serializers.BooleanField()
+
+
+class DuoSessionDetailsSerializer(serializers.Serializer):
+    id = serializers.CharField()
+
+    def validate(self, data):
+        """Validate requester is in duosession"""
+        id = data.get("id")
+        request = self.context.get("request")
+        if not request:
+            raise serializers.ValidationError(
+                {"detail": ErrorCodes.CONTEXT_IS_REQUIRED.value}
+            )
+
+        user = request.user
+        duo_session = DuoSession.objects.filter(
+            Q(id=id) & (Q(party_a=user) | Q(party_b=user))
+        )
+
+        if not duo_session.exists():
+            raise serializers.ValidationError(
+                {"detail": ErrorCodes.INVALID_DUOSESSION.value}
+            )
 
 
 class SessionDetailsSerializer(serializers.Serializer):

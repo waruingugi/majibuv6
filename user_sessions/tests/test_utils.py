@@ -1,14 +1,19 @@
 from datetime import datetime
+from decimal import Decimal
 from unittest.mock import patch
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 
-from commons.constants import SessionCategories
-from commons.tests.base_tests import BaseUserAPITestCase
-from quiz.models import Result
-from user_sessions.models import Session
+from commons.constants import DuoSessionStatuses, SessionCategories
+from commons.tests.base_tests import BaseQuizTestCase, BaseUserAPITestCase
+from quiz.models import Choice, Result, UserAnswer
+from user_sessions.models import DuoSession, Session
 from user_sessions.utils import (
     get_available_session,
+    get_duo_session_details,
+    get_result_answers,
+    mask_phone_number,
     query_available_active_sessions,
     query_sessions_not_played_by_user_in_category,
 )
@@ -255,3 +260,75 @@ class GetAvailableSessionTestCase(BaseUserAPITestCase):
 
         # Ensure query_sessions_not_played_by_user_in_category is not called
         mock_query_sessions_not_played.assert_not_called()
+
+
+class GetDuoSessionDetailsTestCase(BaseQuizTestCase):
+    def setUp(self):
+        super().setUp()
+
+        self.duo_session = DuoSession.objects.create(
+            party_a=self.foreign_user,
+            party_b=self.user,
+            session=self.session,
+            amount=settings.SESSION_STAKE,
+            status=DuoSessionStatuses.PAIRED.value,
+            winner=self.user,
+        )
+
+        self.result_b = Result.objects.create(
+            user=self.foreign_user,
+            session=self.session,
+            score=Decimal("75.0"),
+            total_answered=4,
+            total_correct=2,
+            expires_at=datetime.now(),
+        )
+
+        self.wrong_choice = Choice.objects.create(
+            question=self.question, choice_text="HVO"
+        )
+
+        UserAnswer.objects.create(
+            user=self.foreign_user,
+            session=self.session,
+            question=self.question,
+            choice=self.wrong_choice,
+        )
+
+    def test_get_duo_session_details_contains_session_details(self):
+        data = get_duo_session_details(
+            user=self.user, duo_session_id=self.duo_session.id
+        )
+
+        self.assertEqual(data["id"], str(self.duo_session.id))
+        self.assertEqual(data["category"], self.session.category)
+        self.assertEqual(data["status"], self.duo_session.status)
+        self.assertIn("party_a", data)
+        self.assertIn("party_b", data)
+
+        self.assertIn("username", data["party_a"])
+        self.assertIn("phone_number", data["party_a"])
+        self.assertIn("score", data["party_a"])
+        self.assertIn("total_answered", data["party_a"])
+        self.assertIn("total_correct", data["party_a"])
+        self.assertIn("questions", data["party_a"])
+
+    def test_mask_phone_number(self):
+        masked_number = mask_phone_number(str(self.user.phone_number))
+        self.assertEqual(masked_number, "+25471****678")
+
+    def test_get_result_answers(self):
+        result_data = get_result_answers(user=self.user, session=self.session)
+        self.assertEqual(result_data["username"], self.user.username)
+        self.assertEqual(
+            result_data["phone_number"], mask_phone_number(str(self.user.phone_number))
+        )
+        self.assertEqual(result_data["score"], self.result.score)
+        self.assertEqual(result_data["total_answered"], self.result.total_answered)
+        self.assertEqual(result_data["total_correct"], self.result.total_correct)
+        self.assertEqual(len(result_data["questions"]), 1)
+        self.assertEqual(
+            result_data["questions"][0]["question"], self.question.question_text
+        )
+        self.assertEqual(result_data["questions"][0]["choice"], self.choice.choice_text)
+        self.assertTrue(result_data["questions"][0]["is_correct"])

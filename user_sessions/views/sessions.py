@@ -19,11 +19,12 @@ from user_sessions.models import DuoSession
 from user_sessions.serializers import (
     AvialableSessionSerializer,
     BusinessHoursSerializer,
+    DuoSessionDetailsSerializer,
     SessionDetailsSerializer,
     StaffDuoSessionListSerializer,
     UserDuoSessionListSerializer,
 )
-from user_sessions.utils import get_available_session
+from user_sessions.utils import get_available_session, get_duo_session_details
 
 
 @extend_schema(tags=["sessions"])
@@ -58,6 +59,8 @@ class SessionDetailsView(GenericAPIView):
 
 @extend_schema(tags=["sessions"])
 class AvailableSessionView(GenericAPIView):
+    """Returns a session id which is then used to receive a quiz."""
+
     serializer_class = AvialableSessionSerializer
 
     def post(self, request, *args, **kwargs):
@@ -117,6 +120,22 @@ class DuoSessionListView(ListAPIView):
         user = self.request.user
         if user.is_staff:
             return DuoSession.objects.all()
-        return DuoSession.objects.filter(
-            Q(party_a=user) | Q(party_b=user) | Q(winner=user)
-        )
+        return DuoSession.objects.filter(Q(party_a=user) | Q(party_b=user))
+
+
+@extend_schema(tags=["sessions"])
+class DuoSessionDetailsView(GenericAPIView):
+    "DuoSession details (results for party_a and party_b)"
+
+    serializer_class = DuoSessionDetailsSerializer
+
+    def get(self, request):
+        """Users use this endpoint to see how they played against their opponent."""
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            data = get_duo_session_details(
+                user=request.user, duo_session_id=serializer.validated_data["id"]
+            )
+            return Response(data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

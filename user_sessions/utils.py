@@ -1,13 +1,70 @@
 import random
 
 from django.contrib.auth import get_user_model
-from django.db.models import Subquery
+from django.db.models import Q, Subquery
 
 from commons.raw_logger import logger
-from quiz.models import Result
-from user_sessions.models import Session
+from quiz.models import Answer, Result, UserAnswer
+from user_sessions.models import DuoSession, Session
 
 User = get_user_model()
+
+
+def get_duo_session_details(*, user, duo_session_id) -> dict:
+    """Compile results between party_a and party_b"""
+    logger.info(f"Compiling duosession details for {user.phone_number}")
+    duo_session = DuoSession.objects.get(
+        Q(id=duo_session_id) & (Q(party_a=user) | Q(party_b=user))
+    )
+    data = {
+        "id": str(duo_session.id),
+        "category": duo_session.session.category,  # type: ignore
+        "status": duo_session.status,
+        "party_a": {},
+        "party_b": {},
+    }
+
+    data["party_a"] = get_result_answers(
+        user=duo_session.party_a, session=duo_session.session
+    )
+    if duo_session.party_b:
+        data["party_b"] = get_result_answers(
+            user=duo_session.party_b, session=duo_session.session
+        )
+    return data
+
+
+def mask_phone_number(phone_number: str) -> str:
+    return f"{phone_number[:6]}****{phone_number[-3:]}"
+
+
+def get_result_answers(*, user, session) -> dict:
+    logger.info("Getting result answers for {user.phone_number}")
+    result = Result.objects.get(user=user, session=session)
+    data = {
+        "username": user.username,
+        "phone_number": mask_phone_number(str(user.phone_number)),
+        "score": float(result.score),  # type: ignore
+        "total_answered": result.total_answered,
+        "total_correct": result.total_correct,
+        "questions": [],
+    }
+
+    user_answers = UserAnswer.objects.filter(user=user, session=session)
+    for answer in user_answers:
+        correct_choice = Answer.objects.get(question=answer.question)
+
+        data["questions"].append(
+            {
+                "question": answer.question.question_text,
+                "choice": answer.choice.choice_text,
+                "is_correct": (
+                    True if correct_choice.choice.id == answer.choice.id else False
+                ),
+            }
+        )
+
+    return data
 
 
 def query_available_active_sessions(*, user, category) -> list:
