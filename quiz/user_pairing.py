@@ -3,6 +3,7 @@ from typing import Iterable
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 from scipy.stats import skew
 
 from commons.constants import DuoSessionStatuses
@@ -183,6 +184,18 @@ class PairUsers:
             return True
         return False
 
+    def have_been_paired_recently(self, party_a, party_b) -> bool:
+        """Prevents system from pairing party_a to same party_b user always."""
+        two_hours_ago = datetime.now() - timedelta(hours=2)
+
+        # Check for sessions where either user_a is party_a and user_b is party_b or vice versa
+        paired_sessions = DuoSession.objects.filter(
+            Q(party_a=party_a, party_b=party_b) | Q(party_a=party_b, party_b=party_a),
+            created_at__gte=two_hours_ago,
+        )
+
+        return paired_sessions.exists()
+
     def find_closest_instance(self, target_instance, instances) -> Result | None:
         """
         Find the instance with the closest score to the target_instance from the given instances.
@@ -203,7 +216,7 @@ class PairUsers:
             if (
                 # In some edge cases caused by delayed or failed celery tasks, a user can have two active results.
                 # The below if statement prevents a user from being paired to their previous result instance.
-                instance.user == closest_instance.user
+                target_instance.user == closest_instance.user
                 or
                 # If closest_instance is eligible for a full refund
                 closest_instance in self.to_exclude
@@ -214,6 +227,10 @@ class PairUsers:
                 # If closest_instance has not answered any question. That is, closest instance
                 # should be partially refunded.
                 closest_instance.total_answered == 0
+                # Can not pair to the same user within two hour time frame
+                or self.have_been_paired_recently(
+                    target_instance.user, closest_instance.user
+                )
             ):
                 logger.info(f"No close instance found for {target_instance.id}")
                 closest_instance = None

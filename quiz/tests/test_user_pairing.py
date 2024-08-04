@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from django.conf import settings
 
@@ -8,6 +8,7 @@ from commons.tests.base_tests import BaseQuizTestCase
 from quiz.models import Result
 from quiz.user_pairing import PairingService
 from user_sessions.constants import SESSION_BUFFER_TIME
+from user_sessions.models import DuoSession
 from users.models import User
 
 
@@ -329,7 +330,10 @@ class PairUsersTestCase(BaseQuizTestCase):
         self.pair_users.to_exclude = []
         self.assertFalse(self.pair_users.is_full_refund(result))
 
-    def test_find_closest_instance_normal_case(self) -> None:
+    @patch("quiz.user_pairing.PairUsers.have_been_paired_recently", return_value=False)
+    def test_find_closest_instance_normal_case(
+        self, mock_have_been_paired_recently
+    ) -> None:
         """Test returns closest instance on normal cases"""
         self.pair_users.to_exclude = []
         target_instance, instance1, instance2 = (
@@ -395,6 +399,24 @@ class PairUsersTestCase(BaseQuizTestCase):
         )
         self.assertIsNone(closest_instance)
 
+    @patch("quiz.user_pairing.PairUsers.have_been_paired_recently", return_value=False)
+    def test_find_closest_instance_on_two_players_only(
+        self, mock_have_been_paired_recently
+    ) -> None:
+        """Assert closest instance is None if it is in to_exclude."""
+        target_instance, instance1 = (MagicMock(Result), MagicMock(Result))
+
+        target_instance.score = 10
+        instance1.score = 8
+        self.pair_users.to_exclude = []
+
+        instances = [instance1]
+
+        closest_instance = self.pair_users.find_closest_instance(
+            target_instance, instances
+        )
+        self.assertEqual(instance1, closest_instance)
+
     def test_find_closest_instance_same_user(self) -> None:
         """Assert if closest instance is the same user, then closest instance becomes None."""
         target_instance, instance1 = MagicMock(Result), MagicMock(Result)
@@ -427,6 +449,51 @@ class PairUsersTestCase(BaseQuizTestCase):
             target_instance, instances
         )
         self.assertIsNone(closest_instance)
+
+
+class HaveBeenPairedRecentlyTestCase(BaseQuizTestCase):
+    def setUp(self):
+        super().setUp()
+        self.pair_users = PairingService
+
+        # Create DuoSession instances
+        two_hours_ago = datetime.now() - timedelta(hours=1, minutes=45)
+        self.duo_session = DuoSession.objects.create(
+            party_a=self.foreign_user,
+            party_b=self.user,
+            session=self.session,
+            amount=settings.SESSION_STAKE,
+            status=DuoSessionStatuses.PAIRED.value,
+            winner=self.user,
+        )
+        self.duo_session.created_at = two_hours_ago
+        self.duo_session.save()
+
+        self.refunded_duo_session = DuoSession.objects.create(
+            party_a=self.user,
+            session=self.session,
+            amount=settings.SESSION_STAKE,
+            status=DuoSessionStatuses.REFUNDED.value,
+        )
+
+    def test_have_been_paired_recently_true(self):
+        # Test for a recent session (should return True)
+        self.assertTrue(
+            self.pair_users.have_been_paired_recently(self.user, self.foreign_user)
+        )
+
+    def test_have_been_paired_recently_false(self):
+        # Test for refunded session (should return False)
+        self.duo_session.delete()
+        self.assertFalse(
+            self.pair_users.have_been_paired_recently(self.user, self.foreign_user)
+        )
+
+    def test_have_never_been_paired(self):
+        # Test for users who have never been paired (should return False)
+        self.assertFalse(
+            self.pair_users.have_been_paired_recently(self.user, self.staff_user)
+        )
 
 
 class TestPairInstancesTestCase(BaseQuizTestCase):

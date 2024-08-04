@@ -91,6 +91,7 @@ class BaseQuizTestCase(TestCase):
     def setUp(self) -> None:
         self.user = BaseUserAPITestCase().create_user()
         self.foreign_user = BaseUserAPITestCase().create_foreign_user()
+        self.staff_user = BaseUserAPITestCase().create_staff_user()
 
         self.question_text = "What is the chemical symbol for water?"
         self.category = SessionCategories.FOOTBALL.value
