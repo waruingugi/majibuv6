@@ -11,16 +11,27 @@ from rest_framework.response import Response
 from commons.permissions import IsStaffOrSelfPermission
 from quiz.models import Result
 from quiz.serializers import (
+    ActiveResultsCountSerializer,
     QuizRequestSerializer,
     QuizResponseSerializer,
     QuizSubmissionSerializer,
     ResultRetrieveSerializer,
 )
-from quiz.utils import CalculateUserScore, compose_quiz
+from quiz.utils import CalculateUserScore, active_results_count, compose_quiz
 from user_sessions.constants import SESSION_BUFFER_TIME
 from user_sessions.models import Session
 
 User = get_user_model()
+
+
+@extend_schema(tags=["sessions"])
+class ActiveResultsCountView(GenericAPIView):
+    serializer_class = ActiveResultsCountSerializer
+
+    def get(self, request, *args, **kwargs):
+        data = active_results_count()
+        serializer = ActiveResultsCountSerializer(data)
+        return Response(serializer.data)
 
 
 @extend_schema(tags=["sessions"])

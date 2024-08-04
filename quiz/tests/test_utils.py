@@ -6,12 +6,61 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from commons.constants import SessionCategories
+from commons.tests.base_tests import BaseUserAPITestCase
 from quiz.models import Answer, Choice, Question, Result, UserAnswer
-from quiz.utils import CalculateUserScore, compose_quiz
+from quiz.utils import CalculateUserScore, active_results_count, compose_quiz
 from user_sessions.constants import SESSION_BUFFER_TIME
 from user_sessions.models import Session
 
 User = get_user_model()
+
+
+class ActiveResultsCountTestCase(BaseUserAPITestCase):
+    def setUp(self) -> None:
+        self.user = self.create_user()
+        self.foreign_user = self.create_foreign_user()
+
+        # Create test sessions with different categories
+        self.session_football = Session.objects.create(
+            category=SessionCategories.FOOTBALL, _questions="q1, q2, q3"
+        )
+        self.session_bible = Session.objects.create(
+            category=SessionCategories.BIBLE, _questions="q4, q5"
+        )
+
+        # Create active Results
+        Result.objects.create(
+            user=self.user, session=self.session_football, expires_at=datetime.now()
+        )
+        Result.objects.create(
+            user=self.user, session=self.session_football, expires_at=datetime.now()
+        )
+        Result.objects.create(
+            user=self.foreign_user,
+            session=self.session_bible,
+            is_active=True,
+            expires_at=datetime.now(),
+        )
+
+        # Create inactive Result
+        Result.objects.create(
+            user=self.user,
+            session=self.session_football,
+            expires_at=datetime.now(),
+            is_active=False,
+        )
+
+    def test_count_active_results(self) -> None:
+        data = active_results_count()
+        self.assertEqual(data[SessionCategories.FOOTBALL.value], 2)
+        self.assertEqual(data[SessionCategories.BIBLE.value], 1)
+
+    def test_no_active_results(self) -> None:
+        # Make all Results inactive
+        Result.objects.update(is_active=False)
+        data = active_results_count()
+        self.assertEqual(data[SessionCategories.FOOTBALL.value], 0)
+        self.assertEqual(data[SessionCategories.BIBLE.value], 0)
 
 
 class ComposeQuizTestCase(TestCase):

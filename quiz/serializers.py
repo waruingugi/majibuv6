@@ -101,3 +101,8 @@ class ResultRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Result
         exclude = ["updated_at", "user", "session", "total", "expires_at"]
+
+
+class ActiveResultsCountSerializer(serializers.Serializer):
+    BIBLE = serializers.IntegerField()
+    FOOTBALL = serializers.IntegerField()

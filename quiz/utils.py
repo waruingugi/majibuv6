@@ -4,12 +4,26 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 
+from commons.constants import SessionCategories
 from commons.raw_logger import logger
 from quiz.models import Answer, Choice, Question, Result, UserAnswer
 from user_sessions.constants import SESSION_BUFFER_TIME
 from user_sessions.models import Session
 
 User = get_user_model()
+
+
+def active_results_count() -> dict:
+    """
+    Returns the count of active DuoSession instances filtered by category.
+    """
+    data = {}
+    for category in SessionCategories:
+        data[category.value] = Result.objects.filter(
+            is_active=True, session__category=category.value
+        ).count()
+
+    return data
 
 
 def compose_quiz(session_id: str) -> list:

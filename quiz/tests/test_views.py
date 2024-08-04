@@ -24,6 +24,34 @@ from user_sessions.models import Session
 from user_sessions.tests.test_data import mock_compoze_quiz_return_data
 
 
+class ActiveResultsCountViewTestCase(BaseUserAPITestCase):
+    def setUp(self) -> None:
+        self.force_authenticate_user()
+        self.url = reverse("quiz:results-count")
+
+        self.active_results_count_data = {"FOOTBALL": 2, "BIBLE": 1}
+
+    @patch("quiz.views.quiz.active_results_count")
+    def test_get_active_results_count(self, mock_active_results_count) -> None:
+        # Mock the return value of the active_results_count function
+        mock_active_results_count.return_value = self.active_results_count_data
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, self.active_results_count_data)
+
+    @patch("quiz.views.quiz.active_results_count")
+    def test_get_active_results_count_empty(self, mock_active_results_count):
+        # Mock the return value of the active_results_count function to return no active results
+        expected_data = {"FOOTBALL": 0, "BIBLE": 0}
+        mock_active_results_count.return_value = expected_data
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, expected_data)
+
+
 class QuizViewTests(BaseUserAPITestCase):
     def setUp(self) -> None:
         self.force_authenticate_user()
