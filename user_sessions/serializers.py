@@ -81,3 +81,14 @@ class DuoSessionDetailsSerializer(serializers.Serializer):
     status = serializers.CharField()
     party_a = UserDetailsSerializer()
     party_b = UserDetailsSerializer()
+
+
+class MobileAdSerializer(serializers.Serializer):
+    image_url = serializers.URLField(
+        max_length=200, allow_blank=False, help_text="URL link to the image"
+    )
+    redirects_to = serializers.URLField(
+        max_length=200,
+        allow_blank=False,
+        help_text="URL the image should redirect to if clicked.",
+    )

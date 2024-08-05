@@ -21,6 +21,7 @@ from user_sessions.serializers import (
     AvialableSessionSerializer,
     BusinessHoursSerializer,
     DuoSessionDetailsSerializer,
+    MobileAdSerializer,
     SessionDetailsSerializer,
     StaffDuoSessionListSerializer,
     UserDuoSessionListSerializer,
@@ -148,3 +149,18 @@ class DuoSessionDetailsView(RetrieveAPIView):
     def retrieve(self, request, *args, **kwargs):
         duo_session_details = self.get_object()  # type: ignore
         return Response(duo_session_details, status=status.HTTP_200_OK)
+
+
+@extend_schema(tags=["sessions"])
+class MobileAdView(GenericAPIView):
+    "Image to be shown on mobile home page"
+
+    serializer_class = MobileAdSerializer
+
+    def get(self, request):
+        data = {
+            "image_url": settings.AD_IMAGE_URL,
+            "redirects_to": settings.AD_REDIRECTS_TO,
+        }
+        serializer = MobileAdSerializer(data)
+        return Response(serializer.data, status=status.HTTP_200_OK)

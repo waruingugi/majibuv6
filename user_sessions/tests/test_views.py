@@ -258,3 +258,25 @@ class DuoSessionDetailsViewTestCase(BaseUserAPITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class MobileAdViewTest(BaseUserAPITestCase):
+    def setUp(self) -> None:
+        self.force_authenticate_user()
+        self.url = reverse(
+            "sessions:mobile-ad",
+        )
+
+    @override_settings(
+        AD_IMAGE_URL="https://example.com/path/to/ad_image.jpg",
+        AD_REDIRECTS_TO="https://example.com/path/to/redirect",
+    )
+    def test_mobile_ad_view(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.data["image_url"], "https://example.com/path/to/ad_image.jpg"
+        )
+        self.assertEqual(
+            response.data["redirects_to"], "https://example.com/path/to/redirect"
+        )

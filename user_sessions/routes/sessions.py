@@ -6,6 +6,7 @@ from user_sessions.views.sessions import (
     BusinessHoursView,
     DuoSessionDetailsView,
     DuoSessionListView,
+    MobileAdView,
     SessionDetailsView,
 )
 
@@ -24,4 +25,5 @@ urlpatterns = [
         DuoSessionDetailsView.as_view(),
         name="duo-session-details",
     ),
+    path("mobile-ad/", MobileAdView.as_view(), name="mobile-ad"),
 ]
