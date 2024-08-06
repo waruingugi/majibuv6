@@ -1,3 +1,4 @@
+from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -217,3 +218,15 @@ class UserListAPIViewTests(BaseUserAPITestCase):
 
         response = client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class LatestAppVersionViewTest(BaseUserAPITestCase):
+    def setUp(self) -> None:
+        self.force_authenticate_user()
+        self.url = reverse("users:latest-app-version")
+
+    @override_settings(LATEST_APP_VERSION="1.0.0")
+    def test_app_version_view(self) -> None:
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["app_version"], "1.0.0")

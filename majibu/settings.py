@@ -206,11 +206,13 @@ AD_REDIRECTS_TO = os.environ.get(
     "AD_REDIRECTS_TO", "https://chat.whatsapp.com/EZ8226SHwkY4REUDtb6TjL"
 )
 
-
 # BUSINESS HOURS
 BUSINESS_OPENS_AT = os.environ.get("BUSINESS_OPENS_AT", "8:00")
 BUSINESS_CLOSES_AT = os.environ.get("BUSINESS_OPENS_AT", "16:00")
 BUSINESS_IS_OPEN = bool(int(os.environ.get("BUSINESS_IS_OPEN", 1)))
+
+# LATEST APP VERSION
+LATEST_APP_VERSION = os.environ.get("LATEST_APP_VERSION", "1.0.0")
 
 # SESSION DETAILS
 QUESTIONS_IN_SESSION: int = 5

@@ -36,7 +36,7 @@ SESSION_LOSS_MESSAGE = (
 SESSION_REFUND_MESSAGE = (
     f"You've received a {int(settings.SESSION_REFUND_RATIO * 100)}% refund of "
     "KES {} for your {} session. "
-    "Time to chase another victory on Majibu."
+    "Time to chase a win in Majibu!"
 )
 
 # Message sent to user on partial refund

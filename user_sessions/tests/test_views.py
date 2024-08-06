@@ -271,7 +271,7 @@ class MobileAdViewTest(BaseUserAPITestCase):
         AD_IMAGE_URL="https://example.com/path/to/ad_image.jpg",
         AD_REDIRECTS_TO="https://example.com/path/to/redirect",
     )
-    def test_mobile_ad_view(self):
+    def test_mobile_ad_view(self) -> None:
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
