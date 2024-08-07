@@ -40,7 +40,7 @@ class PairUsers:
                 self.queue_ordered_by_score.count(),  # type: ignore
             )
 
-            self.to_pair, self.to_exclude = self.get_exclusions(
+            self.to_exclude = self.get_exclusions(
                 self.queue_ordered_by_score,
                 self.bottom_exclusion_count,
                 self.top_exclusion_count,
@@ -127,7 +127,7 @@ class PairUsers:
 
     def get_exclusions(
         self, results, bottom_exclusion_count, top_exclusion_count
-    ) -> tuple[list, list]:
+    ) -> list:
         """
         Determine which results to exclude from the bottom and top.
         """
@@ -137,12 +137,13 @@ class PairUsers:
         # Convert results to list for negative indexing
         results_list = list(results)
         to_exclude_bottom = results_list[:bottom_exclusion_count]
-        to_exclude_top = results_list[-top_exclusion_count:]
+        to_exclude_top = (
+            [] if top_exclusion_count == 0 else results_list[-top_exclusion_count:]
+        )
 
         to_exclude = list(to_exclude_bottom) + list(to_exclude_top)
-        to_pair = results_list[bottom_exclusion_count:-top_exclusion_count]
 
-        return to_pair, to_exclude
+        return to_exclude
 
     def is_ready_for_pairing(self, result) -> bool:
         """
@@ -177,6 +178,7 @@ class PairUsers:
         """If the exit_at field is past the current time, simply refund the user
         and do not search for an instance to pair with."""
         logger.info(f"Checking if result id: {result.id} is a full refund.")
+
         if (
             result.exits_at < datetime.now()  # If exit_at field is past current time
             or result in self.to_exclude  # Or if result does not meet pairing threshold

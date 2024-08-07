@@ -44,25 +44,31 @@ class PairUsersTestCase(BaseQuizTestCase):
         bottom_exclusion_count = 2
         top_exclusion_count = 2
 
-        to_pair, to_exclude = self.pair_users.get_exclusions(
+        to_exclude = self.pair_users.get_exclusions(
             results, bottom_exclusion_count, top_exclusion_count
         )
         results_list = list(results)
 
         self.assertEqual(len(to_exclude), bottom_exclusion_count + top_exclusion_count)
-        self.assertEqual(
-            len(to_pair),
-            results.count() - (bottom_exclusion_count + top_exclusion_count),
-        )
         self.assertListEqual(
             list(to_exclude),
             list(results_list[:bottom_exclusion_count])
             + list(results_list[-top_exclusion_count:]),
         )
-        self.assertListEqual(
-            list(to_pair),
-            list(results_list[bottom_exclusion_count:-top_exclusion_count]),
+
+    def test_get_exclusions_excludes_no_results(self) -> None:
+        """Test the get_exclusions method"""
+        results = Result.objects.filter(session__category=self.category).order_by(
+            "score"
         )
+        bottom_exclusion_count = 0
+        top_exclusion_count = 0
+
+        to_exclude = self.pair_users.get_exclusions(
+            results, bottom_exclusion_count, top_exclusion_count
+        )
+
+        self.assertEqual(len(to_exclude), 0)
 
     def test_dynamic_exclusion_percentages_positive_skew(self) -> None:
         (

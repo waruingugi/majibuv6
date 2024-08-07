@@ -208,7 +208,7 @@ AD_REDIRECTS_TO = os.environ.get(
 
 # BUSINESS HOURS
 BUSINESS_OPENS_AT = os.environ.get("BUSINESS_OPENS_AT", "8:00")
-BUSINESS_CLOSES_AT = os.environ.get("BUSINESS_OPENS_AT", "16:00")
+BUSINESS_CLOSES_AT = os.environ.get("BUSINESS_CLOSES_AT", "16:00")
 BUSINESS_IS_OPEN = bool(int(os.environ.get("BUSINESS_IS_OPEN", 1)))
 
 # LATEST APP VERSION
