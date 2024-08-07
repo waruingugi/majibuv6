@@ -201,7 +201,7 @@ REST_FRAMEWORK = {
 }
 
 # AD IMAGE URL
-AD_IMAGE_URL = os.environ.get("AD_IMAGE_URL", "https://iili.io/d5Sjarx.png")
+AD_IMAGE_URL = os.environ.get("AD_IMAGE_URL", "https://iili.io/da9qqCP.png")
 AD_REDIRECTS_TO = os.environ.get(
     "AD_REDIRECTS_TO", "https://chat.whatsapp.com/EZ8226SHwkY4REUDtb6TjL"
 )
