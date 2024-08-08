@@ -135,7 +135,7 @@ def initiate_mpesa_stkpush_payment(
 
 def trigger_mpesa_stkpush_payment(amount: int, phone_number: str) -> Optional[Dict]:
     """Send Mpesa STK push."""
-    logger.info(f"Trigerring M-Pesa STKPush for KES {amount} to {phone_number}")
+    logger.info(f"Trigerring M-Pesa STKPush for Ksh {amount} to {phone_number}")
 
     business_short_code = settings.MPESA_BUSINESS_SHORT_CODE
     party_b = settings.MPESA_BUSINESS_SHORT_CODE
