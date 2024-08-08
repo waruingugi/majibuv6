@@ -1,6 +1,5 @@
 import json
 
-from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -12,16 +11,15 @@ from accounts.constants import (
 )
 from accounts.models import MpesaPayment, Withdrawal
 from accounts.serializers.transactions import TransactionCreateSerializer
+from commons.constants import User
 from commons.raw_logger import logger
 from commons.tasks import send_push
 from commons.utils import calculate_b2c_withdrawal_charge
 from notifications.constants import NotificationTypes, PushNotifications
 
-User = get_user_model()
-
 
 @receiver(post_save, sender=Withdrawal)
-def create_withdrawal_transaction_instance(sender, instance, created, **kwargs):
+def create_withdrawal_transaction_instance(sender, instance, created, **kwargs) -> None:
     if created:  # Executes on model creation ONLY
         user = User.objects.filter(phone_number=instance.phone_number).first()
 

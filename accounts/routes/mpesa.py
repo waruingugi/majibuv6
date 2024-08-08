@@ -12,27 +12,27 @@ app_name = "mpesa"
 
 urlpatterns = [
     path(
-        "payments/withdrawal/timeout/",
+        "withdrawal/timeout/",
         WithdrawalRequestTimeoutView.as_view(),
         name="withdrawal-timeout",
     ),
     path(
-        "payments/withdrawal/result/",
+        "withdrawal/result/",
         WithdrawalResultView.as_view(),
         name="withdrawal-result",
     ),
     path(
-        "payments/stkpush/callback/",
+        "stkpush/callback/",
         STKPushCallbackView.as_view(),
         name="stkpush-callback",
     ),
     path(
-        "payments/stkpush/trigger/",
+        "stkpush/trigger/",
         TriggerSTKPushView.as_view(),
         name="trigger-stkpush",
     ),
     path(
-        "payments/withdrawal/request/",
+        "withdrawal/request/",
         WithdrawalRequestView.as_view(),
         name="trigger-withdrawal",
     ),

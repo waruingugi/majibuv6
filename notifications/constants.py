@@ -47,3 +47,7 @@ class PushNotifications:
             "You've successfully withdrawn Ksh{} from your account. "
             "Transaction cost Ksh{}. New balance is Ksh{}."
         )
+
+    class SESSION_RESULTS:
+        title = "Your results are ready."
+        message = "Please check Majibu app for more details."

@@ -28,6 +28,8 @@ urlpatterns = [
     path("api/", include("users.api")),
     path("api/", include("accounts.api")),
     path("api/", include("notifications.api")),
+    path("api/", include("user_sessions.api")),
+    path("api/", include("quiz.api")),
     # Swagger documentation
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(

@@ -31,7 +31,7 @@ PAYBILL_DEPOSIT_DESCRIPTION = "Deposit of Ksh {} for account {} using M-Pesa pay
 PAYBILL_B2C_DESCRIPTION = "Payment of Ksh {} for account {} using B2C payment."
 
 # Withdrawal to play session description
-SESSION_WITHDRAWAL_DESCRIPTION = "Withdrawal by user: {} for session id: {}."
+SESSION_WITHDRAWAL_DESCRIPTION = "Withdrawal by user: {} for {} session."
 
 # Deposit from winning a session description
 SESSION_WIN_DESCRIPION = "Deposit to user: {} for winning session id: {}"

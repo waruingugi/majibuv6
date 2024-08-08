@@ -8,15 +8,12 @@ from notifications.constants import (
     NotificationTypes,
 )
 from notifications.models import Notification
-from users.models import User
 
 
 class NotificationListViewTests(BaseUserAPITestCase):
     def setUp(self) -> None:
         self.user = self.create_user()
-        self.foreign_user = User.objects.create_user(
-            phone_number="+254713476781", password="password456", username="testuser2"
-        )
+        self.foreign_user = self.create_foreign_user()
 
         self.notification1 = Notification.objects.create(
             type=NotificationTypes.MARKETING.value,

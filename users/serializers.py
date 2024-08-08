@@ -230,3 +230,7 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
             phone_number=data.get("phone_number"), otp_code=data.get("otp")
         )
         return data
+
+
+class LatestAppVersionSerializer(serializers.Serializer):
+    app_version = serializers.CharField()

@@ -1,11 +1,19 @@
+from django.conf import settings
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters
-from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveUpdateAPIView
+from rest_framework import filters, status
+from rest_framework.generics import (
+    CreateAPIView,
+    GenericAPIView,
+    ListAPIView,
+    RetrieveUpdateAPIView,
+)
+from rest_framework.response import Response
 
 from commons.pagination import StandardPageNumberPagination
 from commons.permissions import IsStaffOrSelfPermission, IsStaffPermission
 from users.models import User
 from users.serializers import (
+    LatestAppVersionSerializer,
     StaffUserCreateSerializer,
     StaffUserRetrieveUpdateSerializer,
     UserListSerializer,
@@ -49,3 +57,15 @@ class UserRetrieveUpdateView(RetrieveUpdateAPIView):
         if self.request.user.is_staff:
             return StaffUserRetrieveUpdateSerializer
         return UserRetrieveUpdateSerializer
+
+
+class LatestAppVersionView(GenericAPIView):
+    """Returns the latest app version recognized by the API.
+    Users can not use app until they update to latest app version"""
+
+    serializer_class = LatestAppVersionSerializer
+
+    def get(self, request, *args, **kwargs):
+        data = {"app_version": settings.LATEST_APP_VERSION}
+        serializer = LatestAppVersionSerializer(data)
+        return Response(serializer.data, status=status.HTTP_200_OK)

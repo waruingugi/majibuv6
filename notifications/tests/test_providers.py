@@ -1,14 +1,10 @@
 from unittest.mock import Mock, patch
 
-from django.contrib.auth import get_user_model
-
 from commons.tests.base_tests import BaseUserAPITestCase
 from notifications.constants import Messages, NotificationTypes, PushNotifications
 from notifications.models import Notification
 from notifications.push import OneSignal
 from notifications.sms import HostPinnacleSMS
-
-User = get_user_model()
 
 
 class OneSignalPushTest(BaseUserAPITestCase):

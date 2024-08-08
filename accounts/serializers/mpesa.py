@@ -1,4 +1,3 @@
-from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from rest_framework import serializers
 
@@ -12,8 +11,6 @@ from commons.errors import ErrorCodes
 from commons.raw_logger import logger
 from commons.serializers import UserPhoneNumberField
 from commons.utils import calculate_b2c_withdrawal_charge, md5_hash
-
-User = get_user_model()
 
 
 class WithdrawAmountSerializer(serializers.Serializer):

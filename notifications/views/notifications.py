@@ -1,8 +1,7 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from notifications.models import Notification
 from notifications.serializers import (
@@ -33,7 +32,9 @@ class NotificationListView(ListAPIView):
         return Notification.objects.filter(user=user)  # type: ignore
 
 
-class UnreadNotificationCountView(APIView):
+class UnreadNotificationCountView(GenericAPIView):
+    serializer_class = UnreadNotificationCountSerializer
+
     def get(self, request, *args, **kwargs):
         user = request.user
         count = Notification.objects.filter(user=user, is_read=False).count()
@@ -41,7 +42,9 @@ class UnreadNotificationCountView(APIView):
         return Response(serializer.data)
 
 
-class MarkNotificationsReadView(APIView):
+class MarkNotificationsReadView(GenericAPIView):
+    serializer_class = MarkNotificationsReadSerializer
+
     def patch(self, request, *args, **kwargs):
         serializer = MarkNotificationsReadSerializer(data=request.data)
         if serializer.is_valid():

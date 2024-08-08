@@ -1,9 +1,9 @@
 from __future__ import absolute_import, unicode_literals
 
 import os
-from typing import Any
 
 from celery import Celery
+from celery.schedules import crontab
 from django.conf import settings
 
 # Set the default Django settings module for the 'celery' program
@@ -21,6 +21,13 @@ app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
 
 # Period tasks in the system
-scheduled_tasks: dict[str, Any] = {}
-
-app.conf.update({"beat_schedule": scheduled_tasks})
+app.conf.beat_schedule = {
+    # Run a period task that pairs users, this is the heart of the system
+    # Name of the scheduler
+    "pair-users-period-task": {
+        # Task name which we have created in quiz.tasks
+        "task": "pairing_service",
+        # Run every 3 minutes
+        "schedule": crontab(minute="*/3"),
+    },
+}

@@ -59,6 +59,8 @@ INSTALLED_APPS = [
     "commons",
     "notifications",
     "accounts",
+    "user_sessions",
+    "quiz",
 ]
 
 MIDDLEWARE = [
@@ -164,7 +166,7 @@ CACHES = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=7),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "AUTH_HEADER_TYPES": ("Bearer",),
     "AUTH_TOKEN_CLASSES": (
@@ -188,6 +190,33 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_PAGINATION_CLASS": "commons.pagination.StandardPageNumberPagination",
 }
+
+# AD IMAGE URL
+AD_IMAGE_URL = os.environ.get("AD_IMAGE_URL", "https://iili.io/da9qqCP.png")
+AD_REDIRECTS_TO = os.environ.get(
+    "AD_REDIRECTS_TO", "https://chat.whatsapp.com/EZ8226SHwkY4REUDtb6TjL"
+)
+
+# BUSINESS HOURS
+BUSINESS_OPENS_AT = os.environ.get("BUSINESS_OPENS_AT", "8:00")
+BUSINESS_CLOSES_AT = os.environ.get("BUSINESS_CLOSES_AT", "16:00")
+BUSINESS_IS_OPEN = bool(int(os.environ.get("BUSINESS_IS_OPEN", 1)))
+
+# LATEST APP VERSION
+LATEST_APP_VERSION = os.environ.get("LATEST_APP_VERSION", "1.0.0")
+
+# SESSION DETAILS
+QUESTIONS_IN_SESSION: int = 5
+SESSION_EXITS_AT: int = 30 * 60  # In seconds
+SESSION_DURATION: int = 20  # In seconds
+SESSION_PAYOUT_RATIO: float = 1.74  # Ratio of what user will win
+SESSION_STAKE: int = 50  # In KES
+
+SESSION_CORRECT_ANSWERED_WEIGHT = 0.8
+SESSION_TOTAL_ANSWERED_WEIGHT = 0.2
+
+MODERATED_LOWEST_SCORE: float = 70.0
+MODERATED_HIGHEST_SCORE: float = 85.0
 
 # Celery settings
 CELERY_CACHE_BACKEND = "default"
