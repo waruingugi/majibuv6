@@ -20,7 +20,7 @@ PARTIALLY_REFUND_SESSION_DESCRIPTION = (
 
 # Message sent to user on winning a session
 SESSION_WIN_MESSAGE = (
-    "Congrats, You won KES {} for your {} session. "
+    "Congrats, You won Ksh {} for your {} session. "
     "Seems like you've got the skills - "
     "turn this into a winning streak by playing another session."
 )
@@ -35,13 +35,13 @@ SESSION_LOSS_MESSAGE = (
 # Message sent to user on refund
 SESSION_REFUND_MESSAGE = (
     f"You've received a {int(settings.SESSION_REFUND_RATIO * 100)}% refund of "
-    "KES {} for your {} session. "
+    "Ksh {} for your {} session. "
     "Time to chase a win in Majibu!"
 )
 
 # Message sent to user on partial refund
 SESSION_PARTIAL_REFUND_MESSAGE = (
     f"You've received a {int(settings.SESSION_PARTIAL_REFUND_RATIO * 100)}% partial refund of "
-    "KES {} for your {} session. "
+    "Ksh {} for your {} session. "
     "Please attempt atleast one question to be paired or to receive a full refund."
 )

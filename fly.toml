@@ -40,9 +40,10 @@ kill_timeout = '10s'
     grace_period = '1s'
 
 [[vm]]
-  memory = '512mb'
+  memory = '1GB'
   cpu_kind = 'shared'
   cpus = 1
+  size = "shared-cpu-1x"
 
 [[statics]]
   guest_path = '/app/static'
