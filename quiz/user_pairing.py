@@ -186,6 +186,15 @@ class PairUsers:
             return True
         return False
 
+    # TODO: Remove this once we have sustainable number of users
+    def is_pool_below_threshold(self, queue_ordered_by_score) -> bool:
+        """If there are more than 2 users in that category, then we can pair."""
+        no_of_users = queue_ordered_by_score.count()
+        logger.info(f"Number of users in session: {no_of_users}")
+        if no_of_users > 2:
+            return True
+        return False
+
     def have_been_paired_recently(self, party_a, party_b) -> bool:
         """Prevents system from pairing party_a to same party_b user always."""
         two_hours_ago = datetime.now() - timedelta(hours=2)
@@ -268,6 +277,10 @@ class PairUsers:
                     instances_to_deactivate = [party_a]
 
                 elif self.is_full_refund(result):
+                    duo_session_status = DuoSessionStatuses.REFUNDED.value
+                    instances_to_deactivate = [party_a]
+
+                elif self.is_pool_below_threshold(queue_ordered_by_score):
                     duo_session_status = DuoSessionStatuses.REFUNDED.value
                     instances_to_deactivate = [party_a]
 
