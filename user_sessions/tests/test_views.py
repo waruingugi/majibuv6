@@ -28,7 +28,7 @@ class BusinessHoursViewTests(BaseUserAPITestCase):
     def test_business_is_open(self, mock_datetime) -> None:
         """Assert that if setting is True, business opens automatically."""
         # Mock the current time to be within business hours
-        mock_datetime.now.return_value = datetime(2024, 7, 22, 11, 0)
+        mock_datetime.now.return_value = datetime(2024, 7, 22, 13, 0)
         mock_datetime.side_effect = lambda *args, **kw: datetime(*args, **kw)
 
         response = self.client.get(self.url)
@@ -50,7 +50,7 @@ class BusinessHoursViewTests(BaseUserAPITestCase):
     @patch("commons.utils.datetime")
     def test_business_closed_before_opening_time(self, mock_datetime) -> None:
         # Mock the current time to be before business hours
-        mock_datetime.now.return_value = datetime(2024, 7, 22, 7, 0)
+        mock_datetime.now.return_value = datetime(2024, 7, 22, 11, 0)
         mock_datetime.side_effect = lambda *args, **kw: datetime(*args, **kw)
 
         response = self.client.get(self.url)
@@ -60,7 +60,7 @@ class BusinessHoursViewTests(BaseUserAPITestCase):
     @patch("commons.utils.datetime")
     def test_business_closed_after_closing_time(self, mock_datetime) -> None:
         # Mock the current time to be after business hours
-        mock_datetime.now.return_value = datetime(2024, 7, 22, 18, 0)
+        mock_datetime.now.return_value = datetime(2024, 7, 22, 19, 30)
         mock_datetime.side_effect = lambda *args, **kw: datetime(*args, **kw)
 
         response = self.client.get(self.url)
