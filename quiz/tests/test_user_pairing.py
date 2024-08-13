@@ -258,6 +258,22 @@ class PairUsersTestCase(BaseQuizTestCase):
         )
         self.assertTrue(self.pair_users.is_ready_for_pairing(result))
 
+    def test_is_pool_below_threshold(self) -> None:
+        """Test if is_enough_users_to_pair returns correct value."""
+        self.assertTrue(
+            self.pair_users.is_pool_below_threshold(
+                queue_ordered_by_score=Result.objects.all().order_by("score")
+            )
+        )
+
+        # Now delete all results, and assert False is returned
+        Result.objects.all().delete()
+        self.assertFalse(
+            self.pair_users.is_pool_below_threshold(
+                queue_ordered_by_score=Result.objects.all().order_by("score")
+            )
+        )
+
     def test_is_partial_refund_no_answers(self) -> None:
         """
         Test if is_partial_refund returns True when total_answered is 0.
@@ -546,6 +562,7 @@ class TestPairInstancesTestCase(BaseQuizTestCase):
         self.pair_users.is_partial_refund = MagicMock()  # type: ignore
         self.pair_users.is_full_refund = MagicMock()  # type: ignore
         self.pair_users.create_duo_session = MagicMock()  # type: ignore
+        self.pair_users.is_pool_below_threshold = MagicMock()  # type: ignore
 
     def tearDown(self) -> None:
         """Run after each test."""
@@ -598,6 +615,7 @@ class TestPairInstancesTestCase(BaseQuizTestCase):
         """Assert paired duo session is created when an instance has a valid close instance."""
         self.pair_users.is_partial_refund.return_value = False  # type: ignore
         self.pair_users.is_full_refund.return_value = False  # type: ignore
+        self.pair_users.is_pool_below_threshold.return_value = False  # type: ignore
 
         self.pair_users.find_closest_instance = MagicMock()  # type: ignore
         self.pair_users.find_closest_instance.return_value = self.result4
