@@ -191,7 +191,7 @@ class PairUsers:
         """If there are more than 2 users in that category, then we can pair."""
         no_of_users = queue_ordered_by_score.count()
         logger.info(f"Number of users in session: {no_of_users}")
-        if no_of_users > 2:
+        if no_of_users > 5:
             return True
         return False
 
