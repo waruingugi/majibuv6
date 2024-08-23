@@ -78,7 +78,7 @@ jobs:
                 POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
                 POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
                 POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-                REDIS_URL: redis://redis:6379/?db=0
+                REDIS_URL: ${{ secrets.REDIS_URL }}
                 SECRET_KEY: ${{ secrets.SECRET_KEY }}
                 ONESIGNAL_APP_ID: ""
                 ONESIGNAL_API_KEY: ""
