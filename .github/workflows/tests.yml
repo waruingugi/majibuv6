@@ -9,44 +9,11 @@ on:
     # Trigger workflow on push
     push:
 
-# Global environment variables
-env:
-    DEBUG: 1
-    HOST_PINNACLE_USER_ID: ""
-    HOST_PINNACLE_PASSWORD: ""
-    HOST_PINNACLE_SENDER_ID: ""
-    PAGE_SIZE: 50
-    MAXIMUM_PAGE_SIZE: 100
-    MPESA_BUSINESS_SHORT_CODE: ""
-    MPESA_PASS_KEY: ""
-    MPESA_TOKEN_URL: ""
-    MPESA_STKPUSH_URL: ""
-    MPESA_STKPUSH_QUERY_URL: ""
-    MPESA_CONSUMER_KEY: ""
-    MPESA_SECRET: ""
-    MPESA_CALLBACK_URL: ""
-    MPESA_B2C_SHORT_CODE: ""
-    MPESA_B2C_CONSUMER_KEY: ""
-    MPESA_B2C_SECRET: ""
-    MPESA_B2C_URL: ""
-    MPESA_B2C_PASSWORD: ""
-    MPESA_B2C_INITIATOR_NAME: ""
-    MPESA_B2C_QUEUE_TIMEOUT_URL: ""
-    MPESA_B2C_RESULT_URL: ""
-    POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-    POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-    POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
-    POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-    REDIS_URL: ${{ secrets.REDIS_URL }}
-    SECRET_KEY: ${{ secrets.SECRET_KEY }}
-    ONESIGNAL_APP_ID: ""
-    ONESIGNAL_API_KEY: ""
-    WITHDRAWAL_BUFFER_PERIOD: ${{ secrets.WITHDRAWAL_BUFFER_PERIOD }}
-
 jobs:
-    repo-setup:
-        name: Setup Repository
+    unit-testing:
+        name: Run Unit Tests
         runs-on: ubuntu-latest
+        timeout-minutes: 3
         container:
             image: python:3.10
 
@@ -84,3 +51,35 @@ jobs:
 
             - name: Run Tests
               run: python manage.py test
+              env:
+                DEBUG: 1
+                HOST_PINNACLE_USER_ID: ""
+                HOST_PINNACLE_PASSWORD: ""
+                HOST_PINNACLE_SENDER_ID: ""
+                PAGE_SIZE: 50
+                MAXIMUM_PAGE_SIZE: 100
+                MPESA_BUSINESS_SHORT_CODE: ""
+                MPESA_PASS_KEY: ""
+                MPESA_TOKEN_URL: ""
+                MPESA_STKPUSH_URL: ""
+                MPESA_STKPUSH_QUERY_URL: ""
+                MPESA_CONSUMER_KEY: ""
+                MPESA_SECRET: ""
+                MPESA_CALLBACK_URL: ""
+                MPESA_B2C_SHORT_CODE: ""
+                MPESA_B2C_CONSUMER_KEY: ""
+                MPESA_B2C_SECRET: ""
+                MPESA_B2C_URL: ""
+                MPESA_B2C_PASSWORD: ""
+                MPESA_B2C_INITIATOR_NAME: ""
+                MPESA_B2C_QUEUE_TIMEOUT_URL: ""
+                MPESA_B2C_RESULT_URL: ""
+                POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+                POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+                POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+                POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+                REDIS_URL: ${{ secrets.REDIS_URL }}
+                SECRET_KEY: ${{ secrets.SECRET_KEY }}
+                ONESIGNAL_APP_ID: ""
+                ONESIGNAL_API_KEY: ""
+                WITHDRAWAL_BUFFER_PERIOD: ${{ secrets.WITHDRAWAL_BUFFER_PERIOD }}
