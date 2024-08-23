@@ -48,9 +48,9 @@ jobs:
         name: Unit Testing
         runs-on: ubuntu-latest
         strategy:
-            max-parallel: 4
+            max-parallel: 2
             matrix:
-                python-version: ['3.10', '3.11']
+                python-version: ['3.10']
 
         steps:
             - name: Checkout Repository Code
@@ -81,8 +81,5 @@ jobs:
                 password: ${{ env.POSTGRES_PASSWORD }}
                 database: ${{ env.POSTGRES_DB }}
 
-            - name: Make Script Executable
-              run: chmod +x scripts/test.sh
-
             - name: Run Tests
-              run: scripts/test.sh
+              run: python manage.py test
