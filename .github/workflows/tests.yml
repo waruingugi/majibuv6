@@ -38,3 +38,6 @@ jobs:
               with:
                 redis-version: '7.2'
                 auto-start: 'true'
+
+            - name: Make Script Executable
+              run: chmod +x scripts/test.sh
