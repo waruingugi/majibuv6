@@ -9,6 +9,17 @@ on:
     # Trigger workflow on push
     push:
 
+# Global environment variables
+env:
+    DEBUG: 1
+    POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+    POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+    POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+    POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+    REDIS_URL: ${{ secrets.REDIS_URL }}
+    SECRET_KEY: ${{ secrets.SECRET_KEY }}
+    WITHDRAWAL_BUFFER_PERIOD: ${{ secrets.WITHDRAWAL_BUFFER_PERIOD }}
+
 jobs:
     unit-testing:
         name: Unit Testing
@@ -43,10 +54,5 @@ jobs:
             - name: Make Script Executable
               run: chmod +x scripts/test.sh
 
-            - name: Load all secrets as environment variables
-              run: |
-                for secret in $(env | grep ^ACTIONS_RUNTIME_TOKEN= -v | awk -F= '{print $1}'); do
-                echo "$secret=${{ secrets[secret] }}" >> $GITHUB_ENV
-                done
             - name: Run Tests
               run: scripts/test.sh
