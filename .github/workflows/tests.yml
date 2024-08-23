@@ -41,7 +41,7 @@ env:
     SECRET_KEY: ${{ secrets.SECRET_KEY }}
     ONESIGNAL_APP_ID: ""
     ONESIGNAL_API_KEY: ""
-    WITHDRAWAL_BUFFER_PERIOD: 30
+    WITHDRAWAL_BUFFER_PERIOD: ${{ secrets.WITHDRAWAL_BUFFER_PERIOD }}
 
 jobs:
     unit-testing:
@@ -73,6 +73,13 @@ jobs:
               with:
                 redis-version: '7.2'
                 auto-start: 'true'
+
+            - name: Setup Postgres
+              uses: ikalnytskyi/action-setup-postgres@v6
+              with:
+                username: ${{ env.POSTGRES_USER }}
+                password: ${{ env.POSTGRES_PASSWORD }}
+                database: ${{ env.POSTGRES_DB }}
 
             - name: Make Script Executable
               run: chmod +x scripts/test.sh
