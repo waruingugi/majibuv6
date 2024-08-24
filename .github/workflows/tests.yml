@@ -50,7 +50,7 @@ jobs:
                 pip install -r requirements.txt
 
             - name: Run Tests
-              run: python manage.py test
+              run: coverage run manage.py test
               env:
                 DEBUG: 1
                 HOST_PINNACLE_USER_ID: ""
@@ -83,6 +83,3 @@ jobs:
                 ONESIGNAL_APP_ID: ""
                 ONESIGNAL_API_KEY: ""
                 WITHDRAWAL_BUFFER_PERIOD: ${{ secrets.WITHDRAWAL_BUFFER_PERIOD }}
-
-            - name: Run Coverage Report
-              run: coverage report -m
