@@ -49,39 +49,39 @@ jobs:
                 python -m pip install --upgrade pip
                 pip install -r requirements.txt
 
-                - name: Create Environment Variables File
-                run: |
-                  echo "DEBUG=1" >> .env.test
-                  echo "HOST_PINNACLE_USER_ID=" >> .env.test
-                  echo "HOST_PINNACLE_PASSWORD=" >> .env.test
-                  echo "HOST_PINNACLE_SENDER_ID=" >> .env.test
-                  echo "PAGE_SIZE=50" >> .env.test
-                  echo "MAXIMUM_PAGE_SIZE=100" >> .env.test
-                  echo "MPESA_BUSINESS_SHORT_CODE=" >> .env.test
-                  echo "MPESA_PASS_KEY=" >> .env.test
-                  echo "MPESA_TOKEN_URL=" >> .env.test
-                  echo "MPESA_STKPUSH_URL=" >> .env.test
-                  echo "MPESA_STKPUSH_QUERY_URL=" >> .env.test
-                  echo "MPESA_CONSUMER_KEY=" >> .env.test
-                  echo "MPESA_SECRET=" >> .env.test
-                  echo "MPESA_CALLBACK_URL=" >> .env.test
-                  echo "MPESA_B2C_SHORT_CODE=" >> .env.test
-                  echo "MPESA_B2C_CONSUMER_KEY=" >> .env.test
-                  echo "MPESA_B2C_SECRET=" >> .env.test
-                  echo "MPESA_B2C_URL=" >> .env.test
-                  echo "MPESA_B2C_PASSWORD=" >> .env.test
-                  echo "MPESA_B2C_INITIATOR_NAME=" >> .env.test
-                  echo "MPESA_B2C_QUEUE_TIMEOUT_URL=" >> .env.test
-                  echo "MPESA_B2C_RESULT_URL=" >> .env.test
-                  echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env.test
-                  echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env.test
-                  echo "POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}" >> .env.test
-                  echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env.test
-                  echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .env.test
-                  echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env.test
-                  echo "ONESIGNAL_APP_ID=" >> .env.test
-                  echo "ONESIGNAL_API_KEY=" >> .env.test
-                  echo "WITHDRAWAL_BUFFER_PERIOD=${{ secrets.WITHDRAWAL_BUFFER_PERIOD }}" >> .env.test
+            - name: Create Environment Variables File
+              run: |
+                echo "DEBUG=1" >> .env.test
+                echo "HOST_PINNACLE_USER_ID=" >> .env.test
+                echo "HOST_PINNACLE_PASSWORD=" >> .env.test
+                echo "HOST_PINNACLE_SENDER_ID=" >> .env.test
+                echo "PAGE_SIZE=50" >> .env.test
+                echo "MAXIMUM_PAGE_SIZE=100" >> .env.test
+                echo "MPESA_BUSINESS_SHORT_CODE=" >> .env.test
+                echo "MPESA_PASS_KEY=" >> .env.test
+                echo "MPESA_TOKEN_URL=" >> .env.test
+                echo "MPESA_STKPUSH_URL=" >> .env.test
+                echo "MPESA_STKPUSH_QUERY_URL=" >> .env.test
+                echo "MPESA_CONSUMER_KEY=" >> .env.test
+                echo "MPESA_SECRET=" >> .env.test
+                echo "MPESA_CALLBACK_URL=" >> .env.test
+                echo "MPESA_B2C_SHORT_CODE=" >> .env.test
+                echo "MPESA_B2C_CONSUMER_KEY=" >> .env.test
+                echo "MPESA_B2C_SECRET=" >> .env.test
+                echo "MPESA_B2C_URL=" >> .env.test
+                echo "MPESA_B2C_PASSWORD=" >> .env.test
+                echo "MPESA_B2C_INITIATOR_NAME=" >> .env.test
+                echo "MPESA_B2C_QUEUE_TIMEOUT_URL=" >> .env.test
+                echo "MPESA_B2C_RESULT_URL=" >> .env.test
+                echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env.test
+                echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env.test
+                echo "POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}" >> .env.test
+                echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env.test
+                echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .env.test
+                echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env.test
+                echo "ONESIGNAL_APP_ID=" >> .env.test
+                echo "ONESIGNAL_API_KEY=" >> .env.test
+                echo "WITHDRAWAL_BUFFER_PERIOD=${{ secrets.WITHDRAWAL_BUFFER_PERIOD }}" >> .env.test
 
             - name: Upload Environment Variables File
               uses: actions/upload-artifact@v4
