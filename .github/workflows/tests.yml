@@ -83,3 +83,6 @@ jobs:
                 ONESIGNAL_APP_ID: ""
                 ONESIGNAL_API_KEY: ""
                 WITHDRAWAL_BUFFER_PERIOD: ${{ secrets.WITHDRAWAL_BUFFER_PERIOD }}
+
+            - name: Run Coverage Report
+              run: coverage report -m
