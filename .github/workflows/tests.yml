@@ -96,14 +96,12 @@ jobs:
                 name: test-env-file
                 path: .
 
-            - name: List All files
-              run: ls -l -a
-
             - name: Load Environment Variables
               run: |
                 set -o allexport
-                source .env.test
+                source ./.env.test
                 set +o allexport
+              shell: bash
 
             - name: Run Tests
               run: coverage run manage.py test
