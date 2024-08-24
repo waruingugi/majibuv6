@@ -96,10 +96,13 @@ jobs:
                 name: test-env-file
                 path: .
 
+            - name: List All files
+              run: ls -l -a
+
             - name: Load Environment Variables
               run: |
                 set -o allexport
-                source env.test
+                source .env.test
                 set +o allexport
 
             - name: Run Tests
