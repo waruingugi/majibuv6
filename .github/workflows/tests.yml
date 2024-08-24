@@ -99,7 +99,7 @@ jobs:
             - name: Load Environment Variables
               run: |
                 set -o allexport
-                source ./env.test
+                source env.test
                 set +o allexport
 
             - name: Run Tests
