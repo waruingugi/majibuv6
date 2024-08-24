@@ -83,3 +83,10 @@ jobs:
                 ONESIGNAL_APP_ID: ""
                 ONESIGNAL_API_KEY: ""
                 WITHDRAWAL_BUFFER_PERIOD: ${{ secrets.WITHDRAWAL_BUFFER_PERIOD }}
+
+            - name: Upload Coverage Report
+              uses: actions/upload-artifact@v3
+              with:
+                name: coverage-report
+                path: htmlcov
+                retention-days: 1
