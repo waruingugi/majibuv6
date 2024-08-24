@@ -94,11 +94,12 @@ jobs:
               uses: actions/download-artifact@v4
               with:
                 name: test-env-file
+                path: .
 
             - name: Load Environment Variables
               run: |
                 set -o allexport
-                source test.env
+                source ./env.test
                 set +o allexport
 
             - name: Run Tests
