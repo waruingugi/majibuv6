@@ -9,15 +9,15 @@ on:
     # Trigger workflow on push
     push:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
     unit-testing:
         name: Run Unit Tests
         runs-on: ubuntu-latest
         timeout-minutes: 4
-
-        concurrency:
-          group: majibu-unit-tests
-          cancel-in-progress: true
 
         strategy:
           matrix:
