@@ -16,7 +16,7 @@ jobs:
         timeout-minutes: 4
 
         concurrency:
-          group: ${{ github.ref }}
+          group: majibu-unit-tests
           cancel-in-progress: true
 
         strategy:
