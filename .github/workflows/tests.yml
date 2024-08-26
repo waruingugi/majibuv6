@@ -46,10 +46,15 @@ jobs:
                     - 6378:6379
 
         steps:
+            - name: Install Sudo Package
+              shell: bash
+              run: apt update && install sudo
+
             - name: Checkout Repository Code
               uses: actions/checkout@v4
 
             - name: Change ownership of /github/home
+              shell: bash
               run: sudo chown -R $(whoami) /github/home
 
             - name: Setup Pip Cache
