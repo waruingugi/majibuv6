@@ -53,25 +53,28 @@ jobs:
             - name: Checkout Repository Code
               uses: actions/checkout@v4
 
-            - name: Set up pip cache in container
-              run: mkdir -p ~/.cache/pip
+            - name: Set up virtual environment
+              run: python -m venv .venv
 
-            - name: Setup Pip Cache
+            - name: Cache Virtual Environment
               uses: actions/cache@v4
               with:
-                path: ~/.cache/pip
-                key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+                path: ./venv
+                key: ${{ runner.os }}-venv-${{ hashFiles('**/requirements.txt') }}
                 restore-keys: |
-                 ${{ runner.os }}-pip-
+                  ${{ runner.os }}-venv-
 
-            - name: Install Dependencies
+            - name: Activate Virtual Environment
               run: |
+                source ./venv/bin/activate
                 pip install --upgrade pip
                 pip install -r requirements.txt
 
             - name: Run Tests
               id: run-unit-tests
-              run: coverage run manage.py test
+              run: |
+                source ./venv/bin/activate
+                coverage run manage.py test
               env:
                 DEBUG: 1
                 HOST_PINNACLE_USER_ID: ""
@@ -106,7 +109,9 @@ jobs:
                 WITHDRAWAL_BUFFER_PERIOD: ${{ secrets.WITHDRAWAL_BUFFER_PERIOD }}
 
             - name: Generate Coverage Report
-              run: coverage html -d htmlcov
+              run: |
+                source ./venv/bin/activate
+                coverage html -d htmlcov
 
             - name: Upload Coverage Report
               uses: actions/upload-artifact@v4
