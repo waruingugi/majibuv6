@@ -49,6 +49,9 @@ jobs:
             - name: Checkout Repository Code
               uses: actions/checkout@v4
 
+            - name: Change ownership of /github/home
+              run: sudo chown -R $(whoami) /github/home
+
             - name: Setup Pip Cache
               uses: actions/cache@v4
               with:
@@ -59,7 +62,7 @@ jobs:
 
             - name: Install Dependencies
               run: |
-                sudo -H pip install --upgrade pip
+                pip install --upgrade pip
                 pip install -r requirements.txt
 
             - name: Run Tests
