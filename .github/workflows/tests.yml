@@ -46,16 +46,8 @@ jobs:
                     - 6378:6379
 
         steps:
-            - name: Install Sudo Package
-              shell: bash
-              run: apt update && install sudo
-
             - name: Checkout Repository Code
               uses: actions/checkout@v4
-
-            - name: Change ownership of /github/home
-              shell: bash
-              run: sudo chown -R $(whoami) /github/home
 
             - name: Setup Pip Cache
               uses: actions/cache@v4
@@ -64,6 +56,18 @@ jobs:
                 key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}rix}}
                 restore-keys: |
                  ${{ runner.os }}-pip-
+
+            - name: Set up pip cache in container
+              run: mkdir -p ~/.cache/pip
+
+            - name: Run Unit Tests in Container
+              run: |
+                docker run \
+                  -v ${{ github.workspace }}:/app \
+                  -v ~/.cache/pip:/root/.cache/pip \
+                  -w /app \
+                  python:${{ matrix.python-version }} \
+                  bash -c "python -m pip install --upgrade pip && pip install -r requirements.txt"
 
             - name: Install Dependencies
               run: |
