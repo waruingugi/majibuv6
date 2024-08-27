@@ -60,9 +60,9 @@ jobs:
               uses: actions/cache@v4
               with:
                 path: ./venv
-                key: ${{ runner.os }}-venv-${{ hashFiles('**/requirements.txt') }}
+                key: python:${{ matrix.python-version }}-venv-${{ hashFiles('**/requirements.txt') }}
                 restore-keys: |
-                  ${{ runner.os }}-venv-
+                  python:${{ matrix.python-version }}-venv-
 
             - name: Activate Virtual Environment
               shell: bash
