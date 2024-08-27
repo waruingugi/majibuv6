@@ -59,7 +59,7 @@ jobs:
             - name: Cache Virtual Environment
               uses: actions/cache@v4
               with:
-                path: ./venv
+                path: venv
                 key: python:${{ matrix.python-version }}-venv-${{ hashFiles('**/requirements.txt') }}
                 restore-keys: |
                   python:${{ matrix.python-version }}-venv-
@@ -67,8 +67,7 @@ jobs:
             - name: Activate Virtual Environment
               shell: bash
               run: |
-                python -m venv venv
-                source ./venv/bin/activate
+                source venv/bin/activate
                 pip install --upgrade pip
                 pip install -r requirements.txt
                 echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
