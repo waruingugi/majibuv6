@@ -54,7 +54,7 @@ jobs:
               uses: actions/checkout@v4
 
             - name: Set up virtual environment
-              run: python -m venv .venv
+              run: python -m venv venv
 
             - name: Cache Virtual Environment
               uses: actions/cache@v4
