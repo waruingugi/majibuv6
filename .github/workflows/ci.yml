@@ -54,8 +54,4 @@ jobs:
               uses: actions/checkout@v4
 
             - name: Docker Build API
-              uses: docker/build-push-action@v4
-              with:
-                context: docker/
-                push: false
-                tags: ${{ github.actor }}/majibu:${{ github.sha }}
+              run: docker version
