@@ -1,0 +1,38 @@
+# Name of our workflow
+name: Majibu Version 6 Tests
+
+
+# Triggers for our workflow
+on:
+    # Allows you to trigger this workflow manually from Github
+    workflow_dispatch:
+    # Trigger workflow on push
+    push:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+    unit-testing:
+        name: Run Unit Tests
+        runs-on: ubuntu-latest
+        timeout-minutes: 4
+
+        strategy:
+          matrix:
+            python-version: ['3.10', '3.11']
+
+        container:
+            image: python:${{ matrix.python-version }}
+
+        steps:
+            - name: Checkout Repository Code
+              uses: actions/checkout@v4
+
+            - name: Set up Docker Compose with a specific file
+              run: docker-compose -f ./docker/docker-compose.ci.yml up -d --build
+
+            - name: Tear down Docker Compose
+              if: always()
+              run: docker-compose -f docker-compose.test.yml down --volumes
