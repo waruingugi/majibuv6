@@ -39,14 +39,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY --chown=admin:admin /scripts/entrypoint.sh /scripts/entrypoint.sh
 
 # Copy the scripts that starts the application server (runserver)
-COPY --chown=admin:admin /scripts/start-dev-server.sh scripts/start-dev-server.sh
-COPY --chown=admin:admin /scripts/start-prod-server.sh scripts/start-prod-server.sh
+# COPY --chown=admin:admin /scripts/start-dev-server.sh /scripts/start-dev-server.sh
+# COPY --chown=admin:admin /scripts/start-prod-server.sh /scripts/start-prod-server.sh
 
 
 # Grant execute permissions on the files
 RUN chmod +x /scripts/entrypoint.sh && \
     chmod +x /scripts/start-dev-server.sh && \
-    chmod +x /scripts/test.sh && \
     chmod +x /scripts/start-prod-server.sh
 
 # Switch back to non-root user
