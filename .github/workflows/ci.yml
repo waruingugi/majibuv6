@@ -30,6 +30,9 @@ jobs:
             - name: Checkout Repository Code
               uses: actions/checkout@v4
 
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
             - name: Set up Docker Compose with a specific file
               run: docker-compose -f ./docker/docker-compose.ci.yml up -d --build
 
