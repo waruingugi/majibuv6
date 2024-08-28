@@ -41,6 +41,5 @@ jobs:
                 apt-get update
                 apt-get install -y docker-ce-cli docker-buildx-plugin docker-compose-plugin
 
-
-            - name: Set up Docker Compose with a specific file
-              run: docker compose version
+            - name: Build Docker images
+              run: docker-compose -f ./docker/docker-compose.prod.yml up -d --build
