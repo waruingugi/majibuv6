@@ -21,13 +21,13 @@ RUN apt-get update && apt-get install -y -q --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Switch to the non-root user
-USER admin
+# USER admin
 
 # Create a directory for the source code and use it as base path
 # WORKDIR /home/api
 
 # Copy the python dependencies list for pip
-COPY --chown=admin:admin ./requirements.txt .
+COPY ./requirements.txt .
 
 # Switch to the root user temporary, to grant execution permissions.
 USER root
