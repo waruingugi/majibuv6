@@ -31,15 +31,16 @@ jobs:
               uses: actions/checkout@v4
 
             - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v3
-              with:
-                install: true
+              shell: bash
+              run: |
+                apt-get update
+                apt-get install -y ca-certificates curl gnupg lsb-release
+                mkdir -m 0755 -p /etc/apt/keyrings
+                curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+                echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$(lsb_release -i | awk '{ print tolower($3) }') $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
+                apt-get update
+                apt-get install -y docker-ce-cli docker-buildx-plugin docker-compose-plugin
 
-            - name: Install Compose
-              uses: cloudposse/github-action-docker-compose-test-run@main
-              with:
-                file: docker/docker-compose.ci.yml
-                command: scripts/test.sh
 
             - name: Set up Docker Compose with a specific file
               run: docker compose version
