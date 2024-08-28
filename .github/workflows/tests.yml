@@ -7,7 +7,7 @@ on:
     # Allows you to trigger this workflow manually from Github
     workflow_dispatch:
     # Trigger workflow on push
-    # push:
+    push:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
