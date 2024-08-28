@@ -55,3 +55,4 @@ jobs:
 
             - name: Docker Build API
               run: docker version
+              shell: sh
