@@ -27,7 +27,7 @@ RUN apt-get update && apt-get install -y -q --no-install-recommends \
 # WORKDIR /home/api
 
 # Copy the python dependencies list for pip
-COPY ../requirements.txt .
+COPY . .
 
 # Switch to the root user temporary, to grant execution permissions.
 # USER root
