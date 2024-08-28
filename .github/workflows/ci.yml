@@ -58,9 +58,6 @@ jobs:
 
             - name: Build and push
               uses: docker/build-push-action@v6
-              with:
-                context: ./docker/Dockerfile.prod
-                push: false
 
             - name: Docker Build API
-              run: docker version
+              run: docker build --file ./docker/Dockerfile.prod
