@@ -58,4 +58,4 @@ jobs:
               with:
                 context: docker/
                 push: false
-                tags: ${{ GITHUB_ACTOR }}/majibu:${{ GITHUB_SHA }}
+                tags: ${{ github.actor }}/majibu:${{ github.sha }}
