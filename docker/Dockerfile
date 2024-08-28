@@ -2,8 +2,8 @@
 FROM python:3.10-slim
 
 # Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONBUFFERED=1
 
 # Create a user to avoid running containers as root in production
 RUN addgroup --system admin \
@@ -57,4 +57,4 @@ ENTRYPOINT [ "/scripts/entrypoint.sh" ]
 COPY . .
 
 # The development server starts by default when the container starts
-CMD ["/scripts/start-prod-server.sh"]
+CMD ["/scripts/test.sh"]
