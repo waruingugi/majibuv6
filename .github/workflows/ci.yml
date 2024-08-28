@@ -56,8 +56,14 @@ jobs:
             - name: Set up Docker Buildx
               uses: docker/setup-buildx-action@v3
 
+            - name: List files
+              run: ls -ls
+
             - name: Build and push
               uses: docker/build-push-action@v6
+              with:
+                context: docker/Dockerfile.prod
+                push: false
 
             - name: Docker Build API
-              run: docker build --file ./docker/Dockerfile.prod
+              run: docker version
