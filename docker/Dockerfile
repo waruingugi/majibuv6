@@ -6,8 +6,8 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONBUFFERED=1
 
 # Create a user to avoid running containers as root in production
-RUN addgroup --system admin \
-    && adduser --system --ingroup admin admin
+# RUN addgroup --system admin \
+#    && adduser --system --ingroup admin admin
 
 # Install os-level dependencies (as root)
 RUN apt-get update && apt-get install -y -q --no-install-recommends \
@@ -30,7 +30,7 @@ RUN apt-get update && apt-get install -y -q --no-install-recommends \
 COPY ./requirements.txt .
 
 # Switch to the root user temporary, to grant execution permissions.
-USER root
+# USER root
 
 # Install python packages at system level
 RUN pip install --no-cache-dir -r requirements.txt
@@ -49,7 +49,7 @@ RUN chmod +x /scripts/entrypoint.sh && \
     chmod +x /scripts/start-prod-server.sh
 
 # Switch back to non-root user
-USER admin
+# USER admin
 
 # This script will run before any command executed in the container
 ENTRYPOINT [ "/scripts/entrypoint.sh" ]
