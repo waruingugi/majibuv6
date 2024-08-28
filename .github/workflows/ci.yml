@@ -26,20 +26,36 @@ jobs:
         container:
             image: python:${{ matrix.python-version }}
 
+        services:
+            postgres:
+                image: postgres
+                env:
+                    POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 3
+                ports:
+                    - 5432:5432
+
+            redis:
+                image: redis
+                options: >-
+                    --health-cmd "redis-cli ping"
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 3
+                ports:
+                    - 6378:6379
+
         steps:
             - name: Checkout Repository Code
               uses: actions/checkout@v4
 
-            - name: Set up Docker Buildx
-              shell: bash
-              run: |
-                apt-get update
-                apt-get install -y ca-certificates curl gnupg lsb-release
-                mkdir -m 0755 -p /etc/apt/keyrings
-                curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-                echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$(lsb_release -i | awk '{ print tolower($3) }') $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
-                apt-get update
-                apt-get install -y docker-ce-cli docker-buildx-plugin docker-compose-plugin
-
-            - name: Build Docker images
-              run: docker compose -f ./docker/docker-compose.ci.yml up -d --build
+            - name: Docker Build API
+              uses: docker/build-push-action@v4
+              with:
+                context: docker/
+                push: false
+                tags: ${{ GITHUB_ACTOR }}/majibu:${{ GITHUB_SHA }}
