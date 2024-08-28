@@ -24,7 +24,7 @@ RUN apt-get update && apt-get install -y -q --no-install-recommends \
 USER admin
 
 # Create a directory for the source code and use it as base path
-WORKDIR /home/api
+# WORKDIR /home/api
 
 # Copy the python dependencies list for pip
 COPY --chown=admin:admin ./requirements.txt .
@@ -36,7 +36,7 @@ USER root
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy entrypoint script which waits for the db to be ready
-COPY --chown=admin:admin /scripts/entrypoint.sh /scripts/entrypoint.sh
+# COPY --chown=admin:admin /scripts/entrypoint.sh /scripts/entrypoint.sh
 
 # Copy the scripts that starts the application server (runserver)
 # COPY --chown=admin:admin /scripts/start-dev-server.sh /scripts/start-dev-server.sh
