@@ -35,6 +35,9 @@ jobs:
 
             - name: Install Compose
               uses: cloudposse/github-action-docker-compose-test-run@main
+              with:
+                file: docker/docker-compose.ci.yml
+                command: scripts/test.sh
 
             - name: Set up Docker Compose with a specific file
               run: docker compose version
