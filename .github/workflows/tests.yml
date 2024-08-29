@@ -73,7 +73,6 @@ jobs:
         run: |
           source venv/bin/activate
           pip install -r requirements.txt
-          curl -sL https://aka.ms/InstallAzureCLIDeb | bash
           echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
           echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
 
