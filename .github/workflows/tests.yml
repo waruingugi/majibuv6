@@ -100,10 +100,10 @@ jobs:
         shell:
           bash
 
-        # - name: Run Tests
-        #   id: run-unit-tests
-        #   run: |
-        #     coverage run manage.py test
+      - name: Run Tests
+        id: run-unit-tests
+        run: |
+          coverage run manage.py test
         #   env:
         #     DEBUG: 1
         #     HOST_PINNACLE_USER_ID: ""
