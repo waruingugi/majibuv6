@@ -29,3 +29,5 @@ for SECRET_NAME in $SECRET_NAMES; do
 done
 
 echo "All secrets have been loaded into the environment."
+# Verify by printing the value of the 'DEBUG' environment variable
+echo "SECRET environment variable value: $SECRET_KEY"
