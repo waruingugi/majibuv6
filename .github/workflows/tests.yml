@@ -13,9 +13,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  id-token: write
-  contents: read
+# permissions:
+#   id-token: write
+#   contents: read
 
 jobs:
   unit-testing:
@@ -93,10 +93,9 @@ jobs:
 
       - name: Load Secrets
         run: |
-          ls -l -a
-          cd scripts
-          ls -l
           chmod +x ./scripts/ci-load-secrets.sh
+        shell:
+          bash
 
         # - name: Run Tests
         #   id: run-unit-tests
