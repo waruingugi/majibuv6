@@ -93,7 +93,7 @@ jobs:
 
       - name: Load Secrets From Vault
         env:
-          KEY_VAULT_NAME: ${{ secrets.AZURE_KEY_VAULT_NAME }}
+          AZURE_KEY_VAULT_NAME: ${{ secrets.AZURE_KEY_VAULT_NAME }}
         run: |
           chmod +x ./scripts/ci-load-secrets.sh
           ./scripts/ci-load-secrets.sh
