@@ -93,7 +93,10 @@ jobs:
 
       - name: Load Secrets
         run: |
-          chmod +x /scripts/ci-load-secrets.sh
+          ls -l -a
+          cd scripts
+          ls -l
+          chmod +x ./scripts/ci-load-secrets.sh
 
         # - name: Run Tests
         #   id: run-unit-tests
