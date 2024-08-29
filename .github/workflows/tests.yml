@@ -96,11 +96,14 @@ jobs:
           AZURE_KEY_VAULT_NAME: ${{ secrets.AZURE_KEY_VAULT_NAME }}
         run: |
           chmod +x ./scripts/ci-load-secrets.sh
-          chmod +x ./scripts/ci-tests.sh
           ./scripts/ci-load-secrets.sh
-          ./scripts/ci-tests.sh
         shell:
           bash
+
+      - name: Run Tests
+        run:
+          chmod +x ./scripts/ci-tests.sh
+          ./scripts/ci-tests.sh
 
       # - name: Run Tests
       #   id: run-unit-tests
