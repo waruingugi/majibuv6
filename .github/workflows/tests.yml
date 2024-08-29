@@ -94,6 +94,8 @@ jobs:
       - name: Load Secrets
         run: |
           chmod +x ./scripts/ci-load-secrets.sh
+          ls -a
+          cat .env
         shell:
           bash
 
