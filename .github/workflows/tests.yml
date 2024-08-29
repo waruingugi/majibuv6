@@ -77,7 +77,7 @@ jobs:
           echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
           echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
 
-      # - name: Install Azure cli
+      # - name: Install Azure CLI
       #   run: |
       #     curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
