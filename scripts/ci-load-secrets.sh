@@ -17,6 +17,7 @@ get_secret() {
   local ENV_NAME=$(echo $SECRET_NAME | tr '-' '_')
 
   # Write the secret to $GITHUB_ENV in the format NAME=value
+  echo "::add-mask::$SECRET_VALUE"
   echo "$ENV_NAME=$SECRET_VALUE" >> $GITHUB_ENV
 
 }
