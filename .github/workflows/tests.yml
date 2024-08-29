@@ -77,7 +77,7 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Azure CLI script
+      - name: Azure CLI script cmd
         uses: azure/cli@v2
         with:
           azcliversion: latest
