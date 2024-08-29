@@ -77,6 +77,14 @@ jobs:
           echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
           echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
 
+      - name: Cache Azure CLI
+        uses: actions/cache@v4
+        with:
+          path: ~/.azure/cli
+          key: azure-cli-python:${{ matrix.python-version }}-${{ hashFiles('azure_cli_cache_key.txt') }}
+          restore-keys: |
+            azure-cli-python:${{ matrix.python-version }}-
+
       # - name: Install Azure CLI
       #   run: |
       #     curl -sL https://aka.ms/InstallAzureCLIDeb | bash
@@ -88,9 +96,14 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Azure CLI script cmd
+      # - name: Azure CLI script cmd
+      #   run: |
+      #     az account show
+
+      - name: Load Secrets
         run: |
-          az account show
+          chmod +x /scripts/load_secrets.sh
+
         # - name: Run Tests
         #   id: run-unit-tests
         #   run: |
