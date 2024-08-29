@@ -57,6 +57,17 @@ jobs:
       - name: Checkout Repository Code
         uses: actions/checkout@v4
 
+      - name: Install Azure CLI
+        run: |
+          curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
       - name: Set up virtual environment
         run: python -m venv venv
 
@@ -75,25 +86,6 @@ jobs:
           pip install -r requirements.txt
           echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
           echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
-
-      - name: Cache Azure CLI
-        uses: actions/cache@v4
-        with:
-          path: ~/.azure/cli
-          key: azure-cli-python:${{ matrix.python-version }}-${{ hashFiles('azure_cli_cache_key.txt') }}
-          restore-keys: |
-            azure-cli-python:${{ matrix.python-version }}-
-
-      # - name: Install Azure CLI
-      #   run: |
-      #     curl -sL https://aka.ms/InstallAzureCLIDeb | bash
-
-      - name: Azure login
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       # - name: Azure CLI script cmd
       #   run: |
