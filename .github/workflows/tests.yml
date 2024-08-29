@@ -61,7 +61,7 @@ jobs:
         run: |
           curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
-      - name: Azure login
+      - name: Azure Login
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
