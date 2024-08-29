@@ -69,11 +69,8 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Azure CLI script cmd
-        uses: azure/cli@v2
-        with:
-          azcliversion: latest
-          inlineScript: |
-            az account show
+        run: |
+          az account show
 
       - name: Set up virtual environment
         run: python -m venv venv
