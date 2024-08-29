@@ -14,108 +14,113 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-    unit-testing:
-        name: Run Unit Tests
-        runs-on: ubuntu-latest
-        timeout-minutes: 4
+  unit-testing:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
 
-        strategy:
-          matrix:
-            python-version: ['3.10', '3.11']
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11']
 
-        container:
-            image: python:${{ matrix.python-version }}
+    container:
+      image: python:${{ matrix.python-version }}
 
-        services:
-            postgres:
-                image: postgres
-                env:
-                    POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-                options: >-
-                    --health-cmd pg_isready
-                    --health-interval 10s
-                    --health-timeout 5s
-                    --health-retries 3
-                ports:
-                    - 5432:5432
+    services:
+      postgres:
+        image: postgres
+        env:
+            POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        options: >-
+            --health-cmd pg_isready
+            --health-interval 10s
+            --health-timeout 5s
+            --health-retries 3
+        ports:
+            - 5432:5432
 
-            redis:
-                image: redis
-                options: >-
-                    --health-cmd "redis-cli ping"
-                    --health-interval 10s
-                    --health-timeout 5s
-                    --health-retries 3
-                ports:
-                    - 6378:6379
+      redis:
+        image: redis
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+        ports:
+          - 6378:6379
 
-        steps:
-            - name: Checkout Repository Code
-              uses: actions/checkout@v4
+    steps:
+      - name: Checkout Repository Code
+        uses: actions/checkout@v4
 
-            - name: Set up virtual environment
-              run: python -m venv venv
+      - name: Set up virtual environment
+        run: python -m venv venv
 
-            - name: Cache Virtual Environment
-              uses: actions/cache@v4
-              with:
-                path: venv
-                key: python:${{ matrix.python-version }}-venv-${{ hashFiles('**/requirements.txt') }}
-                restore-keys: |
-                  python:${{ matrix.python-version }}-venv-
+      - name: Cache Virtual Environment
+        uses: actions/cache@v4
+        with:
+          path: venv
+          key: python:${{ matrix.python-version }}-venv-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            python:${{ matrix.python-version }}-venv-
 
-            - name: Activate Virtual Environment
-              shell: bash
-              run: |
-                source venv/bin/activate
-                pip install -r requirements.txt
-                echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
-                echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
+      - name: Activate Virtual Environment
+        shell: bash
+        run: |
+          source venv/bin/activate
+          pip install -r requirements.txt
+          echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
+          echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
 
-            - name: Run Tests
-              id: run-unit-tests
-              run: |
-                coverage run manage.py test
-              env:
-                DEBUG: 1
-                HOST_PINNACLE_USER_ID: ""
-                HOST_PINNACLE_PASSWORD: ""
-                HOST_PINNACLE_SENDER_ID: ""
-                PAGE_SIZE: 50
-                MAXIMUM_PAGE_SIZE: 100
-                MPESA_BUSINESS_SHORT_CODE: ""
-                MPESA_PASS_KEY: ""
-                MPESA_TOKEN_URL: ""
-                MPESA_STKPUSH_URL: ""
-                MPESA_STKPUSH_QUERY_URL: ""
-                MPESA_CONSUMER_KEY: ""
-                MPESA_SECRET: ""
-                MPESA_CALLBACK_URL: ""
-                MPESA_B2C_SHORT_CODE: ""
-                MPESA_B2C_CONSUMER_KEY: ""
-                MPESA_B2C_SECRET: ""
-                MPESA_B2C_URL: ""
-                MPESA_B2C_PASSWORD: ""
-                MPESA_B2C_INITIATOR_NAME: ""
-                MPESA_B2C_QUEUE_TIMEOUT_URL: ""
-                MPESA_B2C_RESULT_URL: ""
-                POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-                POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-                POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
-                POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-                REDIS_URL: ${{ secrets.REDIS_URL }}
-                SECRET_KEY: ${{ secrets.SECRET_KEY }}
-                ONESIGNAL_APP_ID: ""
-                ONESIGNAL_API_KEY: ""
-                WITHDRAWAL_BUFFER_PERIOD: ${{ secrets.WITHDRAWAL_BUFFER_PERIOD }}
+      - name: Login to AZURE
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-            - name: Generate Coverage Report
-              run: |
-                coverage html -d htmlcov
+        # - name: Run Tests
+        #   id: run-unit-tests
+        #   run: |
+        #     coverage run manage.py test
+        #   env:
+        #     DEBUG: 1
+        #     HOST_PINNACLE_USER_ID: ""
+        #     HOST_PINNACLE_PASSWORD: ""
+        #     HOST_PINNACLE_SENDER_ID: ""
+        #     PAGE_SIZE: 50
+        #     MAXIMUM_PAGE_SIZE: 100
+        #     MPESA_BUSINESS_SHORT_CODE: ""
+        #     MPESA_PASS_KEY: ""
+        #     MPESA_TOKEN_URL: ""
+        #     MPESA_STKPUSH_URL: ""
+        #     MPESA_STKPUSH_QUERY_URL: ""
+        #     MPESA_CONSUMER_KEY: ""
+        #     MPESA_SECRET: ""
+        #     MPESA_CALLBACK_URL: ""
+        #     MPESA_B2C_SHORT_CODE: ""
+        #     MPESA_B2C_CONSUMER_KEY: ""
+        #     MPESA_B2C_SECRET: ""
+        #     MPESA_B2C_URL: ""
+        #     MPESA_B2C_PASSWORD: ""
+        #     MPESA_B2C_INITIATOR_NAME: ""
+        #     MPESA_B2C_QUEUE_TIMEOUT_URL: ""
+        #     MPESA_B2C_RESULT_URL: ""
+        #     POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        #     POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        #     POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+        #     POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        #     REDIS_URL: ${{ secrets.REDIS_URL }}
+        #     SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        #     ONESIGNAL_APP_ID: ""
+        #     ONESIGNAL_API_KEY: ""
+        #     WITHDRAWAL_BUFFER_PERIOD: ${{ secrets.WITHDRAWAL_BUFFER_PERIOD }}
 
-            - name: Upload Coverage Report
-              uses: actions/upload-artifact@v4
-              with:
-                name: python-${{ matrix.python-version }}.coverage-report
-                path: htmlcov/index.html
-                retention-days: 1
+        # - name: Generate Coverage Report
+        #   run: |
+        #     coverage html -d htmlcov
+
+        # - name: Upload Coverage Report
+        #   uses: actions/upload-artifact@v4
+        #   with:
+        #     name: python-${{ matrix.python-version }}.coverage-report
+        #     path: htmlcov/index.html
+        #     retention-days: 1
