@@ -30,7 +30,3 @@ for SECRET_NAME in $SECRET_NAMES; do
 done
 
 echo "All secrets have been loaded into $GITHUB_ENV."
-
-echo "Running tests"
-echo "---------------------------"
-coverage run manage.py test
