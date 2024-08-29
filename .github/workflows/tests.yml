@@ -101,14 +101,11 @@ jobs:
           bash
 
       - name: Run Tests
-        run:
-          chmod +x ./scripts/ci-tests.sh
-          ./scripts/ci-tests.sh
-
-      # - name: Run Tests
-      #   id: run-unit-tests
-      #   run: |
-      #     coverage run manage.py test
+        id: run-unit-tests
+        run: |
+          coverage run manage.py test
+        shell:
+          bash
 
         #   env:
         #     DEBUG: 1
