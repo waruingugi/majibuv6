@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Define your Azure Key Vault name
+# Define your Key Vault name
 KEY_VAULT_NAME="${AZURE_KEY_VAULT_NAME}"
 
 # Function to retrieve a secret, translate the name, and load it into the environment
