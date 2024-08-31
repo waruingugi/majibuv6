@@ -6,13 +6,16 @@ name: Majibu Version 6 Tests
 on:
     # Allows you to trigger this workflow manually from Github
     workflow_dispatch:
-    # Trigger workflow on push
+    # Triggers workflow on push
     push:
 
+# Ensures that only one instance of this workflow runs for each branch
+# And cancels any currently running instances of this workflow if a new one is triggered.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Azure requires permissions to install packages
 permissions:
   id-token: write
   contents: read
@@ -86,10 +89,6 @@ jobs:
           pip install -r requirements.txt
           echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
           echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
-
-      # - name: Azure CLI script cmd
-      #   run: |
-      #     az account show
 
       - name: Load Secrets From Vault
         env:
