@@ -7,7 +7,7 @@ class ErrorCodes(str, Enum):
     BUSINESS_IS_CLOSED = (
         "Oh, you just missed the party! "
         "Please check in again between "
-        f"{settings.BUSINESS_OPENS_AT}a.m. "
+        f"{settings.BUSINESS_OPENS_AT}p.m. "
         "and "
         f"{settings.BUSINESS_CLOSES_AT}p.m. "
         "to play a session."

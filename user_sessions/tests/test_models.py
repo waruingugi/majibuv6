@@ -155,7 +155,7 @@ class DuoSessionModelTest(BaseUserAPITestCase):
         self.assertTrue(
             Transaction.objects.filter(
                 type=TransactionTypes.REFUND.value,
-                amount=Decimal("55.00"),
+                amount=Decimal("110.00"),
             ).exists()
         )
 
@@ -180,7 +180,7 @@ class DuoSessionModelTest(BaseUserAPITestCase):
         self.assertTrue(
             Transaction.objects.filter(
                 type=TransactionTypes.REWARD.value,
-                amount=Decimal(settings.SESSION_WIN_RATIO * settings.SESSION_STAKE),
+                amount=Decimal(settings.SESSION_PAYOUT_RATIO * settings.SESSION_STAKE),
             ).exists()
         )
 

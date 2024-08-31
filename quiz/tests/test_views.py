@@ -119,7 +119,7 @@ class QuizViewTests(BaseUserAPITestCase):
         )
 
         self.client.post(self.url, data={"session_id": self.session.id})
-        self.assertEqual(50.0, float(Transaction.objects.get_user_balance(self.user)))
+        self.assertEqual(0.0, float(Transaction.objects.get_user_balance(self.user)))
 
     @patch("quiz.serializers.is_business_open", return_value=True)
     @patch(
