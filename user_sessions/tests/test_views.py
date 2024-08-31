@@ -74,7 +74,7 @@ class SessionDetailsViewTest(BaseUserAPITestCase):
         self.url = reverse("sessions:details")
 
     def test_get_session_details(self) -> None:
-        expected_data = {"questions": 5, "seconds": 20, "stake": 50, "payout": 87}
+        expected_data = {"questions": 5, "seconds": 20, "stake": 100, "payout": 180}
 
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)

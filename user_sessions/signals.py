@@ -159,7 +159,7 @@ def create_duo_session_transaction_instance(
             description = SESSION_WIN_DESCRIPION.format(
                 instance.party_a.phone_number, instance.session.category
             )
-            amount_won = settings.SESSION_WIN_RATIO * float(instance.amount)
+            amount_won = settings.SESSION_PAYOUT_RATIO * float(instance.amount)
             amount_won = math.floor(amount_won)  # Round down to the nearest digit
 
             transaction_serializer = TransactionCreateSerializer(
