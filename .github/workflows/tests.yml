@@ -125,9 +125,9 @@ jobs:
           echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
           echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
 
-          - name: Install Azure CLI
-          run: |
-            curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+      - name: Install Azure CLI
+        run: |
+          curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
       - name: Azure Login
         uses: azure/login@v2
@@ -172,4 +172,3 @@ jobs:
       # Optional: Azure Logout (can be skipped if you face issues)
       - name: Azure Logout
         run: az logout
-        if: always()
