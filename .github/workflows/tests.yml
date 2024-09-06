@@ -114,11 +114,22 @@ jobs:
           path: htmlcov
           retention-days: 1
 
-      - name: Upload to Azure Blob Storage
-        if: matrix.python-version == '3.10'
-        run: |
-          SHA=${{ github.sha }}
-          CONTAINER_NAME="github-${SHA}"
-          STORAGE_ACCOUNT_NAME="majibutestcoverage"
-          az storage container create --name ${CONTAINER_NAME} --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
-          az storage blob upload-batch -d ${CONTAINER_NAME} -s htmlcov --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
+      # - name: Upload to Azure Blob Storage
+      #   if: matrix.python-version == '3.10'
+      #   run: |
+      #     SHA=${{ github.sha }}
+      #     CONTAINER_NAME="github-${SHA}"
+      #     STORAGE_ACCOUNT_NAME="majibutestcoverage"
+      #     az storage container create --name ${CONTAINER_NAME} --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
+      #     az storage blob upload-batch -d ${CONTAINER_NAME} -s htmlcov --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
+
+      - name: Azure CLI script file
+        uses: azure/cli@v2
+        with:
+          azcliversion: 2.30.0
+          inlineScript: |
+            SHA=${{ github.sha }}
+            CONTAINER_NAME="github-${SHA}"
+            STORAGE_ACCOUNT_NAME="majibutestcoverage"
+            az storage container create --name ${CONTAINER_NAME} --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
+            az storage blob upload-batch -d ${CONTAINER_NAME} -s htmlcov --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
