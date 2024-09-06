@@ -116,6 +116,7 @@ jobs:
       - name: Upload to Azure Blob Storage
         uses: azure/CLI@v1
         with:
+          azcliversion: 2.63.0
           inlineScript: |
             DATE=$(date +%d-%m-%Y)
             SHA=${{ github.sha }}
