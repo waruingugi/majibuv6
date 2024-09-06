@@ -59,9 +59,9 @@ jobs:
       - name: Checkout Repository Code
         uses: actions/checkout@v4
 
-      # - name: Install Azure CLI
-      #   run: |
-      #     curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+      - name: Install Azure CLI
+        run: |
+          curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
       - name: Azure Login
         uses: azure/login@v2
@@ -70,13 +70,6 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Azure CLI script
-        uses: azure/cli@v2
-        with:
-          azcliversion: latest
-          run: |
-            az account show
-            az storage -h
       # - name: Set up virtual environment
       #   run: python -m venv venv
 
@@ -128,3 +121,8 @@ jobs:
       #     STORAGE_ACCOUNT_NAME="majibutestcoverage"
       #     az storage container create --name ${CONTAINER_NAME} --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
       #     az storage blob upload-batch -d ${CONTAINER_NAME} -s htmlcov --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
+
+      - name: Remove Azure
+        run: |
+          apt-get remove -y azure-cli
+          rm -rf ~/.azure
