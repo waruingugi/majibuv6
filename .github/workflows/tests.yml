@@ -64,7 +64,7 @@ jobs:
   unit-testing:
     name: Run Unit Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 7
+    timeout-minutes: 5
     # Azure requires permissions to install packages
     permissions:
       id-token: write
@@ -77,6 +77,8 @@ jobs:
     services:
       postgres:
         image: postgres
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         options: >-
             --health-cmd pg_isready
             --health-interval 10s
