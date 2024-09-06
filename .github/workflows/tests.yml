@@ -114,11 +114,13 @@ jobs:
           retention-days: 1
 
       - name: Upload to Azure Blob Storage
-        run: |
-          DATE=$(date +%d-%m-%Y)
-          SHA=${{ github.sha }}
-          CONTAINER_NAME="${DATE}-${SHA}"
-          STORAGE_ACCOUNT_NAME="majibutestcoverage"
-          AZURE_CONTAINER_URL="https://${STORAGE_ACCOUNT_NAME}.blob.core.windows.net/${CONTAINER_NAME}"
-          az storage container create --name ${CONTAINER_NAME} --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode key
-          az storage blob upload-batch -d ${CONTAINER_NAME} -s htmlcov --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode key
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            DATE=$(date +%d-%m-%Y)
+            SHA=${{ github.sha }}
+            CONTAINER_NAME="${DATE}-${SHA}"
+            STORAGE_ACCOUNT_NAME="majibutestcoverage"
+            az storage container create --name ${CONTAINER_NAME} --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode key
+            az storage blob upload-batch -d ${CONTAINER_NAME} -s htmlcov --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode key
+            az storage blob upload-batch --account-name <STORAGE_ACCOUNT_NAME> --auth-mode key -d '$web' -s .
