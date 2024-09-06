@@ -149,7 +149,6 @@ jobs:
           DATABASE_URL: postgres://test:test@postgres:5432/test_db
           REDIS_URL: redis://redis:6379/
 
-
       - name: Generate Coverage Report
         run: |
           coverage html -d htmlcov
