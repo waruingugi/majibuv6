@@ -114,10 +114,10 @@ jobs:
           retention-days: 1
 
       - name: Upload to Azure Blob Storage
-        uses: azure/CLI@v1
+        uses: azure/CLI@v2
         with:
           azcliversion: 2.63.0
-          inlineScript: |
+          run: |
             DATE=$(date +%d-%m-%Y)
             SHA=${{ github.sha }}
             CONTAINER_NAME="${DATE}-${SHA}"
