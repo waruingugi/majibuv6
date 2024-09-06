@@ -150,7 +150,7 @@ jobs:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
           POSTGRES_DB: test_db
-          REDIS_URL: localhost://redis:6379/
+          REDIS_URL: redis://localhost:6379
 
       - name: Generate Coverage Report
         run: |
