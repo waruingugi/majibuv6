@@ -15,16 +15,15 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# Azure requires permissions to install packages
-permissions:
-  id-token: write
-  contents: read
-
 jobs:
   unit-testing:
     name: Run Unit Tests
     runs-on: ubuntu-latest
     timeout-minutes: 4
+    # Azure requires permissions to install packages
+    permissions:
+      id-token: write
+      contents: read
 
     strategy:
       matrix:
@@ -106,9 +105,20 @@ jobs:
         run: |
           coverage html -d htmlcov
 
+      # Should run on pull request
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
         with:
           name: python-${{ matrix.python-version }}.coverage-report
-          path: htmlcov/index.html
+          path: htmlcov
           retention-days: 1
+
+      - name: Upload to Azure Blob Storage
+        run: |
+          DATE=$(date +%d-%m-%Y)
+          SHA=${{ github.sha }}
+          CONTAINER_NAME="${DATE}-${SHA}"
+          STORAGE_ACCOUNT_NAME="majibutestcoverage"
+          AZURE_CONTAINER_URL="https://${STORAGE_ACCOUNT_NAME}.blob.core.windows.net/${CONTAINER_NAME}"
+          az storage container create --name ${CONTAINER_NAME} --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode key
+          az storage blob upload-batch -d ${CONTAINER_NAME} -s htmlcov --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode key
