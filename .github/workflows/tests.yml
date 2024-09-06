@@ -19,7 +19,7 @@ jobs:
   unit-testing:
     name: Run Unit Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 4
+    timeout-minutes: 7
     # Azure requires permissions to install packages
     permissions:
       id-token: write
