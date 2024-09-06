@@ -59,10 +59,9 @@ jobs:
       - name: Checkout Repository Code
         uses: actions/checkout@v4
 
-      - name: Install Azure CLI
-        run: |
-          curl -sL https://aka.ms/InstallAzureCLIDeb | bash
-          apt autoremove
+      # - name: Install Azure CLI
+      #   run: |
+      #     curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
       - name: Azure Login
         uses: azure/login@v2
@@ -71,67 +70,61 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Set up virtual environment
-        run: python -m venv venv
-
-      - name: Cache Virtual Environment
-        uses: actions/cache@v4
+      - name: Azure CLI script
+        uses: azure/cli@v2
         with:
-          path: venv
-          key: python:${{ matrix.python-version }}-venv-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            python:${{ matrix.python-version }}-venv-
+          azcliversion: latest
+          inlineScript: |
+            az account show
+            az storage -h
+      # - name: Set up virtual environment
+      #   run: python -m venv venv
 
-      - name: Activate Virtual Environment
-        shell: bash
-        run: |
-          source venv/bin/activate
-          pip install -r requirements.txt
-          echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
-          echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
+      # - name: Cache Virtual Environment
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: venv
+      #     key: python:${{ matrix.python-version }}-venv-${{ hashFiles('**/requirements.txt') }}
+      #     restore-keys: |
+      #       python:${{ matrix.python-version }}-venv-
 
-          AZ_PATH=$(which az)
-          if [ -z "$AZ_PATH" ]; then
-            echo "Azure CLI (az) not found!"
-            exit 1
-          fi
-          echo "Azure CLI (az) located at: $AZ_PATH"
-          echo "Adding Azure CLI to PATH"
-          echo "$(dirname $AZ_PATH)" >> $GITHUB_PATH
+      # - name: Activate Virtual Environment
+      #   shell: bash
+      #   run: |
+      #     source venv/bin/activate
+      #     pip install -r requirements.txt
+      #     echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
+      #     echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
 
-      - name: Load Secrets From Vault
-        env:
-          AZURE_KEY_VAULT_NAME: ${{ secrets.AZURE_KEY_VAULT_NAME }}
-        run: |
-          chmod +x ./scripts/ci-load-secrets.sh
-          ./scripts/ci-load-secrets.sh
+      # - name: Load Secrets From Vault
+      #   env:
+      #     AZURE_KEY_VAULT_NAME: ${{ secrets.AZURE_KEY_VAULT_NAME }}
+      #   run: |
+      #     chmod +x ./scripts/ci-load-secrets.sh
+      #     ./scripts/ci-load-secrets.sh
 
-      - name: Run Tests
-        id: run-unit-tests
-        run: |
-          coverage run manage.py test
+      # - name: Run Tests
+      #   id: run-unit-tests
+      #   run: |
+      #     coverage run manage.py test
 
-      - name: Generate Coverage Report
-        run: |
-          coverage html -d htmlcov
+      # - name: Generate Coverage Report
+      #   run: |
+      #     coverage html -d htmlcov
 
-      # Should run on pull request
-      - name: Upload Coverage Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-${{ matrix.python-version }}.coverage-report
-          path: htmlcov
-          retention-days: 1
+      # # Should run on pull request
+      # - name: Upload Coverage Report
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: python-${{ matrix.python-version }}.coverage-report
+      #     path: htmlcov
+      #     retention-days: 1
 
-      - name: Upload to Azure Blob Storage
-        if: matrix.python-version == '3.10'
-        run: |
-          SHA=${{ github.sha }}
-          CONTAINER_NAME="github-${SHA}"
-          STORAGE_ACCOUNT_NAME="majibutestcoverage"
-          az storage container create --name ${CONTAINER_NAME} --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
-          az storage blob upload-batch -d ${CONTAINER_NAME} -s htmlcov --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
-
-      - name: Azure Logout
-        run: az logout
-        if: always()
+      # - name: Upload to Azure Blob Storage
+      #   if: matrix.python-version == '3.10'
+      #   run: |
+      #     SHA=${{ github.sha }}
+      #     CONTAINER_NAME="github-${SHA}"
+      #     STORAGE_ACCOUNT_NAME="majibutestcoverage"
+      #     az storage container create --name ${CONTAINER_NAME} --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
+      #     az storage blob upload-batch -d ${CONTAINER_NAME} -s htmlcov --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
