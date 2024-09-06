@@ -122,7 +122,7 @@ jobs:
         uses: azure/CLI@v2
         with:
           azcliversion: 2.63.0
-          run: |
+          inlineScript: |
             DATE=$(date +%d-%m-%Y)
             SHA=${{ github.sha }}
             CONTAINER_NAME="${DATE}-${SHA}"
