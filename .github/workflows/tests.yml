@@ -1,13 +1,10 @@
 # Name of our workflow
 name: Majibu Version 6 Tests
 
-
 # Triggers for our workflow
 on:
-    # Allows you to trigger this workflow manually from Github
-    workflow_dispatch:
-    # Triggers workflow on push
-    push:
+  workflow_dispatch:
+  push:
 
 # Ensures that only one instance of this workflow runs for each branch
 # And cancels any currently running instances of this workflow if a new one is triggered.
@@ -23,28 +20,52 @@ jobs:
       id-token: write
       contents: read
 
+    # Strategy matrix to run for both Python 3.10 and 3.11
     strategy:
       matrix:
         python-version: ['3.10', '3.11']
 
-    container:
-      image: python:${{ matrix.python-version }}
-
     steps:
-    - name: Azure Login
-      uses: azure/login@v2
-      with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Azure CLI script
-      uses: azure/cli@v2
-      with:
-        azcliversion: latest
-        inlineScript: |
-          az account show
-          az storage -h
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
+
+      - name: Run Python Tests
+        run: |
+          source venv/bin/activate
+          python -m unittest discover
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Azure CLI script
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az account show
+            az storage -h
+
+      # Optional: Azure Logout (can be skipped if you face issues)
+      - name: Azure Logout
+        run: az logout
+        if: always()
+
+
 # jobs:
 #   unit-testing:
 #     name: Run Unit Tests
