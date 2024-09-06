@@ -121,8 +121,3 @@ jobs:
             STORAGE_ACCOUNT_NAME="majibutestcoverage"
             az storage container create --name ${CONTAINER_NAME} --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
             az storage blob upload-batch -d ${CONTAINER_NAME} -s htmlcov --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
-
-      - name: logout
-        run: |
-          az logout
-        if: always()
