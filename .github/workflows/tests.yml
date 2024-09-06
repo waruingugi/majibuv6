@@ -113,6 +113,11 @@ jobs:
           path: htmlcov
           retention-days: 1
 
+      - name: Reset Virtual Environment
+        run: |
+          unset VIRTUAL_ENV
+          echo "VIRTUAL_ENV=" >> $GITHUB_ENV
+
       - name: Upload to Azure Blob Storage
         uses: azure/CLI@v2
         with:
