@@ -82,6 +82,14 @@ jobs:
           restore-keys: |
             python:${{ matrix.python-version }}-venv-
 
+      - name: Save Original GITHUB_PATH and GITHUB_ENV
+        run: |
+          echo "Saving original GITHUB_PATH and GITHUB_ENV"
+          echo "$GITHUB_PATH" > /tmp/original_github_path
+          echo "$GITHUB_ENV" > /tmp/original_github_env
+          echo "GITHUB_PATH is: $GITHUB_PATH"
+          echo "GITHUB_ENV is: $GITHUB_ENV"
+
       - name: Activate Virtual Environment
         shell: bash
         run: |
@@ -123,8 +131,17 @@ jobs:
           az storage container create --name ${CONTAINER_NAME} --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
           az storage blob upload-batch -d ${CONTAINER_NAME} -s htmlcov --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
 
-      - name: Where is AZ
+      - name: Restore Original GITHUB_PATH and GITHUB_ENV
         run: |
-          which az
-          find / -name az
-          whereis az
+          echo "Restoring original GITHUB_PATH and GITHUB_ENV"
+          export ORIGINAL_GITHUB_PATH=$(cat /tmp/original_github_path)
+          export ORIGINAL_GITHUB_ENV=$(cat /tmp/original_github_env)
+
+          # Restore the original paths
+          echo "$ORIGINAL_GITHUB_PATH" > $GITHUB_PATH
+          echo "$ORIGINAL_GITHUB_ENV" > $GITHUB_ENV
+
+          echo "Restored GITHUB_PATH to: $ORIGINAL_GITHUB_PATH"
+          echo "Restored GITHUB_ENV to: $ORIGINAL_GITHUB_ENV"
+
+# /usr/bin/az
