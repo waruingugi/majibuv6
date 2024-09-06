@@ -114,10 +114,15 @@ jobs:
           retention-days: 1
 
       - name: Upload to Azure Blob Storage
+        if: matrix.python-version == '3.10'
         run: |
-            DATE=$(date +%d-%m-%Y)
-            SHA=${{ github.sha }}
+            SHA=github-${{ github.sha }}
             CONTAINER_NAME="${DATE}-${SHA}"
             STORAGE_ACCOUNT_NAME="majibutestcoverage"
             az storage container create --name ${CONTAINER_NAME} --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
             az storage blob upload-batch -d ${CONTAINER_NAME} -s htmlcov --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
+
+      - name: logout
+        run: |
+          az logout
+        if: always()
