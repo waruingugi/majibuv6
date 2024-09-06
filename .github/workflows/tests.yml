@@ -147,6 +147,9 @@ jobs:
           coverage run manage.py test
         env:
           POSTGRES_HOST: localhost
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test_db
           REDIS_URL: redis://redis:6379/
 
       - name: Generate Coverage Report
