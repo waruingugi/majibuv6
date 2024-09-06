@@ -122,10 +122,9 @@ jobs:
           az storage container create --name ${CONTAINER_NAME} --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
           az storage blob upload-batch -d ${CONTAINER_NAME} -s htmlcov --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
 
-      - name: Deactivate Virtual Environment
-        run: deactivate || source deactivate || true
-
       - name: Azure Logout
         run: |
-          az logout
+          apt-get remove -y azure-cli
+          rm /etc/apt/sources.list.d/azure-cli.sources
+          apt autoremove
         if: always()
