@@ -70,24 +70,29 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Set up virtual environment
-        run: python -m venv venv
+      # - name: Set up virtual environment
+      #   run: python -m venv venv
 
-      - name: Cache Virtual Environment
-        uses: actions/cache@v4
-        with:
-          path: venv
-          key: python:${{ matrix.python-version }}-venv-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            python:${{ matrix.python-version }}-venv-
+      # - name: Cache Virtual Environment
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: venv
+      #     key: python:${{ matrix.python-version }}-venv-${{ hashFiles('**/requirements.txt') }}
+      #     restore-keys: |
+      #       python:${{ matrix.python-version }}-venv-
 
-      - name: Activate Virtual Environment
+      # - name: Activate Virtual Environment
+      #   shell: bash
+      #   run: |
+      #     source venv/bin/activate
+      #     pip install -r requirements.txt
+      #     echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
+      #     echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
+
+      - name: Install packages
         shell: bash
         run: |
-          source venv/bin/activate
           pip install -r requirements.txt
-          echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
-          echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
 
       - name: Load Secrets From Vault
         env:
@@ -121,10 +126,3 @@ jobs:
           STORAGE_ACCOUNT_NAME="majibutestcoverage"
           az storage container create --name ${CONTAINER_NAME} --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
           az storage blob upload-batch -d ${CONTAINER_NAME} -s htmlcov --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
-
-      - name: Azure Logout
-        run: |
-          apt-get remove -y azure-cli
-          rm /etc/apt/sources.list.d/azure-cli.sources
-          apt autoremove
-        if: always()
