@@ -78,7 +78,9 @@ jobs:
       postgres:
         image: postgres
         env:
-            POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test_db
         options: >-
             --health-cmd pg_isready
             --health-interval 10s
@@ -132,19 +134,19 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Load Secrets From Vault
-        env:
-          AZURE_KEY_VAULT_NAME: ${{ secrets.AZURE_KEY_VAULT_NAME }}
-        run: |
-          chmod +x ./scripts/ci-load-secrets.sh
-          ./scripts/ci-load-secrets.sh
+      # - name: Load Secrets From Vault
+      #   env:
+      #     AZURE_KEY_VAULT_NAME: ${{ secrets.AZURE_KEY_VAULT_NAME }}
+      #   run: |
+      #     chmod +x ./scripts/ci-load-secrets.sh
+      #     ./scripts/ci-load-secrets.sh
 
       - name: Run Tests
         id: run-unit-tests
         run: |
           coverage run manage.py test
         env:
-          DATABASE_URL: postgres://postgres:postgre@postgres:5432/postgres
+          DATABASE_URL: postgres://test:test@postgres:5432/test_db
           REDIS_URL: redis://redis:6379/
 
 
