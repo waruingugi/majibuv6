@@ -85,8 +85,8 @@ jobs:
       - name: Save Original GITHUB_PATH and GITHUB_ENV
         run: |
           echo "Saving original GITHUB_PATH and GITHUB_ENV"
-          echo "$GITHUB_PATH" > /tmp/original_github_path
-          echo "$GITHUB_ENV" > /tmp/original_github_env
+          cat $GITHUB_PATH > /tmp/original_github_path_content
+          cat $GITHUB_ENV > /tmp/original_github_env_content
           echo "GITHUB_PATH is: $GITHUB_PATH"
           echo "GITHUB_ENV is: $GITHUB_ENV"
 
@@ -134,14 +134,11 @@ jobs:
       - name: Restore Original GITHUB_PATH and GITHUB_ENV
         run: |
           echo "Restoring original GITHUB_PATH and GITHUB_ENV"
-          export ORIGINAL_GITHUB_PATH=$(cat /tmp/original_github_path)
-          export ORIGINAL_GITHUB_ENV=$(cat /tmp/original_github_env)
 
-          # Restore the original paths
-          echo "$ORIGINAL_GITHUB_PATH" > $GITHUB_PATH
-          echo "$ORIGINAL_GITHUB_ENV" > $GITHUB_ENV
+          # Restore the original contents
+          cat /tmp/original_github_path_content > $GITHUB_PATH
+          cat /tmp/original_github_env_content > $GITHUB_ENV
 
-          echo "Restored GITHUB_PATH to: $ORIGINAL_GITHUB_PATH"
-          echo "Restored GITHUB_ENV to: $ORIGINAL_GITHUB_ENV"
+          echo "Restored GITHUB_PATH and GITHUB_ENV contents"
 
 # /usr/bin/az
