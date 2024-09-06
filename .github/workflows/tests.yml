@@ -77,10 +77,6 @@ jobs:
     services:
       postgres:
         image: postgres
-        env:
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: test_db
         options: >-
             --health-cmd pg_isready
             --health-interval 10s
@@ -145,12 +141,6 @@ jobs:
         id: run-unit-tests
         run: |
           coverage run manage.py test
-        env:
-          POSTGRES_HOST: localhost
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: test_db
-          REDIS_URL: redis://localhost:6379
 
       - name: Generate Coverage Report
         run: |
