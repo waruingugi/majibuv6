@@ -113,20 +113,11 @@ jobs:
           path: htmlcov
           retention-days: 1
 
-      - name: Reset Virtual Environment
-        run: |
-          unset VIRTUAL_ENV
-          echo "VIRTUAL_ENV=" >> $GITHUB_ENV
-
       - name: Upload to Azure Blob Storage
-        uses: azure/CLI@v2
-        with:
-          azcliversion: 2.63.0
-          inlineScript: |
+        run: |
             DATE=$(date +%d-%m-%Y)
             SHA=${{ github.sha }}
             CONTAINER_NAME="${DATE}-${SHA}"
             STORAGE_ACCOUNT_NAME="majibutestcoverage"
             az storage container create --name ${CONTAINER_NAME} --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode key
             az storage blob upload-batch -d ${CONTAINER_NAME} -s htmlcov --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode key
-            az storage blob upload-batch --account-name <STORAGE_ACCOUNT_NAME> --auth-mode key -d '$web' -s .
