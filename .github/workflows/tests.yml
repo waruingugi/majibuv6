@@ -16,113 +16,128 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  unit-testing:
-    name: Run Unit Tests
+
+  build-and-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 7
-    # Azure requires permissions to install packages
-    permissions:
-      id-token: write
-      contents: read
-
-    strategy:
-      matrix:
-        python-version: ['3.10', '3.11']
-
-    container:
-      image: python:${{ matrix.python-version }}
-
-    services:
-      postgres:
-        image: postgres
-        env:
-            POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-        options: >-
-            --health-cmd pg_isready
-            --health-interval 10s
-            --health-timeout 5s
-            --health-retries 3
-        ports:
-            - 5432:5432
-
-      redis:
-        image: redis
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 3
-        ports:
-          - 6378:6379
-
     steps:
-      - name: Checkout Repository Code
-        uses: actions/checkout@v4
 
-      - name: Install Azure CLI
-        run: |
-          curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+    - name: Azure Login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    - name: Azure CLI script
+      uses: azure/cli@v2
+      with:
+        azcliversion: latest
+        inlineScript: |
+          az account show
+          az storage -h
+# jobs:
+#   unit-testing:
+#     name: Run Unit Tests
+#     runs-on: ubuntu-latest
+#     timeout-minutes: 7
+#     # Azure requires permissions to install packages
+#     permissions:
+#       id-token: write
+#       contents: read
 
-      # - name: Set up virtual environment
-      #   run: python -m venv venv
+#     strategy:
+#       matrix:
+#         python-version: ['3.10', '3.11']
 
-      # - name: Cache Virtual Environment
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: venv
-      #     key: python:${{ matrix.python-version }}-venv-${{ hashFiles('**/requirements.txt') }}
-      #     restore-keys: |
-      #       python:${{ matrix.python-version }}-venv-
+#     container:
+#       image: python:${{ matrix.python-version }}
 
-      # - name: Activate Virtual Environment
-      #   shell: bash
-      #   run: |
-      #     source venv/bin/activate
-      #     pip install -r requirements.txt
-      #     echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
-      #     echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
+#     services:
+#       postgres:
+#         image: postgres
+#         env:
+#             POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+#         options: >-
+#             --health-cmd pg_isready
+#             --health-interval 10s
+#             --health-timeout 5s
+#             --health-retries 3
+#         ports:
+#             - 5432:5432
 
-      # - name: Load Secrets From Vault
-      #   env:
-      #     AZURE_KEY_VAULT_NAME: ${{ secrets.AZURE_KEY_VAULT_NAME }}
-      #   run: |
-      #     chmod +x ./scripts/ci-load-secrets.sh
-      #     ./scripts/ci-load-secrets.sh
+#       redis:
+#         image: redis
+#         options: >-
+#           --health-cmd "redis-cli ping"
+#           --health-interval 10s
+#           --health-timeout 5s
+#           --health-retries 3
+#         ports:
+#           - 6378:6379
 
-      # - name: Run Tests
-      #   id: run-unit-tests
-      #   run: |
-      #     coverage run manage.py test
+#     steps:
+#       - name: Checkout Repository Code
+#         uses: actions/checkout@v4
 
-      # - name: Generate Coverage Report
-      #   run: |
-      #     coverage html -d htmlcov
+#       - name: Install Azure CLI
+#         run: |
+#           curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
-      # # Should run on pull request
-      # - name: Upload Coverage Report
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: python-${{ matrix.python-version }}.coverage-report
-      #     path: htmlcov
-      #     retention-days: 1
+#       - name: Azure Login
+#         uses: azure/login@v2
+#         with:
+#           client-id: ${{ secrets.AZURE_CLIENT_ID }}
+#           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+#           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # - name: Upload to Azure Blob Storage
-      #   if: matrix.python-version == '3.10'
-      #   run: |
-      #     SHA=${{ github.sha }}
-      #     CONTAINER_NAME="github-${SHA}"
-      #     STORAGE_ACCOUNT_NAME="majibutestcoverage"
-      #     az storage container create --name ${CONTAINER_NAME} --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
-      #     az storage blob upload-batch -d ${CONTAINER_NAME} -s htmlcov --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
+#       - name: Set up virtual environment
+#         run: python -m venv venv
 
-      - name: Remove Azure
-        run: |
-          apt-get remove -y azure-cli
-          rm -rf ~/.azure
+#       - name: Cache Virtual Environment
+#         uses: actions/cache@v4
+#         with:
+#           path: venv
+#           key: python:${{ matrix.python-version }}-venv-${{ hashFiles('**/requirements.txt') }}
+#           restore-keys: |
+#             python:${{ matrix.python-version }}-venv-
+
+#       - name: Activate Virtual Environment
+#         shell: bash
+#         run: |
+#           source venv/bin/activate
+#           pip install -r requirements.txt
+#           echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
+#           echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
+
+#       - name: Load Secrets From Vault
+#         env:
+#           AZURE_KEY_VAULT_NAME: ${{ secrets.AZURE_KEY_VAULT_NAME }}
+#         run: |
+#           chmod +x ./scripts/ci-load-secrets.sh
+#           ./scripts/ci-load-secrets.sh
+
+#       - name: Run Tests
+#         id: run-unit-tests
+#         run: |
+#           coverage run manage.py test
+
+#       - name: Generate Coverage Report
+#         run: |
+#           coverage html -d htmlcov
+
+#       # Should run on pull request
+#       - name: Upload Coverage Report
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: python-${{ matrix.python-version }}.coverage-report
+#           path: htmlcov
+#           retention-days: 1
+
+#       - name: Upload to Azure Blob Storage
+#         if: matrix.python-version == '3.10'
+#         run: |
+#           SHA=${{ github.sha }}
+#           CONTAINER_NAME="github-${SHA}"
+#           STORAGE_ACCOUNT_NAME="majibutestcoverage"
+#           az storage container create --name ${CONTAINER_NAME} --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
+#           az storage blob upload-batch -d ${CONTAINER_NAME} -s htmlcov --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
