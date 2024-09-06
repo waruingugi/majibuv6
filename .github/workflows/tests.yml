@@ -82,14 +82,6 @@ jobs:
           restore-keys: |
             python:${{ matrix.python-version }}-venv-
 
-      - name: Save Original GITHUB_PATH and GITHUB_ENV
-        run: |
-          echo "Saving original GITHUB_PATH and GITHUB_ENV"
-          cat $GITHUB_PATH > /tmp/original_github_path_content
-          cat $GITHUB_ENV > /tmp/original_github_env_content
-          echo "GITHUB_PATH is: $GITHUB_PATH"
-          echo "GITHUB_ENV is: $GITHUB_ENV"
-
       - name: Activate Virtual Environment
         shell: bash
         run: |
@@ -97,6 +89,15 @@ jobs:
           pip install -r requirements.txt
           echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
           echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
+
+          AZ_PATH=$(which az)
+          if [ -z "$AZ_PATH" ]; then
+            echo "Azure CLI (az) not found!"
+            exit 1
+          fi
+          echo "Azure CLI (az) located at: $AZ_PATH"
+          echo "Adding Azure CLI to PATH"
+          echo "$(dirname $AZ_PATH)" >> $GITHUB_PATH
 
       - name: Load Secrets From Vault
         env:
@@ -131,14 +132,6 @@ jobs:
           az storage container create --name ${CONTAINER_NAME} --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
           az storage blob upload-batch -d ${CONTAINER_NAME} -s htmlcov --account-name ${STORAGE_ACCOUNT_NAME} --auth-mode login
 
-      - name: Restore Original GITHUB_PATH and GITHUB_ENV
-        run: |
-          echo "Restoring original GITHUB_PATH and GITHUB_ENV"
-
-          # Restore the original contents
-          cat /tmp/original_github_path_content > $GITHUB_PATH
-          cat /tmp/original_github_env_content > $GITHUB_ENV
-
-          echo "Restored GITHUB_PATH and GITHUB_ENV contents"
-
-# /usr/bin/az
+      - name: Azure Logout
+        run: az logout
+        if: always()
