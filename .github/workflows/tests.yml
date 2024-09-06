@@ -134,12 +134,12 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # - name: Load Secrets From Vault
-      #   env:
-      #     AZURE_KEY_VAULT_NAME: ${{ secrets.AZURE_KEY_VAULT_NAME }}
-      #   run: |
-      #     chmod +x ./scripts/ci-load-secrets.sh
-      #     ./scripts/ci-load-secrets.sh
+      - name: Load Secrets From Vault
+        env:
+          AZURE_KEY_VAULT_NAME: ${{ secrets.AZURE_KEY_VAULT_NAME }}
+        run: |
+          chmod +x ./scripts/ci-load-secrets.sh
+          ./scripts/ci-load-secrets.sh
 
       - name: Run Tests
         id: run-unit-tests
