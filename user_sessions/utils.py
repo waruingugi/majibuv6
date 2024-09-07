@@ -39,7 +39,7 @@ def mask_phone_number(phone_number: str) -> str:
 
 
 def get_result_answers(*, user, session) -> dict:
-    logger.info("Getting result answers for {user.phone_number}")
+    logger.info(f"Getting result answers for {user.phone_number}")
     result = Result.objects.get(user=user, session=session)
     data = {
         "username": user.username,
