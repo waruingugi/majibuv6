@@ -92,7 +92,7 @@ jobs:
       - name: Run Tests
         id: run-unit-tests
         run: |
-          coverage run manage.py test
+          coverage run manage.py test --parallel
 
       - name: Generate Coverage Report
         run: |
