@@ -12,54 +12,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# jobs:
-
-#   build-and-deploy:
-#     runs-on: ubuntu-latest
-#     permissions:
-#       id-token: write
-#       contents: read
-
-#     # Strategy matrix to run for both Python 3.10 and 3.11
-#     strategy:
-#       matrix:
-#         python-version: ['3.10', '3.11']
-
-#     steps:
-#       - name: Set up Python ${{ matrix.python-version }}
-#         uses: actions/setup-python@v5
-#         with:
-#           python-version: ${{ matrix.python-version }}
-
-#       - name: Checkout Repository
-#         uses: actions/checkout@v4
-
-#       - name: Install dependencies
-#         run: |
-#           python -m venv venv
-#           source venv/bin/activate
-
-#       - name: Azure Login
-#         uses: azure/login@v2
-#         with:
-#           client-id: ${{ secrets.AZURE_CLIENT_ID }}
-#           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-#           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-#       - name: Azure CLI script
-#         uses: azure/cli@v2
-#         with:
-#           azcliversion: latest
-#           inlineScript: |
-#             az account show
-#             az storage -h
-
-#       # Optional: Azure Logout (can be skipped if you face issues)
-#       - name: Azure Logout
-#         run: az logout
-#         if: always()
-
-
 jobs:
   unit-testing:
     name: Run Unit Tests
@@ -150,6 +102,7 @@ jobs:
 
       # Should run on pull request
       - name: Upload Coverage Report
+        if: matrix.python-version == '3.10'
         uses: actions/upload-artifact@v4
         with:
           name: python-${{ matrix.python-version }}.coverage-report
