@@ -31,11 +31,17 @@ jobs:
         image: postgres
         env:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        options: >-
+            --health-cmd pg_isready
+            --health-retries 3
         ports:
             - 5432:5432
 
       redis:
         image: redis
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-retries 3
         ports:
           - 6379:6379
 
