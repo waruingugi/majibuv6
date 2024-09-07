@@ -33,6 +33,7 @@ jobs:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         options: >-
             --health-cmd pg_isready
+            --health-interval 2s
             --health-retries 3
         ports:
             - 5432:5432
@@ -41,6 +42,7 @@ jobs:
         image: redis
         options: >-
           --health-cmd "redis-cli ping"
+          --health-interval 2s
           --health-retries 3
         ports:
           - 6379:6379
