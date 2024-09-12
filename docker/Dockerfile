@@ -56,5 +56,14 @@ ENTRYPOINT [ "/scripts/entrypoint.sh" ]
 
 COPY . .
 
-# The development server starts by default when the container starts
-CMD ["/scripts/start-prod-server.sh"]
+# The prod server starts by default when the container starts
+# CMD ["/scripts/start-prod-server.sh"]
+
+
+# Use a build argument to specify the environment (default is "production")
+ARG ENVIRONMENT=production
+
+# Set the command based on the environment
+# Default to production if no argument is passed
+CMD if [ "$ENVIRONMENT" = "dev" ]; then /scripts/start-dev-server.sh; \
+    else /scripts/start-prod-server.sh; fi

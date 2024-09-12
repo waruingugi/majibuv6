@@ -1,16 +1,20 @@
 from enum import Enum
 
-from django.conf import settings
-
 
 class ErrorCodes(str, Enum):
+    # TODO: Use the below message to explain why business is closed
+    # BUSINESS_IS_CLOSED = (
+    #     "Oh, you just missed the party! "
+    #     "Please check in again between "
+    #     f"{settings.BUSINESS_OPENS_AT}p.m. "
+    #     "and "
+    #     f"{settings.BUSINESS_CLOSES_AT}p.m. "
+    #     "to play a session."
+    # )
     BUSINESS_IS_CLOSED = (
-        "Oh, you just missed the party! "
-        "Please check in again between "
-        f"{settings.BUSINESS_OPENS_AT}p.m. "
-        "and "
-        f"{settings.BUSINESS_CLOSES_AT}p.m. "
-        "to play a session."
+        "Sadly, we've paused work on this app. "
+        "To contact admin, please click the 'Join Our WhatsApp Group Today' "
+        "image on the home page."
     )
     CONTEXT_IS_REQUIRED = "Request context is required for validation."
     INVALID_DUOSESSION = "The requested duo session does not exist."
