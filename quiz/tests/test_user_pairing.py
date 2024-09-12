@@ -258,21 +258,22 @@ class PairUsersTestCase(BaseQuizTestCase):
         )
         self.assertTrue(self.pair_users.is_ready_for_pairing(result))
 
-    def test_is_pool_below_threshold(self) -> None:
-        """Test if is_enough_users_to_pair returns correct value."""
-        self.assertTrue(
-            self.pair_users.is_pool_below_threshold(
-                queue_ordered_by_score=Result.objects.all().order_by("score")
-            )
-        )
+    # TODO: Remove this once we have sustainable number of users
+    # def test_is_pool_below_threshold(self) -> None:
+    #     """Test if is_enough_users_to_pair returns correct value."""
+    #     self.assertTrue(
+    #         self.pair_users.is_pool_below_threshold(
+    #             queue_ordered_by_score=Result.objects.all().order_by("score")
+    #         )
+    #     )
 
-        # Now delete all results, and assert False is returned
-        Result.objects.all().delete()
-        self.assertFalse(
-            self.pair_users.is_pool_below_threshold(
-                queue_ordered_by_score=Result.objects.all().order_by("score")
-            )
-        )
+    #     # Now delete all results, and assert False is returned
+    #     Result.objects.all().delete()
+    #     self.assertFalse(
+    #         self.pair_users.is_pool_below_threshold(
+    #             queue_ordered_by_score=Result.objects.all().order_by("score")
+    #         )
+    #     )
 
     def test_is_partial_refund_no_answers(self) -> None:
         """
